@@ -1,0 +1,25 @@
+{
+    "name": "com.rhinox.utilities",
+    "references": [
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:fc025ba4ac3997440926e87ec084af89",
+        "GUID:d06f234cedf03a546807d093bc1d736b",
+        "GUID:62a965aa53b0d0e4a9715c9a86d7fd31",
+        "GUID:9f2912ef3cf155747b28c57f7136ff68"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "0.0.0",
+            "define": "TEXT_MESH_PRO"
+        }
+    ],
+    "noEngineReferences": false
+}

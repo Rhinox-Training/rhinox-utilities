@@ -1,0 +1,40 @@
+{
+    "name": "com.rhinox.utilities.editor",
+    "references": [
+        "Unity.TextMeshPro",
+        "Unity.TextMeshPro.Editor",
+        "Unity.ProBuilder",
+        "com.rhinox.utilities",
+        "com.rhinox.open.lightspeed",
+        "com.rhinox.open.guiutils",
+        "com.rhinox.open.guiutils.attributes",
+        "com.rhinox.open.guiutils.editor",
+        "com.rhinox.open.perceptor",
+        "com.rhinox.open.guiutils.odin",
+        "com.rhinox.open.guiutils.odin.editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.probuilder",
+            "expression": "0.0.0",
+            "define": "PROBUILDER"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "0.0.0",
+            "define": "TEXT_MESH_PRO"
+        }
+    ],
+    "noEngineReferences": false
+}
