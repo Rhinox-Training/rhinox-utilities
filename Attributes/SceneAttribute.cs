@@ -1,4 +1,8 @@
 using UnityEngine;
 
-public class SceneAttribute : PropertyAttribute {
+namespace Rhinox.Utilities.Attributes
+{
+    public class SceneAttribute : PropertyAttribute
+    {
+    }
 }

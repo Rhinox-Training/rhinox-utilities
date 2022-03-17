@@ -4,6 +4,7 @@ using System.IO;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Lightspeed.Reflection;
 using Rhinox.Perceptor;
+using Rhinox.Utilities.Attributes;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

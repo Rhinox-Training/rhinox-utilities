@@ -1,17 +1,29 @@
 {
-  "name": "com.rhinox.utilities",
-  "displayName": "Utility (Rhinox Module)",
+  "name": "com.rhinox.open.utilities",
+  "displayName": "Utilities Library",
   "version": "1.0.0",
   "unity": "2019.3",
-  "description": "Utility code for Rhinox projects (depends on Odin and TypeSafe).",
+  "description": "Utility code for Unity projects.",
   "keywords": [
-    "unity"
+    "unity",
+    "utility",
+    "utilities"
   ],
   "category": "Unity",
   "dependencies": {
-	"com.rhinox.open.lightspeed": "1.1.5",
-	"com.rhinox.open.guiutils": "1.4.0",
-	"com.rhinox.open.perceptor": "0.1.0"
+	"com.rhinox.open.lightspeed": "1.1.7",
+	"com.rhinox.open.guiutils": "1.4.1",
+	"com.rhinox.open.perceptor": "0.1.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rhinox-Training/rhinox-utilities.git"
+  },
+  "author": "Rhinox",
+  "license": "Apache V.2",
+  "bugs": {
+    "url": "https://github.com/Rhinox-Training/rhinox-utilities/issues"
+  },
+  "homepage": "https://github.com/Rhinox-Training/rhinox-utilities#readme",
   "type": "library"
 }

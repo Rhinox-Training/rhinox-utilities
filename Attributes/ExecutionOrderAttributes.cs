@@ -1,47 +1,50 @@
 ﻿using System;
 
-/// <summary>
-/// NOTE: only affects Unity Behaviors
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
-public class ExecutionOrderAttribute : System.Attribute
+namespace Rhinox.Utilities.Attributes
 {
-	public int order;
-
-	public ExecutionOrderAttribute(int order)
+	/// <summary>
+	/// NOTE: only affects Unity Behaviors
+	/// </summary>
+	[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
+	public class ExecutionOrderAttribute : System.Attribute
 	{
-		this.order = order;
+		public int order;
+
+		public ExecutionOrderAttribute(int order)
+		{
+			this.order = order;
+		}
 	}
-}
 
-/// <summary>
-/// NOTE: only affects Unity Behaviors
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
-public class ExecuteAfterAttribute : System.Attribute
-{
-	public Type targetType;
-	public int orderIncrease;
-
-	public ExecuteAfterAttribute(Type targetType)
+	/// <summary>
+	/// NOTE: only affects Unity Behaviors
+	/// </summary>
+	[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
+	public class ExecuteAfterAttribute : System.Attribute
 	{
-		this.targetType = targetType;
-		this.orderIncrease = 10;
+		public Type targetType;
+		public int orderIncrease;
+
+		public ExecuteAfterAttribute(Type targetType)
+		{
+			this.targetType = targetType;
+			this.orderIncrease = 10;
+		}
 	}
-}
 
-/// <summary>
-/// NOTE: only affects Unity Behaviors
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
-public class ExecuteBeforeAttribute : System.Attribute
-{
-	public Type targetType;
-	public int orderDecrease;
-
-	public ExecuteBeforeAttribute(Type targetType)
+	/// <summary>
+	/// NOTE: only affects Unity Behaviors
+	/// </summary>
+	[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
+	public class ExecuteBeforeAttribute : System.Attribute
 	{
-		this.targetType = targetType;
-		this.orderDecrease = 10;
+		public Type targetType;
+		public int orderDecrease;
+
+		public ExecuteBeforeAttribute(Type targetType)
+		{
+			this.targetType = targetType;
+			this.orderDecrease = 10;
+		}
 	}
 }

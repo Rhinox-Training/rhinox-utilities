@@ -6,45 +6,47 @@ using Sirenix.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-
-[Serializable, HideReferenceObjectPicker]
-public abstract class BaseAdvancedSearchSearchFilter
+namespace Rhinox.Utilities.Odin.Editor
 {
-    public string Name { get; }
-
-    public event Action<BaseAdvancedSearchSearchFilter> Changed;
-    
-    protected BaseAdvancedSearchSearchFilter(string name)
+    [Serializable, HideReferenceObjectPicker]
+    public abstract class BaseAdvancedSearchSearchFilter
     {
-        Name = name;
-        Enabled = true;
-    }
+        public string Name { get; }
 
-    public bool Enabled { get; set; }
+        public event Action<BaseAdvancedSearchSearchFilter> Changed;
 
-    public virtual void Reset()
-    {
-        TriggerChanged();
-    }
+        protected BaseAdvancedSearchSearchFilter(string name)
+        {
+            Name = name;
+            Enabled = true;
+        }
 
-    public abstract ICollection<GameObject> ApplyFilter(ICollection<GameObject> selectedObjs);
-    
-    public abstract string GetFilterInfo();
+        public bool Enabled { get; set; }
 
-    public virtual void HandleDragged(Object draggedObject)
-    {
-    }
+        public virtual void Reset()
+        {
+            TriggerChanged();
+        }
 
-    public void Toggle()
-    {
-        Enabled = !Enabled;
-        TriggerChanged();
-    }
+        public abstract ICollection<GameObject> ApplyFilter(ICollection<GameObject> selectedObjs);
 
-    protected void TriggerChanged() => OnChanged();
+        public abstract string GetFilterInfo();
 
-    protected virtual void OnChanged()
-    {
-        Changed?.Invoke(this);
+        public virtual void HandleDragged(Object draggedObject)
+        {
+        }
+
+        public void Toggle()
+        {
+            Enabled = !Enabled;
+            TriggerChanged();
+        }
+
+        protected void TriggerChanged() => OnChanged();
+
+        protected virtual void OnChanged()
+        {
+            Changed?.Invoke(this);
+        }
     }
 }

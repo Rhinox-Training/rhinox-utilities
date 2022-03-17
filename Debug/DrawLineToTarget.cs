@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Rhinox.Utilities;
+﻿using Rhinox.Lightspeed;
 using UnityEngine;
 
-public class DrawLineToTarget : MonoBehaviour
+namespace Rhinox.Utilities
 {
-    public Transform Target;
-
-    private void OnDrawGizmos()
+    [RefactoringOldNamespace("")]
+    public class DrawLineToTarget : MonoBehaviour
     {
-        var color = Gizmos.color;
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, Target.position);
-        Gizmos.color = color;
+        public Transform Target;
+
+        private void OnDrawGizmos()
+        {
+            var color = Gizmos.color;
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, Target.position);
+            Gizmos.color = color;
+        }
     }
 }

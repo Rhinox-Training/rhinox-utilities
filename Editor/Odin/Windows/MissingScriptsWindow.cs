@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class MissingScriptsWindow : OdinEditorWindow
     {

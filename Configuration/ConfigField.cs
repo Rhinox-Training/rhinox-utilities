@@ -3,7 +3,6 @@ using System.Reflection;
 
 namespace Rhinox.Utilities
 {
-
     public class ConfigField
     {
         public FieldInfo Field;

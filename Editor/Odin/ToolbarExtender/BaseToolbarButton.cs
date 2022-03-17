@@ -7,7 +7,7 @@ using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     [HideReferenceObjectPicker]
     public abstract class BaseToolbarButton

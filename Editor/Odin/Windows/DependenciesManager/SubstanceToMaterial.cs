@@ -9,7 +9,7 @@ using System.Reflection;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.OdinInspector;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public struct SubstanceInfo
     {

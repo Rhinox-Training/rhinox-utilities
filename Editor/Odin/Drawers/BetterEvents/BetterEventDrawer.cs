@@ -7,7 +7,7 @@ using Rhinox.GUIUtils.Odin;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class BetterEventDrawer : OdinValueDrawer<BetterEventEntry>
     {

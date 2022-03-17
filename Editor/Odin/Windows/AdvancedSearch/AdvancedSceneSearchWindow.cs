@@ -6,21 +6,24 @@ using UnityEngine;
 
 using Object = System.Object;
 
-/// <summary>
-/// A unity editor window that allows you to search the scene for objects with
-/// specific properties
-/// </summary>
-public class AdvancedSceneSearchWindow : OdinPagerEditorWindow<AdvancedSceneSearchWindow>, IHasCustomMenu
+namespace Rhinox.Utilities.Odin.Editor
 {
-    protected override object RootPage => new AdvancedSceneSearchOverview(_pager);
-    protected override string RootPageName => "Overview";
-    
-    public static void OpenWindow()
+    /// <summary>
+    /// A unity editor window that allows you to search the scene for objects with
+    /// specific properties
+    /// </summary>
+    public class AdvancedSceneSearchWindow : OdinPagerEditorWindow<AdvancedSceneSearchWindow>, IHasCustomMenu
     {
-        AdvancedSceneSearchWindow window;
-        if (!GetOrCreateWindow(out window)) return;
-        
-        window.name = "Advanced Search";
-        window.titleContent = new GUIContent("Adv. Search", EditorGUIUtility.FindTexture("d_ViewToolZoom"));
+        protected override object RootPage => new AdvancedSceneSearchOverview(_pager);
+        protected override string RootPageName => "Overview";
+
+        public static void OpenWindow()
+        {
+            AdvancedSceneSearchWindow window;
+            if (!GetOrCreateWindow(out window)) return;
+
+            window.name = "Advanced Search";
+            window.titleContent = new GUIContent("Adv. Search", EditorGUIUtility.FindTexture("d_ViewToolZoom"));
+        }
     }
 }

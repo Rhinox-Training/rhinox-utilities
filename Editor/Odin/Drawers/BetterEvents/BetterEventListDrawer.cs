@@ -3,7 +3,7 @@ using Rhinox.GUIUtils.Odin;
 using Sirenix.OdinInspector.Editor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class BetterEventListDrawer : OdinValueDrawer<BetterEvent>
     {

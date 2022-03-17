@@ -2,7 +2,7 @@ using System;
 using Sirenix.Utilities.Editor.Expressions;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class StringExpressionAction : BaseToolbarButton
     {

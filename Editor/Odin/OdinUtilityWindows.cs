@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public static class UtilityWindows
     {

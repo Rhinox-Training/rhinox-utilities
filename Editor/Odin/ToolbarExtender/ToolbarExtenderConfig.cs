@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class ToolbarExtenderConfig : CustomProjectSettings<ToolbarExtenderConfig>
     {

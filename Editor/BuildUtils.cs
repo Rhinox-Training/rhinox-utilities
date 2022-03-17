@@ -3,7 +3,8 @@ using UnityEditor;
 using UnityEditor.VersionControl;
 using UnityEngine;
 
-namespace Sirenix.OdinInspector.Editor
+// TODO: cleanup class
+namespace Rhinox.Utilities.Editor
 {
     /// <summary>
     /// Various BuildSettings interactions

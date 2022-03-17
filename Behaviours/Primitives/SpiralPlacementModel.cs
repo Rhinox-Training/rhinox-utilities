@@ -1,14 +1,19 @@
-﻿using UnityEngine;
+﻿using Rhinox.Lightspeed;
+using UnityEngine;
 
-[System.Serializable]
-public class SpiralPlacementModel
+namespace Rhinox.Utilities
 {
-	public Vector3 position;
-	public Vector3 angle;
-
-	public SpiralPlacementModel(Vector3 position, Vector3 angle)
+	[RefactoringOldNamespace("")]
+	[System.Serializable]
+	public class SpiralPlacementModel
 	{
-		this.position = position;
-		this.angle = angle;
+		public Vector3 position;
+		public Vector3 angle;
+
+		public SpiralPlacementModel(Vector3 position, Vector3 angle)
+		{
+			this.position = position;
+			this.angle = angle;
+		}
 	}
 }

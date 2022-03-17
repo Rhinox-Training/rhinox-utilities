@@ -1,46 +1,52 @@
 using System;
+using Rhinox.Lightspeed;
 using UnityEngine;
 
-public class OrbitBillboard : MonoBehaviour
+namespace Rhinox.Utilities
 {
-    public GameObject Target;
-    public Vector3 WorldOffset;
-    private Transform _cameraObject;
-
-    private Transform CachedCamera => _cameraObject != null ? _cameraObject : _cameraObject = Camera.main?.transform;
-
-    public bool RotateToCamera = true;
-
-    private void Start()
+    [RefactoringOldNamespace("")]
+    public class OrbitBillboard : MonoBehaviour
     {
-        ExecuteFollow();
-    }
-    
-    private void LateUpdate()
-    {
-        ExecuteFollow();
-    }
+        public GameObject Target;
+        public Vector3 WorldOffset;
+        private Transform _cameraObject;
 
-    private void ExecuteFollow()
-    {
-        if (RotateToCamera && CachedCamera == null)
-            return;
+        private Transform CachedCamera =>
+            _cameraObject != null ? _cameraObject : _cameraObject = Camera.main?.transform;
 
-        if (Target != null)
-            transform.position = Target.transform.position + WorldOffset;
+        public bool RotateToCamera = true;
 
-        if (!RotateToCamera)
-            return;
-        
-        var forward = transform.forward;
-        var targetForward = (CachedCamera.position - transform.position);
-        if (targetForward.sqrMagnitude < float.Epsilon)
-            return;
-        var normTargetForward = targetForward.normalized;
+        private void Start()
+        {
+            ExecuteFollow();
+        }
 
-        forward.y = 0;
-        normTargetForward.y = 0;
+        private void LateUpdate()
+        {
+            ExecuteFollow();
+        }
 
-        transform.rotation *= Quaternion.FromToRotation(forward, normTargetForward);
+        private void ExecuteFollow()
+        {
+            if (RotateToCamera && CachedCamera == null)
+                return;
+
+            if (Target != null)
+                transform.position = Target.transform.position + WorldOffset;
+
+            if (!RotateToCamera)
+                return;
+
+            var forward = transform.forward;
+            var targetForward = (CachedCamera.position - transform.position);
+            if (targetForward.sqrMagnitude < float.Epsilon)
+                return;
+            var normTargetForward = targetForward.normalized;
+
+            forward.y = 0;
+            normTargetForward.y = 0;
+
+            transform.rotation *= Quaternion.FromToRotation(forward, normTargetForward);
+        }
     }
 }

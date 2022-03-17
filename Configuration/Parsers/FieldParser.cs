@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Rhinox.Utilities.Parsers
+namespace Rhinox.Utilities
 {
     public abstract class FieldParser
     {

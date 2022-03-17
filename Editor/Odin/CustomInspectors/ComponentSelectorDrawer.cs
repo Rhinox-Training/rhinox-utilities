@@ -5,7 +5,7 @@ using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     [CustomEditor(typeof(ComponentSelector))]
     public class ComponentSelectorDrawer : OdinEditor

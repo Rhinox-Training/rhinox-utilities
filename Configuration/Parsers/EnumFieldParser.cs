@@ -1,6 +1,6 @@
 using System;
 
-namespace Rhinox.Utilities.Parsers
+namespace Rhinox.Utilities
 {
     public class EnumFieldParser : FieldParser
     {

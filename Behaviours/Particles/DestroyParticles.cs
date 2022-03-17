@@ -1,10 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Rhinox.Lightspeed;
 
-public class DestroyParticles : MonoBehaviour
+namespace Rhinox.Utilities
 {
-    private void Start()
+    [RefactoringOldNamespace("")]
+    public class DestroyParticles : MonoBehaviour
     {
-        Destroy(gameObject, GetComponent<ParticleSystem>().main.duration);
+        private void Start()
+        {
+            Destroy(gameObject, GetComponent<ParticleSystem>().main.duration);
+        }
     }
 }
