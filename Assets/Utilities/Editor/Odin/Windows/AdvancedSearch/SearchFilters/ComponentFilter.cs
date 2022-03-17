@@ -3,18 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Rhinox.Lightspeed;
-using Rhinox.Utilities;
-using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using Sirenix.Utilities.Editor.Expressions;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using TypeSearchData = ComponentsContainer.TypeSearchData;
-using CompareMethod = ComponentsContainer.TypeSearchData.CompareMethod;
+using TypeSearchData = Rhinox.Utilities.Odin.Editor.ComponentsContainer.TypeSearchData;
+using CompareMethod = Rhinox.Utilities.Odin.Editor.ComponentsContainer.TypeSearchData.CompareMethod;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
