@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class ToolbarSpacer : BaseToolbarButton
     {

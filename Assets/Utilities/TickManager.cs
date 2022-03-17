@@ -1,4 +1,5 @@
 using System;
+using Rhinox.Utilities.Attributes;
 
 namespace Rhinox.Utilities
 {

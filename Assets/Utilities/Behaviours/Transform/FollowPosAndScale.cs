@@ -2,33 +2,36 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class FollowPosAndScale : MonoBehaviour 
+namespace Rhinox.Utilities
 {
-	public float YOffset = -.3f;
-	public float SquashScale = .85f;
-
-	[ShowInInspector, ReadOnly]
-    public Transform TransformToFollow { get; set; }
-	public Renderer[] Renderers { get; set; }
-
-	void Start()
+	[RefactoringOldNamespace("")]
+	public class FollowPosAndScale : MonoBehaviour
 	{
-		MoveToTarget();
-	}
-    
-	void Update ()
-	{
-		MoveToTarget();
-	}
+		public float YOffset = -.3f;
+		public float SquashScale = .85f;
 
-	private void MoveToTarget()
-	{
-		if (TransformToFollow == null)
+		[ShowInInspector, ReadOnly] public Transform TransformToFollow { get; set; }
+		public Renderer[] Renderers { get; set; }
+
+		void Start()
 		{
-			return;
+			MoveToTarget();
 		}
-		
-		transform.position = TransformToFollow.transform.position.Add(y: YOffset);
-		transform.localScale = transform.localScale.With(x: SquashScale, z: SquashScale);
+
+		void Update()
+		{
+			MoveToTarget();
+		}
+
+		private void MoveToTarget()
+		{
+			if (TransformToFollow == null)
+			{
+				return;
+			}
+
+			transform.position = TransformToFollow.transform.position.Add(y: YOffset);
+			transform.localScale = transform.localScale.With(x: SquashScale, z: SquashScale);
+		}
 	}
 }

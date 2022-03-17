@@ -1,25 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Rhinox.Lightspeed;
 
-[RequireComponent(typeof(Material))]
-public class ToggleMaterialTransparency : MonoBehaviour
+namespace Rhinox.Utilities
 {
-    public float AlphaA = 1f;
-    public float AlphaB = 0.25f;
-
-    Material _mat;
-    bool _isTransparent;
-
-    private void Awake()
+    [RefactoringOldNamespace("")]
+    [RequireComponent(typeof(Material))]
+    public class ToggleMaterialTransparency : MonoBehaviour
     {
-        _mat = GetComponent<Renderer>().material;
-    }
+        public float AlphaA = 1f;
+        public float AlphaB = 0.25f;
 
-    public void ToggleTransparency()
-    {
-        _isTransparent = !_isTransparent;
-        _mat.SetColor(a: _isTransparent ? AlphaB : AlphaA);
+        Material _mat;
+        bool _isTransparent;
+
+        private void Awake()
+        {
+            _mat = GetComponent<Renderer>().material;
+        }
+
+        public void ToggleTransparency()
+        {
+            _isTransparent = !_isTransparent;
+            _mat.SetColor(a: _isTransparent ? AlphaB : AlphaA);
+        }
     }
 }

@@ -1,45 +1,47 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class Billboard : MonoBehaviour 
+namespace Rhinox.Utilities
 {
-    [ShowInInspector, ReadOnly]
-	private Transform _target;
-
-	public Transform UpTarget;
-
-	public bool LockY;
-	
-	private void Awake()
+	[RefactoringOldNamespace("")]
+	public class Billboard : MonoBehaviour
 	{
-		_target = Camera.main?.transform;
-	}
+		[ShowInInspector, ReadOnly] private Transform _target;
 
-	private void Update()
-	{
-		if (_target == null)
+		public Transform UpTarget;
+
+		public bool LockY;
+
+		private void Awake()
+		{
 			_target = Camera.main?.transform;
-	}
+		}
 
-	private void OnEnable()
-	{
-		LookAtTarget();
-	}
+		private void Update()
+		{
+			if (_target == null)
+				_target = Camera.main?.transform;
+		}
 
-	void LateUpdate ()
-	{
-		LookAtTarget();
-	}
+		private void OnEnable()
+		{
+			LookAtTarget();
+		}
 
-	private void LookAtTarget()
-	{
-		if (_target == null) 
-			return;
-		Vector3 targetPos = _target.position;
-		if (LockY)
-			targetPos.y = transform.position.y;
-		transform.LookAt(targetPos, UpTarget == null ? Vector3.up : transform.position - UpTarget.position);
+		void LateUpdate()
+		{
+			LookAtTarget();
+		}
+
+		private void LookAtTarget()
+		{
+			if (_target == null)
+				return;
+			Vector3 targetPos = _target.position;
+			if (LockY)
+				targetPos.y = transform.position.y;
+			transform.LookAt(targetPos, UpTarget == null ? Vector3.up : transform.position - UpTarget.position);
+		}
 	}
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Diagnostics;
+using Rhinox.Utilities.Attributes;
 using Debug = UnityEngine.Debug;
 
 namespace Rhinox.Utilities.Editor

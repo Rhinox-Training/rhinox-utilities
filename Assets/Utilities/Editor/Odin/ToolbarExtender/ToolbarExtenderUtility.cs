@@ -2,7 +2,7 @@
 using System.Reflection;
 using Sirenix.Utilities;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
 	public static class ToolbarExtenderUtility
 	{

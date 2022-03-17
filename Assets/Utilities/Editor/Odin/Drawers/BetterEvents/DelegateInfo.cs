@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public struct DelegateInfo
     {

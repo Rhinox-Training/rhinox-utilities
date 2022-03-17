@@ -19,7 +19,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using GUILayoutOptions = Sirenix.Utilities.GUILayoutOptions;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
 	[TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
 	public class DependencySettings

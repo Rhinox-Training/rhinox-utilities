@@ -1,5 +1,10 @@
-﻿using Rhinox.Perceptor;
+﻿using Rhinox.Lightspeed;
+using Rhinox.Perceptor;
 
-public class UtilityLogger : CustomLogger
+namespace Rhinox.Utilities
 {
+    [RefactoringOldNamespace("")]
+    public class UtilityLogger : CustomLogger
+    {
+    }
 }

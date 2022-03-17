@@ -1,6 +1,6 @@
 using System;
 
-namespace Rhinox.Utilities
+namespace Rhinox.Utilities.Attributes
 {
     public class OrderedRuntimeInitializeAttribute : Attribute
     {

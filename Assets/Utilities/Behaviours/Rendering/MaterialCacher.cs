@@ -1,18 +1,21 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Rhinox.Lightspeed;
 using UnityEngine;
 
-public class MaterialCacher : MonoBehaviour
+namespace Rhinox.Utilities
 {
-    Material _mat;
+    [RefactoringOldNamespace("")]
+    public class MaterialCacher : MonoBehaviour
+    {
+        Material _mat;
 
-	void Start ()
-    {
-        _mat = GetComponent<Renderer>().sharedMaterial;
-	}
-	
-	public void Reset()
-    {
-        GetComponent<Renderer>().sharedMaterial = _mat;
+        void Start()
+        {
+            _mat = GetComponent<Renderer>().sharedMaterial;
+        }
+
+        public void Reset()
+        {
+            GetComponent<Renderer>().sharedMaterial = _mat;
+        }
     }
 }

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 
 // This turns the BetterEventEntry.ParameterValues object array into properties in the inspector.
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class BetterEventProcessor : OdinPropertyProcessor<BetterEventEntry>
     {

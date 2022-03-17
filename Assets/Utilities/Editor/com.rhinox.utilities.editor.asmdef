@@ -4,13 +4,12 @@
         "Unity.TextMeshPro",
         "Unity.TextMeshPro.Editor",
         "Unity.ProBuilder",
-        "com.rhinox.utilities",
+        "com.rhinox.open.utilities",
         "com.rhinox.open.lightspeed",
         "com.rhinox.open.guiutils",
         "com.rhinox.open.guiutils.attributes",
         "com.rhinox.open.guiutils.editor",
         "com.rhinox.open.perceptor",
-        "com.rhinox.open.guiutils.odin",
         "com.rhinox.open.guiutils.odin.editor"
     ],
     "includePlatforms": [

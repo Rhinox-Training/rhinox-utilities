@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     // Create a new type of Settings Asset.
     public abstract class CustomProjectSettings<T> : SerializedScriptableObject where T : CustomProjectSettings<T>

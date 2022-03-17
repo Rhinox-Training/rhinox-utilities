@@ -6,47 +6,51 @@ using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
-public class SettingData
+namespace Rhinox.Utilities.Odin.Editor
 {
-    public string PrefsKey;
-    public string SettingName;
-    public Texture SettingIcon;
-
-    private const string SETTINGS_KEY = "AdvancedSceneSearch";
-    private bool _state;
-
-    public event Action Changed; 
-
-    public SettingData(string settingName, string prefsKey, bool defaultValue, string icon = null)
+    public class SettingData
     {
-        SettingName = settingName;
-        SettingIcon = string.IsNullOrWhiteSpace(icon) ? null : UnityIcon.AssetIcon(icon);
-        PrefsKey = prefsKey;
-        _state = EditorPrefs.GetBool(SETTINGS_KEY + PrefsKey, defaultValue);
-    }
+        public string PrefsKey;
+        public string SettingName;
+        public Texture SettingIcon;
 
-    public bool State
-    {
-        get { return _state; }
-        set
+        private const string SETTINGS_KEY = "AdvancedSceneSearch";
+        private bool _state;
+
+        public event Action Changed;
+
+        public SettingData(string settingName, string prefsKey, bool defaultValue, string icon = null)
         {
-            if (_state == value) return;
-            
-            EditorPrefs.SetBool(SETTINGS_KEY + PrefsKey, value);
-            _state = value;
-            Changed?.Invoke();
+            SettingName = settingName;
+            SettingIcon = string.IsNullOrWhiteSpace(icon) ? null : UnityIcon.AssetIcon(icon);
+            PrefsKey = prefsKey;
+            _state = EditorPrefs.GetBool(SETTINGS_KEY + PrefsKey, defaultValue);
         }
-    }
 
-    public void Draw()
-    {
-        using (new eUtility.GuiColor(State ? Color.white : Color.gray))
+        public bool State
         {
-            if (SettingIcon)
-                State = GUILayout.Toggle(State, new GUIContent(SettingIcon, tooltip: SettingName),  SirenixGUIStyles.Label, GUILayoutOptions.Height(16).Width(20));
-            else
-                State = GUILayout.Toggle(State, SettingName,  SirenixGUIStyles.Label);
-               
+            get { return _state; }
+            set
+            {
+                if (_state == value) return;
+
+                EditorPrefs.SetBool(SETTINGS_KEY + PrefsKey, value);
+                _state = value;
+                Changed?.Invoke();
+            }
+        }
+
+        public void Draw()
+        {
+            using (new eUtility.GuiColor(State ? Color.white : Color.gray))
+            {
+                if (SettingIcon)
+                    State = GUILayout.Toggle(State, new GUIContent(SettingIcon, tooltip: SettingName),
+                        SirenixGUIStyles.Label, GUILayoutOptions.Height(16).Width(20));
+                else
+                    State = GUILayout.Toggle(State, SettingName, SirenixGUIStyles.Label);
+
+            }
         }
     }
 }

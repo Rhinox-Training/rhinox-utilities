@@ -1,50 +1,53 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Rhinox.Lightspeed;
 using UnityEngine;
 
-[ExecuteInEditMode]
-[RequireComponent(typeof(SpiralPlotter))]
-public class SpiralPlot : MonoBehaviour {
-
-	[SerializeField] public string label;
-	[SerializeField] public SpiralPlotModel[] plots;
-
-	private SpiralPlotter spiralPlotter;
-
-	void Awake()
+namespace Rhinox.Utilities
+{
+	[RefactoringOldNamespace("")]
+	[ExecuteInEditMode]
+	[RequireComponent(typeof(SpiralPlotter))]
+	public class SpiralPlot : MonoBehaviour
 	{
-		spiralPlotter = GetComponent<SpiralPlotter>();
-		
-		Refresh();
-	}
 
-	void Refresh()
-	{
-		UpdatePlot();
-	}
+		[SerializeField] public string label;
+		[SerializeField] public SpiralPlotModel[] plots;
 
-	public void UpdatePlot()
-	{
-		var hasSpiralPlotter = spiralPlotter != null;
-		var hasPlots = plots != null;
-		if(hasSpiralPlotter && hasPlots)
+		private SpiralPlotter spiralPlotter;
+
+		void Awake()
 		{
-			foreach (var plot in plots)
+			spiralPlotter = GetComponent<SpiralPlotter>();
+
+			Refresh();
+		}
+
+		void Refresh()
+		{
+			UpdatePlot();
+		}
+
+		public void UpdatePlot()
+		{
+			var hasSpiralPlotter = spiralPlotter != null;
+			var hasPlots = plots != null;
+			if (hasSpiralPlotter && hasPlots)
 			{
-				var hasVisual = plot.visual != null;
-				if(hasVisual)
+				foreach (var plot in plots)
 				{
-					SpiralPlacementModel spiralPlacement = spiralPlotter.GetSpiralPlacement(plot.percent);
-					plot.visual.transform.position = spiralPlacement.position;
-					plot.visual.transform.up = spiralPlacement.angle;
+					var hasVisual = plot.visual != null;
+					if (hasVisual)
+					{
+						SpiralPlacementModel spiralPlacement = spiralPlotter.GetSpiralPlacement(plot.percent);
+						plot.visual.transform.position = spiralPlacement.position;
+						plot.visual.transform.up = spiralPlacement.angle;
+					}
 				}
 			}
 		}
-	}
 
-	void OnValidate()
-	{
-		Refresh();
+		void OnValidate()
+		{
+			Refresh();
+		}
 	}
-
 }

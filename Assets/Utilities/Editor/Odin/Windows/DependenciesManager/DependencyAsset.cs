@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using Object = UnityEngine.Object;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class DependencyAsset
     {

@@ -3,7 +3,7 @@ using Rhinox.Lightspeed;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities
+namespace Rhinox.Utilities.Editor
 {
     internal static class GameObjectGrouping
     {

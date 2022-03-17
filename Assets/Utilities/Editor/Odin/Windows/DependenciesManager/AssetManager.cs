@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Sirenix.OdinInspector;
 using UnityEditor;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class AssetManager
     {

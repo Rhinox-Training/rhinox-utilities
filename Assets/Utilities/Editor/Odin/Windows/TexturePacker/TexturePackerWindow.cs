@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 
-namespace Rhinox.Utilities.Editor
+namespace Rhinox.Utilities.Odin.Editor
 {
     public class TexturePackerWindow : OdinEditorWindow
     {

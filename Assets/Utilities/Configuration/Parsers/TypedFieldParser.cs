@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Rhinox.Utilities.Parsers
+namespace Rhinox.Utilities
 {
     public abstract class TypedFieldParser : FieldParser
     {

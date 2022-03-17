@@ -1,26 +1,19 @@
 {
-    "name": "com.rhinox.open.utility.editor.odin",
+    "name": "com.rhinox.open.utilities",
     "references": [
-        "GUID:cacc866837634ee43b789e23dc71d920",
-        "GUID:63f11407a78fdae4d8a6e658a5e2ff23",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
         "GUID:fc025ba4ac3997440926e87ec084af89",
-        "GUID:3b169ccda512e504b9e2eb8b0bec14f9",
+        "GUID:d06f234cedf03a546807d093bc1d736b",
         "GUID:62a965aa53b0d0e4a9715c9a86d7fd31",
-        "GUID:7262f4696183b8841b571481b3ac0765",
-        "GUID:0ddc618087b4c494893b70a3bef42e02",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "GUID:9f2912ef3cf155747b28c57f7136ff68"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-        "ODIN_INSPECTOR"
-    ],
+    "defineConstraints": [],
     "versionDefines": [
         {
             "name": "com.unity.textmeshpro",

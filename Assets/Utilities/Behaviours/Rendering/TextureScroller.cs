@@ -1,32 +1,35 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Rhinox.Lightspeed;
 using UnityEngine;
 
-[RequireComponent(typeof(Renderer))]
-public class TextureScroller : MonoBehaviour
+namespace Rhinox.Utilities
 {
-    public Vector2 ScrollSpeed = new Vector2(1, 0);
-
-    //Texture _texture;
-    Material _material;
-
-    void Start()
+    [RefactoringOldNamespace("")]
+    [RequireComponent(typeof(Renderer))]
+    public class TextureScroller : MonoBehaviour
     {
-        _material = GetComponent<Renderer>().sharedMaterial;
-        if (_material == null)
-            enabled = false;
-        //_texture = _material.GetTexture(0);
-    }
+        public Vector2 ScrollSpeed = new Vector2(1, 0);
 
-    void Update()
-    {
-        var offset = ScrollSpeed * Time.time;
-        _material.SetTextureOffset("_MainTex", offset);
-    }
+        //Texture _texture;
+        Material _material;
 
-    private void OnDestroy()
-    {
-        if (_material)
-            _material.SetTextureOffset("_MainTex", Vector2.zero);
+        void Start()
+        {
+            _material = GetComponent<Renderer>().sharedMaterial;
+            if (_material == null)
+                enabled = false;
+            //_texture = _material.GetTexture(0);
+        }
+
+        void Update()
+        {
+            var offset = ScrollSpeed * Time.time;
+            _material.SetTextureOffset("_MainTex", offset);
+        }
+
+        private void OnDestroy()
+        {
+            if (_material)
+                _material.SetTextureOffset("_MainTex", Vector2.zero);
+        }
     }
 }
