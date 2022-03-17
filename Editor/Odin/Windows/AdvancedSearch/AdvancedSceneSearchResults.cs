@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils.Editor;
-using Rhinox.Utilities;
-using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -33,7 +31,7 @@ namespace Rhinox.Utilities.Odin.Editor
         private OdinMenuItem _clickedItem;
 
         private GameObject _selectedObject;
-        private readonly List<Editor> _selectedObjectEditors = new List<Editor>();
+        private readonly List<UnityEditor.Editor> _selectedObjectEditors = new List<UnityEditor.Editor>();
         private Vector2 _selectedObjectScrollPosition;
 
         public AdvancedSceneSearchResults(AdvancedSceneSearchMotor motor)
@@ -93,7 +91,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
                 _selectedObject = result;
                 foreach (var comp in result.GetComponents<Component>())
-                    _selectedObjectEditors.Add(Editor.CreateEditor(comp));
+                    _selectedObjectEditors.Add(UnityEditor.Editor.CreateEditor(comp));
             };
         }
 
