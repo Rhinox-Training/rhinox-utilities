@@ -1,0 +1,17 @@
+{
+  "name": "com.rhinox.utilities",
+  "displayName": "Utility (Rhinox Module)",
+  "version": "1.0.0",
+  "unity": "2019.3",
+  "description": "Utility code for Rhinox projects (depends on Odin and TypeSafe).",
+  "keywords": [
+    "unity"
+  ],
+  "category": "Unity",
+  "dependencies": {
+	"com.rhinox.open.lightspeed": "1.1.5",
+	"com.rhinox.open.guiutils": "1.4.0",
+	"com.rhinox.open.perceptor": "0.1.0"
+  },
+  "type": "library"
+}
