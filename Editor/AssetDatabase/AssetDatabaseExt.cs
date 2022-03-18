@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
 {
-    public static class BetterAssetDatabase
+    public static class AssetDatabaseExt
     {
         private static Dictionary<string, IImportJob> _importJobs;
         private static Queue<IImportJob> _jobQueue;
