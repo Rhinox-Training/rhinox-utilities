@@ -1,0 +1,22 @@
+{
+    "serializationData": {
+        "SerializedFormat": 2,
+        "SerializedBytes": [],
+        "ReferencedUnityObjects": [],
+        "SerializedBytesString": "",
+        "Prefab": {
+            "instanceID": 0
+        },
+        "PrefabModificationsReferencedUnityObjects": [],
+        "PrefabModifications": [],
+        "SerializationNodes": []
+    },
+    "String": "Test",
+    "Value": 11,
+    "Material": {
+        "instanceID": 736
+    },
+    "GameObject": {
+        "instanceID": -1084
+    }
+}
