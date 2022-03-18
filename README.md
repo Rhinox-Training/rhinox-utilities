@@ -15,6 +15,7 @@ Library containing unity utilities:
 - OdinInspector (https://odininspector.com/)
 - com.unity.textmeshpro
 - com.unity.probuilder
+- com.unity.editorcoroutines + io.github.icsharpcode.sharpziplib (AssetDatabase Importer Extensions)
 
 # License
 

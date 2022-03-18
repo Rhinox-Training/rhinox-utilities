@@ -25,12 +25,7 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.rhinox.open
-    m_IsDefault: 0
-  - m_Id: scoped:RhinoxBuildServer
-    m_Name: RhinoxBuildServer
-    m_Url: http://build.rhinox.local:4873
-    m_Scopes:
-    - com.rhinox
+    - io.github
     m_IsDefault: 0
   m_UserSelectedRegistryName: OpenUPM
   m_UserAddingNewScopedRegistry: 0
@@ -42,10 +37,12 @@ MonoBehaviour:
       m_Url: https://package.openupm.com
       m_Scopes:
       - com.rhinox.open
+      - io.github
       m_IsDefault: 0
     m_Modified: 0
     m_Name: OpenUPM
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.rhinox.open
+    - io.github
     m_SelectedScopeIndex: 0
