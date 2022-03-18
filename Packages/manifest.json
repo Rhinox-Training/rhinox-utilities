@@ -6,13 +6,6 @@
       "scopes": [
         "com.rhinox.open"
       ]
-    },
-    {
-      "name": "RhinoxBuildServer",
-      "url": "http://build.rhinox.local:4873",
-      "scopes": [
-        "com.rhinox"
-      ]
     }
   ],
   "dependencies": {
