@@ -1,5 +1,5 @@
 {
-    "name": "com.rhinox.utilities.editor",
+    "name": "com.rhinox.open.utilities.editor",
     "references": [
         "Unity.TextMeshPro",
         "Unity.TextMeshPro.Editor",
@@ -21,7 +21,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [
-        "UNITY_EDITOR"
     ],
     "versionDefines": [
         {
