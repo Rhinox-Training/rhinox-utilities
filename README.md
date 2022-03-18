@@ -1,5 +1,7 @@
 # Rhinox Utilities
 
+[![openupm](https://img.shields.io/npm/v/com.rhinox.open.utilities?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.rhinox.open.utilities/)
+
 Library containing unity utilities:
 
 - Core Unity extensions and methods
