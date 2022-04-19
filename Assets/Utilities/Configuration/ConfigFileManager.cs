@@ -18,14 +18,14 @@ namespace Rhinox.Utilities
     {
         private static Dictionary<Type, IConfigFile> _configFileCache;
 
-        public static T GetConfig<T>() where T : ConfigFile<T>
+        public static T GetConfig<T>() where T : class, IConfigFile
         {
             return GetConfig(typeof(T)) as T;
         }
 
         public static IConfigFile GetConfig(Type t)
         {
-            if (!t.InheritsFrom(typeof(ConfigFile<>)))
+            if (!t.InheritsFrom(typeof(IConfigFile)))
                 return null;
             
             if (_configFileCache != null && _configFileCache.ContainsKey(t))
