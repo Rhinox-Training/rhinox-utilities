@@ -16,6 +16,8 @@ namespace Rhinox.Utilities
     public abstract class ConfigLoader : IConfigLoader
     {
         private ICollection<FieldParser> _parsers;
+        
+        public virtual bool SupportsDynamicGroups => false;
 
         protected ConfigLoader()
         {
@@ -72,17 +74,32 @@ namespace Rhinox.Utilities
             foreach (var configField in fields)
             {
                 FieldInfo field = configField.Field;
-                if (!FindSetting(configField, out string settingsVal))
-                    continue;
-                
-                if (ValidateField(configField, settingsVal, out object value))
+                if (FindSetting(configField, out string settingsVal))
                 {
-                    field.SetValue(configFile, value);
-                    PLog.Debug<UtilityLogger>($"Setting {field.Name} loaded: {settingsVal}");
+                    if (ValidateField(configField, settingsVal, out object value))
+                    {
+                        field.SetValue(configFile, value);
+                        PLog.Debug<UtilityLogger>($"Setting {field.Name} loaded: {settingsVal}");
+                    }
+                    else
+                        PLog.Error<UtilityLogger>($"No load INI support for {field.FieldType.FullName}");
                 }
                 else
-                    PLog.Error<UtilityLogger>($"No load INI support for {field.FieldType.FullName}");
+                {
+                    if (!SupportsDynamicGroups || configField.Field.FieldType != typeof(DynamicConfigFieldEntry[]))
+                        continue;
+                    if (!FindGroupSetting(configField, out var dynamicFields))
+                        continue;
+                    
+                    field.SetValue(configFile, dynamicFields.ToArray());
+                    PLog.Debug<UtilityLogger>($"Dynamic Group Setting {field.Name} loaded: group of size {dynamicFields.Length}");
+                }
             }
+        }
+
+        protected virtual bool FindGroupSetting(ConfigField configField, out DynamicConfigFieldEntry[] fields)
+        {
+            throw new NotImplementedException();
         }
 
         protected abstract bool FindSetting(ConfigField configField, out string value);
