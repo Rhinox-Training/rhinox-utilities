@@ -24,13 +24,13 @@ namespace Rhinox.Utilities
 
         protected override bool FindSetting(ConfigField configField, out string value)
         {
-            if (_reader == null)
+            FieldInfo field = configField.Field;
+            if (_reader == null || !_reader.HasSetting(configField.Section, field.Name))
             {
                 value = null;
                 return false;
             }
             
-            FieldInfo field = configField.Field;
             value = _reader.GetSetting(configField.Section, field.Name);
             return true;
         }
