@@ -6,13 +6,12 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.GUIUtils.Odin.Editor;
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
-using RectExtensions = Rhinox.Lightspeed.RectExtensions;
+using GUILayoutOptions = Sirenix.Utilities.GUILayoutOptions;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
@@ -189,7 +188,7 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (_motorWrappers.Count <= 1) return; // no need to draw remove btn if only 1 filter
 
-            var rect = RectExtensions.AlignRight(r, 18).AlignTop(18);
+            var rect = r.AlignRight(18).AlignTop(18);
 
             if (SirenixEditorGUI.IconButton(rect, EditorIcons.X))
                 _removedWrappers.Add(wrapper);
