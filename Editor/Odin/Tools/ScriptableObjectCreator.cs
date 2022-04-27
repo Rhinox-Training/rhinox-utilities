@@ -21,7 +21,8 @@ namespace Rhinox.Utilities.Odin.Editor
                     t.IsClass &&
                     typeof(ScriptableObject).IsAssignableFrom(t) &&
                     !typeof(EditorWindow).IsAssignableFrom(t) &&
-                    !typeof(UnityEditor.Editor).IsAssignableFrom(t))
+                    !typeof(UnityEditor.Editor).IsAssignableFrom(t) &&
+                    !t.ImplementsOpenGenericClass(typeof(UnityEditor.ScriptableSingleton<>)))
         );
 
         private static readonly string[] IgnoredNamespaces = new[]
