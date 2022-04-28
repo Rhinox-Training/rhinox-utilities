@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Lightspeed.Reflection;
 using Rhinox.Perceptor;
@@ -36,15 +37,28 @@ namespace Rhinox.Utilities
         }
         
         private static readonly string _configFolder = "Assets/Resources/";
+
+        private static bool _initialized = false;
+        private static bool _loadedAllConfigs = false;
+
+        public static bool AllConfigsLoaded => _initialized && _loadedAllConfigs;
         
         [OrderedRuntimeInitialize(-10000)]
         private static void Initialize()
         {
+            if (_initialized)
+            {
+                PLog.Warn<UtilityLogger>($"Already loaded ConfigFileManager");
+                return;
+            }
+            
             PLog.Info($"GraphicsDevice: {SystemInfo.graphicsDeviceType.ToString()}");
             
             PLog.Debug("Loading ConfigFiles");
+            LoadableConfigEvents.ConfigLoaded += OnConfigLoaded;
+            _loadedAllConfigs = false;
             _configFileCache = new Dictionary<Type, IConfigFile>();
-            
+
             foreach (var type in GetConfigTypes())
             {
                 PLog.Debug($"Loading config {type.Name}...");
@@ -56,6 +70,29 @@ namespace Rhinox.Utilities
             CheckAndRunLoadableTypes(_configFileCache.Values);
             
             PLog.Debug("Finished Loading ConfigFiles");
+            _initialized = true;
+        }
+
+        private static void OnConfigLoaded(ILoadableConfigFile loadableConfigFile)
+        {
+            if (_loadedAllConfigs)
+                return; // Should never be called due to unsubscribe below
+            
+            bool allLoaded = true;
+            foreach (var entry in _configFileCache.Values.OfType<ILoadableConfigFile>())
+            {
+                if (!entry.Loaded)
+                {
+                    allLoaded = false;
+                    break;
+                }
+            }
+            
+            _loadedAllConfigs = allLoaded;
+            
+            if (_loadedAllConfigs)
+                LoadableConfigEvents.ConfigLoaded -= OnConfigLoaded;
+                
         }
 
         private static bool CheckAndRunLoadableTypes(ICollection<IConfigFile> configFiles)
@@ -79,7 +116,7 @@ namespace Rhinox.Utilities
                     continue;
                 
                 if (loadableConfig.Load(path))
-                    PLog.Info<UtilityLogger>($"Loaded config file ({loadableConfig.GetType().Name}) with data at '{path}'");
+                    PLog.Info<UtilityLogger>($"Started loading config file ({loadableConfig.GetType().Name}) with data at '{path}'");
                 else
                     PLog.Debug<UtilityLogger>($"Unable to load config file ({loadableConfig.GetType().Name}) with data, unable to load from '{path}'...");
             }
