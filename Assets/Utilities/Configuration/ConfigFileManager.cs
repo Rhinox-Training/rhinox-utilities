@@ -59,13 +59,19 @@ namespace Rhinox.Utilities
             _loadedAllConfigs = false;
             _configFileCache = new Dictionary<Type, IConfigFile>();
 
+            bool loadableConfigsDetected = false;
             foreach (var type in GetConfigTypes())
             {
                 PLog.Debug($"Loading config {type.Name}...");
                 IConfigFile config = CreateIfNotExists(type);
+                if (!loadableConfigsDetected && config is ILoadableConfigFile)
+                    loadableConfigsDetected = true;
                 config.Initialize();
                 _configFileCache.Add(type, config);
             }
+
+            if (!loadableConfigsDetected)
+                _loadedAllConfigs = true;
             
             CheckAndRunLoadableTypes(_configFileCache.Values);
             
