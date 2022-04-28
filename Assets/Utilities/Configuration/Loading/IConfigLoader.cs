@@ -9,7 +9,7 @@ namespace Rhinox.Utilities
 {
     public interface IConfigLoader
     {
-        bool Load(ILoadableConfigFile file, string path);
+        bool Load(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback = null);
         bool Save(ILoadableConfigFile file, string path, bool overwrite = false);
     }
 
@@ -18,26 +18,22 @@ namespace Rhinox.Utilities
         private ICollection<FieldParser> _parsers;
         
         public virtual bool SupportsDynamicGroups => false;
-
+        
         protected ConfigLoader()
         {
             _parsers = FieldParserHelper.GetParsers().ToList();
         }
         
-        public bool Load(ILoadableConfigFile file, string path)
+        public bool Load(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback = null)
         {
-            if (!LoadFileAsync(file, path, GetLoadHandler(path)))
-                return false;
-            ParseData(file);
-            CleanUp();
-            return true;
+            return LoadFileAsync(file, path, GetLoadHandler(path), callback);
         }
 
         public abstract bool Save(ILoadableConfigFile file, string path, bool overwrite = false);
         
         public delegate IEnumerator LoadHandler(string path);
 
-        protected bool LoadFileAsync(ILoadableConfigFile file, string path, LoadHandler loader)
+        protected bool LoadFileAsync(ILoadableConfigFile file, string path, LoadHandler loader, Action<ILoadableConfigFile> callback = null)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return false;
@@ -50,6 +46,7 @@ namespace Rhinox.Utilities
                     if (!manual)
                         ParseData(file);
                     CleanUp();
+                    callback?.Invoke(file);
                 };
             }
             catch (Exception e)
@@ -82,7 +79,7 @@ namespace Rhinox.Utilities
                         PLog.Debug<UtilityLogger>($"Setting {field.Name} loaded: {settingsVal}");
                     }
                     else
-                        PLog.Error<UtilityLogger>($"No load INI support for {field.FieldType.FullName}");
+                        PLog.Error<UtilityLogger>($"No load INI support for {field.FieldType.FullName} with value '{settingsVal}'");
                 }
                 else
                 {
