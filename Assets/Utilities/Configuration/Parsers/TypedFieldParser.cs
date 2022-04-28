@@ -68,6 +68,13 @@ namespace Rhinox.Utilities
                 return true;
             }
 
+            // Handle 0 and 1 as possible settings (bool.TryParse does not handle these)
+            if (int.TryParse(fieldValue, out int intResult))
+            {
+                value = intResult != 0;
+                return true;
+            }
+
             value = null;
             return false;
         }

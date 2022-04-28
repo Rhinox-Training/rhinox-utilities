@@ -1,9 +1,10 @@
-using System.Reflection;
+using System.Collections.Generic;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Perceptor;
 
 namespace Rhinox.Utilities
 {
+    
     public abstract class LoadableConfigFile<T, TLoader> : ConfigFile<T>, ILoadableConfigFile 
         where T : ConfigFile<T>
         where TLoader : IConfigLoader, new()
@@ -11,6 +12,11 @@ namespace Rhinox.Utilities
         public abstract string RelativeFilePath { get; }
 
         protected TLoader _loader;
+
+        private bool _loaded;
+        public bool Loaded => _loaded;
+
+        protected bool _isLoading;
 
         public override void Initialize()
         {
@@ -22,8 +28,21 @@ namespace Rhinox.Utilities
         {
             if (string.IsNullOrWhiteSpace(path) || !FileHelper.Exists(path))
                 return false;
+
+            if (_isLoading)
+            {
+                PLog.Error<UtilityLogger>($"Cannot reload config '{this.GetType().Name}' from path '{path}', still loading from previous request...");
+                return false;
+            }
             
-            return _loader.Load(this, path);
+            _loaded = false;
+            _isLoading = true;
+            return _loader.Load(this, path, (config) =>
+            {
+                _isLoading = false;
+                _loaded = true;
+                LoadableConfigEvents.TriggerLoadEvent(this);
+            });
         }
 
         public virtual bool Save(string path, bool overwrite = false)
