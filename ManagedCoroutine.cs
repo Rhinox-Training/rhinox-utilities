@@ -202,8 +202,9 @@ namespace Rhinox.Utilities
 			if (_singleton == null)
 			{
 				var go = new GameObject("[Generated] CoroutineManager");
-				_singleton = go.AddComponent<CoroutineManager>();
+				go.hideFlags = HideFlags.HideAndDontSave;
 				DontDestroyOnLoad(go);
+				_singleton = go.AddComponent<CoroutineManager>();
 			}
 
 			return new CoroutineState(coroutine);
