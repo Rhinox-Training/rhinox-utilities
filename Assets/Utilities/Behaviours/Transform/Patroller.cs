@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Rhinox.Lightspeed;
 using UnityEngine;
 
@@ -21,7 +22,7 @@ namespace Rhinox.Utilities
         {
             _origPosition = transform.position;
 
-            _checkpoints = CheckpointsContainer.GetAllChildren();
+            _checkpoints = CheckpointsContainer.GetAllChildren().ToList();
             if (CheckpointsContainer.childCount == 0)
                 return;
 
