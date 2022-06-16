@@ -6,13 +6,13 @@ namespace Rhinox.Utilities.Editor
 {
     public static class NumberingHelper
     {
-        private const string AlphabeticNumberingHeader = "Rhinox/Update Alphabetic Numbering";
+        const string HELPER_NAME = "Update Alphabetical numbering";
+        private const string AlphabeticNumberingHeader = "Tools/Rhinox/" + HELPER_NAME;
 
         [MenuItem(AlphabeticNumberingHeader, priority = 10000)]
         private static void UpdateAlphabeticNumbering()
         {
             int n = -1;
-            const string UNDO_KEY = "Update Alphabetical numbering";
 
             var objs = Selection.gameObjects 
                 // TODO actual order over multiple Parents?
@@ -35,13 +35,13 @@ namespace Rhinox.Utilities.Editor
                         continue;
                     }
                     var alphaNum = Utility.NumToAlphabet(n);
-                    Undo.RegisterCompleteObjectUndo(go, UNDO_KEY);
+                    Undo.RegisterCompleteObjectUndo(go, HELPER_NAME);
                     go.name = go.name.Replace(grp.Index, grp.Length, alphaNum);
                 }
                 else
                 {
                     ++n;
-                    Undo.RegisterCompleteObjectUndo(go, UNDO_KEY);
+                    Undo.RegisterCompleteObjectUndo(go, HELPER_NAME);
                     go.name += " " + Utility.NumToAlphabet(n);
                 }
             }

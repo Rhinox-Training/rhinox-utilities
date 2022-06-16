@@ -10,7 +10,8 @@ namespace Rhinox.Utilities.Editor
     /// <summary>
     /// [WIP] - does nothing atm
     /// </summary>
-    [InitializeOnLoad]
+    
+    // [InitializeOnLoad]
     public static class EditorEvents
     {
         private static GameObject[] _activeObjects;
