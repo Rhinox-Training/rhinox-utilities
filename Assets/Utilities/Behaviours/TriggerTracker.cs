@@ -7,12 +7,18 @@ using UnityEngine;
 
 namespace Rhinox.Utilities
 {
+    /// <summary>
+    /// Keeps track of a certain Component that is on objects that collide with this object.
+    /// Meant for this object to have a trigger, however it will also track triggers entering this if this object only has colliders.
+    /// NOTE: Objects will be tracked regardless of their 'active in hierarchy' state
+    /// If you wish to manage that you will have to Use ActiveContainedObjects
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     [RefactoringOldNamespace("")]
     public class TriggerTracker<T> : MonoBehaviour where T : Component
     {
-        public event Action<T> ObjectEnter;
-        public event Action<T> ObjectExit;
-
+        public bool TrackChildren = false;
+        
         /// <summary>
         /// Dictionary that describes what objects with what colliders are inside the trigger
         /// HashSet so the same collider does not enter multiple times, which will cause issues
@@ -20,7 +26,11 @@ namespace Rhinox.Utilities
         protected Dictionary<T, HashSet<Collider>> _containedObjectsDict = new Dictionary<T, HashSet<Collider>>();
 
         [ShowInInspector, ReadOnly] public ICollection<T> ContainedObjects => _containedObjectsDict.Keys;
+        public IEnumerable<T> ActiveContainedObjects => _containedObjectsDict.Keys.Where(x => x.gameObject.activeInHierarchy);
 
+        public event Action<T> ObjectEnter;
+        public event Action<T> ObjectExit;
+        
         protected virtual void OnEnable()
         {
 
@@ -62,12 +72,12 @@ namespace Rhinox.Utilities
             if (coll.attachedRigidbody != null)
                 container = coll.attachedRigidbody.transform;
 
-            var actualContainer = container.GetComponentInChildren<T>();
+            var actualContainer = container.GetComponentInChildren<T>(true);
 
             // Ensure the container is a child of the 'actualContainer'
             // Due to using the attachedRigidbody we might have traveled too far up the hierarchy
             // in which case we do not want to link those colliders to the container as they may change (ChildOfControllerGrabAttach, i.e.)
-            if (actualContainer == null || !container.IsChildOf(actualContainer.transform))
+            if (actualContainer == null || (TrackChildren || !container.IsChildOf(actualContainer.transform)))
                 return null;
 
             return actualContainer;
