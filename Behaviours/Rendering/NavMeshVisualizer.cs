@@ -16,7 +16,6 @@ namespace Rhinox.Utilities
 
         [Tooltip("Removes edges that extend each other, assumption is made that this only happens inside the navmesh and that they are not edges.")]
         public bool RemoveExtendingEdges = true;
-        public bool MergeExtendingEdges = false;
 
         [Title(" Rendering Settings")]
         public Material[] NavMeshMaterials;
@@ -87,7 +86,7 @@ namespace Rhinox.Utilities
             _navMeshGraphicsObj.SetVisible(_renderersEnabled);
             
             var borderMesh = NavMeshHelper.GenerateBorderMesh(navMesh, BorderWidth, textureScale: BorderTextureScale, forceUpNormal: ForceUpNormal, 
-                removeExtendingEdges: RemoveExtendingEdges, mergeExtendingEdges: MergeExtendingEdges);
+                removeExtendingEdges: RemoveExtendingEdges);
             _borderMeshObj = MeshObject.GetOrCreateChild(transform, BORDER_MESH_NAME, borderMesh, BorderMaterial);
             _borderMeshObj.transform.SetPosition(y: OffsetY);
             _borderMeshObj.SetVisible(_renderersEnabled);
@@ -180,7 +179,7 @@ namespace Rhinox.Utilities
             {
                 case DebugState.OuterEdgeLoops:
                 {
-                    var loops = NavMeshHelper.GetOuterEdgeLoops(mesh, RemoveExtendingEdges, MergeExtendingEdges);
+                    var loops = NavMeshHelper.GetOuterEdgeLoops(mesh, RemoveExtendingEdges);
                     foreach (var edges in loops)
                     {
                         DrawEdges(edges.ToArray());
@@ -191,7 +190,7 @@ namespace Rhinox.Utilities
 
                 case DebugState.OuterEdges:
                 {
-                    var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges, MergeExtendingEdges);
+                    var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges);
                     DrawEdges(edges);
 
                     break;
@@ -200,7 +199,7 @@ namespace Rhinox.Utilities
                 case DebugState.ShowExtendingEdges:
                 {
                     var edges = NavMeshHelper.GetEdges(mesh);
-                    NavMeshHelper.FilterExtendingEdges(edges, out var extending, out _);
+                    NavMeshHelper.FilterExtendingEdges(ref edges, out var extending, out _);
                     DrawEdges(extending);
                     
                     break;
@@ -210,7 +209,7 @@ namespace Rhinox.Utilities
                 {
                     if (_debugLocation == null) return;
                     
-                    var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges, MergeExtendingEdges);
+                    var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges);
                     var refPoint = _debugLocation.position;
                     
                     Gizmos.DrawWireSphere(refPoint, _debugRange);
@@ -229,7 +228,7 @@ namespace Rhinox.Utilities
                     if (_debugLocation == null) return;
                     
                     
-                    var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges, MergeExtendingEdges);
+                    var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges);
                     var refPoint = _debugLocation.position;
                     
                     Gizmos.DrawWireSphere(refPoint, _debugRange);
