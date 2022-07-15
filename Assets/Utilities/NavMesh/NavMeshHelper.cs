@@ -28,35 +28,33 @@ namespace Rhinox.Utilities
     {
         private static EdgeComparer _edgeComparer = new EdgeComparer();
         
-        public static bool UpdateNavMesh(NavMeshSearchSettings searchSettings, int agentTypeID = 0, int includedLayerMask = ~0, NavMeshCollectGeometry collectMode = NavMeshCollectGeometry.RenderMeshes)
+        // NOTE: this is only run-time
+        public static bool BakeNavMesh(NavMeshSearchSettings searchSettings, int agentTypeID = 0, int includedLayerMask = ~0, NavMeshCollectGeometry collectMode = NavMeshCollectGeometry.RenderMeshes)
         {
             NavMeshBuildSettings navMeshBuildSettings = NavMesh.GetSettingsByID(agentTypeID);
-            return UpdateNavMesh(searchSettings, navMeshBuildSettings, includedLayerMask, collectMode);
+            return BakeNavMesh(searchSettings, navMeshBuildSettings, includedLayerMask, collectMode);
         }
         
-        public static bool UpdateNavMesh(NavMeshSearchSettings searchSettings, NavMeshBuildSettings settings, int includedLayerMask = ~0, NavMeshCollectGeometry collectMode = NavMeshCollectGeometry.RenderMeshes)
+        // NOTE: this is only run-time
+        public static bool BakeNavMesh(NavMeshSearchSettings searchSettings, NavMeshBuildSettings settings, int includedLayerMask = ~0, NavMeshCollectGeometry collectMode = NavMeshCollectGeometry.RenderMeshes)
         {
             Transform[] sources = null;
             // Search for objects
             switch (searchSettings)
             {
                 case NavMeshSearchSettings.StaticObjects:
-                    var mrs1 = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
-                    sources = mrs1.Where(x => x.gameObject.isStatic).Select(x => x.transform).ToArray();
+                    sources = FindMeshRenderers(true);
                     break;
                 case NavMeshSearchSettings.AllMeshRenderers:
-                    var mrs2 = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
-                    sources = mrs2.Select(x => x.transform).ToArray();
+                    sources = FindMeshRenderers(false);
                     break;
                 case NavMeshSearchSettings.NavMeshArea:
                     var navmeshAreas = UnityEngine.Object.FindObjectsOfType<NavMeshArea>();
                     sources = navmeshAreas.Select(x => x.transform).ToArray();
                     break;
                 case NavMeshSearchSettings.StaticAndNavMeshAreas:
-                    var mrs3 = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
                     var navmeshAreas2 = UnityEngine.Object.FindObjectsOfType<NavMeshArea>();
-                    sources = mrs3.Where(x => x.gameObject.isStatic)
-                        .Select(x => x.transform)
+                    sources = FindMeshRenderers(true)
                         .Union(navmeshAreas2.Select(x => x.transform))
                         .Distinct()
                         .ToArray();
@@ -80,15 +78,37 @@ namespace Rhinox.Utilities
 
                 NavMeshBuilder.CollectSources(source, includedLayerMask, collectMode, 0, markups, subSources);
 
-                navMeshSources.AddRange(subSources);
+                foreach (var src in subSources)
+                    navMeshSources.AddUnique(src);
             }
 
+            navMeshSources.Reverse();
             // build a navmesh and add it
-            NavMeshData navData = NavMeshBuilder.BuildNavMeshData(settings, navMeshSources, new Bounds(), Vector3.zero, Quaternion.identity);
-            NavMesh.RemoveAllNavMeshData();
+            NavMeshData navData = NavMeshBuilder.BuildNavMeshData(settings, navMeshSources , new Bounds(Vector3.zero, new Vector3(5000, 5000, 5000)), Vector3.zero, Quaternion.identity);
+            //NavMesh.RemoveAllNavMeshData();
             var meshData = NavMesh.AddNavMeshData(navData);
             bool isValid = meshData.valid;
             return isValid;
+        }
+
+        private static Transform[] FindMeshRenderers(bool onlyStatic = false)
+        {
+            var meshRenderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+
+            List<Transform> result = new List<Transform>();
+            foreach (var meshRenderer in meshRenderers)
+            {
+                if (onlyStatic && !meshRenderer.gameObject.isStatic)
+                    continue;
+
+                var meshFilter = meshRenderer.GetComponent<MeshFilter>();
+                if (meshFilter != null && !meshFilter.sharedMesh.isReadable)
+                    continue;
+                
+                result.Add(meshRenderer.transform);
+            }
+
+            return result.ToArray();
         }
         
         
@@ -106,11 +126,11 @@ namespace Rhinox.Utilities
         }
 
         public static Mesh GenerateBorderMesh(Mesh navMesh, float borderWidth, string name = "NavMesh - Border", 
-            float textureScale = 1.0f, bool forceUpNormal = false, bool removeExtendingEdges = true, bool mergeExtendingEdges = true)
+            float textureScale = 1.0f, bool forceUpNormal = false, bool removeExtendingEdges = true)
         {
             // Profiler.BeginSample("Outer Edge Loops");
 
-            var outerEdgeLoops = NavMeshHelper.GetOuterEdgeLoops(navMesh, removeExtendingEdges, mergeExtendingEdges);
+            var outerEdgeLoops = NavMeshHelper.GetOuterEdgeLoops(navMesh, removeExtendingEdges);
             
             // Profiler.EndSample();
             
@@ -192,9 +212,9 @@ namespace Rhinox.Utilities
             }
         }
         
-        internal static List<LinkedList<Edge>> GetOuterEdgeLoops(Mesh mesh, bool removeExtending, bool mergeExtending)
+        internal static List<LinkedList<Edge>> GetOuterEdgeLoops(Mesh mesh, bool removeExtending)
         {
-            var edgeStack = GetOuterEdges(mesh, removeExtending, mergeExtending);
+            var edgeStack = GetOuterEdges(mesh, removeExtending);
 
             var currEdge = edgeStack.FirstOrDefault();
             var currLoop = new LinkedList<Edge>();
@@ -242,7 +262,7 @@ namespace Rhinox.Utilities
         private static Quad EdgeToQuad(Edge edge, float width)
         {
             var halfWidth = width / 2f;
-            var normal = Vector3.Cross(edge.V1, edge.V2).Abs();
+            Vector3 normal = Vector3.up; // NOTE: always use up, since nav mesh edge will never be created vertically
             var side = Vector3.Cross(normal, edge.V2 - edge.V1);
             side.Normalize();
 
@@ -300,18 +320,17 @@ namespace Rhinox.Utilities
             return edges;
         }
 
-        internal static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending, bool mergeExtending)
+        internal static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
         {
             var edges = GetEdges(mesh);
             
             // Try to group edges with the same direction
             // Sometimes edges may be split in the middle and only used once thus causing it to be seen as an edge
             // NOTE: Assumption is made that extending edge are not part of the edge, this can be incorrect!
-            if (mergeExtending || removeExtending)
+            if (removeExtending)
             {
-                FilterExtendingEdges(edges, out _, out var mergedEdges);
-                if (mergeExtending)
-                    edges.AddRange(mergedEdges);
+                FilterExtendingEdges(ref edges, out _, out var mergedEdges);
+                edges.AddRange(mergedEdges);
             }
 
             var resultSet = FilterOverlappingEdges(edges);
@@ -355,7 +374,7 @@ namespace Rhinox.Utilities
             return resultSet;
         }
         
-        internal static void FilterExtendingEdges(List<Edge> edges, out List<Edge> extendingEdges, out List<Edge> mergedEdges)
+        internal static void FilterExtendingEdges(ref List<Edge> edges, out List<Edge> extendingEdges, out List<Edge> mergedEdges)
         {
             mergedEdges = new List<Edge>();
             extendingEdges = new List<Edge>();
@@ -371,20 +390,26 @@ namespace Rhinox.Utilities
                 for (int i = edgeGroup.Length - 1; i >= 0; --i)
                 {
                     var edge = edgeGroup[i];
+                    if (extendingEdges.Contains(edge))
+                        continue;
+                    
                     for (int j = i - 1; j >= 0; --j)
                     {
                         var other = edgeGroup[j];
+                        if (extendingEdges.Contains(other))
+                            continue;
+                        
                         var connectPoint = EdgeComparer.GetEdgePointConnectedToEdge(edge, other);
 
                         if (connectPoint < 0)
                             continue;
 
-                        // remove old edges
-                        edges.Remove(edge);
-                        edges.Remove(other);
+                        // move old edges to extending set
+                        if (edges.Remove(edge))
+                            extendingEdges.Add(edge);
                         
-                        extendingEdges.Add(edge);
-                        extendingEdges.Add(other);
+                        if (edges.Remove(other))
+                            extendingEdges.Add(other);
                         
                         // add merged version
                         if (connectPoint == 0)
@@ -400,8 +425,11 @@ namespace Rhinox.Utilities
                             mergedEdges.Add(new Edge(edge.V1, other.V2));
                         }
 
-                        i = -1; // stop outer loop
+                        // NOTE: we break the outer loop, because this method currently cannot recursively merge mergedEdges
+                        // This already improves the complexity somewhat (one loop per edgegroup, so we're gonna leave it like is)
+                        i = -1; // stop middle loop, move to next edgeGroup
                         break;
+                        // END NOTE: Do not touch this, unless you refactor the entire method
                     }
                 }
             }
