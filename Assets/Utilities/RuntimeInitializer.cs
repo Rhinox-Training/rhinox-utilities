@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rhinox.Perceptor;
 using Rhinox.Utilities.Attributes;
 using UnityEngine;
 
@@ -22,7 +23,14 @@ namespace Rhinox.Utilities
 
             public void Invoke()
             {
-                _methodInfo.Invoke(null, null);
+                try
+                {
+                    _methodInfo.Invoke(null, null);
+                }
+                catch (Exception e)
+                {
+                    PLog.Error<UtilityLogger>(e.ToString());
+                }
             }
         }
         
@@ -32,23 +40,35 @@ namespace Rhinox.Utilities
             List<InitializeAction> actions = new List<InitializeAction>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in assembly.GetTypes())
+                try 
                 {
-                    if (type.GetCustomAttribute<InitializationHandlerAttribute>() == null)
-                        continue;
-
-                    var methods = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Static |
-                                                  BindingFlags.Public | BindingFlags.NonPublic);
-                    foreach (var method in methods)
+                    foreach (var type in assembly.GetTypes())
                     {
-                        if (method.GetParameters().Length != 0)
+                        if (type.GetCustomAttribute<InitializationHandlerAttribute>() == null)
                             continue;
-                        
-                        var attr = method.GetCustomAttribute<OrderedRuntimeInitializeAttribute>();
-                        if (attr == null)
-                            continue;
-                        
-                        actions.Add(new InitializeAction(method, attr.Order));
+
+                        var methods = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Static |
+                                                      BindingFlags.Public | BindingFlags.NonPublic);
+                        foreach (var method in methods)
+                        {
+                            if (method.GetParameters().Length != 0)
+                                continue;
+                            
+                            var attr = method.GetCustomAttribute<OrderedRuntimeInitializeAttribute>();
+                            if (attr == null)
+                                continue;
+                            
+                            actions.Add(new InitializeAction(method, attr.Order));
+                        }
+                    }
+                }
+                catch (ReflectionTypeLoadException ex) 
+                {
+                    // now look at ex.LoaderExceptions - this is an Exception[], so:
+                    foreach(Exception inner in ex.LoaderExceptions) 
+                    {
+                        // write details of "inner", in particular inner.Message
+                        PLog.Error<UtilityLogger>(inner.ToString());
                     }
                 }
             }
