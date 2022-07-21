@@ -10,6 +10,22 @@ namespace Rhinox.Utilities.Editor
 {
 	internal static class SyncSolution
 	{
+		
+		[MenuItem("Assets/Sync C# Solution", priority = 1000000)]
+		public static void Sync()
+		{
+			Sync(true);
+		}
+		
+#if UNITY_2021_1_OR_NEWER
+		public static void Sync(bool logsEnabled)
+		{
+			Unity.CodeEditor.CodeEditor.Editor.CurrentCodeEditor.SyncAll();
+		}
+#else
+		private const string SyncVsType = "UnityEditor.SyncVS,UnityEditor";
+		private const string Synchronizer = "Synchronizer";
+		
 		private static Type _syncVSType;
 		private static MethodInfo _syncSolutionMethodInfo;
 
@@ -20,19 +36,14 @@ namespace Rhinox.Utilities.Editor
 		
 		static SyncSolution()
 		{
-			_syncVSType = Type.GetType("UnityEditor.SyncVS,UnityEditor");
-			_synchronizerField = _syncVSType.GetField("Synchronizer", BindingFlags.NonPublic | BindingFlags.Static);
+			_syncVSType = Type.GetType(SyncVsType);
 			_syncSolutionMethodInfo = _syncVSType.GetMethod("SyncSolution", BindingFlags.Public | BindingFlags.Static);
 			
+			_synchronizerField = _syncVSType.GetField(Synchronizer, BindingFlags.NonPublic | BindingFlags.Static);
 			_synchronizerObject = _synchronizerField.GetValue(_syncVSType);
 			_synchronizerType = _synchronizerObject.GetType();
-			_synchronizerSyncMethodInfo = _synchronizerType.GetMethod("Sync", BindingFlags.Public | BindingFlags.Instance);
-		}
-
-		[MenuItem("Assets/Sync C# Solution", priority = 1000000)]
-		public static void Sync()
-		{
-			Sync(true);
+			
+			_synchronizerSyncMethodInfo = _synchronizerType?.GetMethod("Sync", BindingFlags.Public | BindingFlags.Instance);
 		}
 
 		public static void Sync(bool logsEnabled)
@@ -72,7 +83,7 @@ namespace Rhinox.Utilities.Editor
 			{
 				Debug.Log($"Call method: SyncVS.Synchronizer.Sync()");
 			}
-
+			
 			_synchronizerSyncMethodInfo.Invoke(_synchronizerObject, null);
 		}
 
@@ -86,5 +97,6 @@ namespace Rhinox.Utilities.Editor
 			}
 			return files;
 		}
+#endif
 	}
 }

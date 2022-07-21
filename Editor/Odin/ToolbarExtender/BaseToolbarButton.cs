@@ -17,7 +17,7 @@ namespace Rhinox.Utilities.Odin.Editor
         [ShowInInspector, DisplayAsString, HideLabel, PropertyOrder(-100)]
         private string TypeName => GetType().Name.SplitPascalCase();
 
-        protected virtual GUIStyle Style => SirenixGUIStyles.ToolbarButton;
+        protected virtual GUIStyle Style => SirenixGUIStyles.Button;
         
         protected virtual GUILayoutOptions.GUILayoutOptionsInstance LayoutOptions => GUILayoutOptions.ExpandWidth(false).ExpandHeight();
 		
