@@ -1,17 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rhinox.Lightspeed;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Profiling;
-using UnityEngine.AI;
-using UnityEngine;
-using System.Linq;
-using Rhinox.GUIUtils.Attributes;
-using Rhinox.Lightspeed;
-using Sirenix.OdinInspector;
 using UnityEngine.Profiling;
 
 namespace Rhinox.Utilities
