@@ -467,7 +467,7 @@ namespace Rhinox.Utilities.Editor
                     {
                         bytes.AddRange(tempBuffer);
                     }
-                    catch (ArgumentException argExc)
+                    catch (ArgumentException)
                     {
                         PLog.Error($"Bytes at {bytes.Count} bytes, or {bytes.Count / (1024 * 1024)} MBs");
                         throw;
