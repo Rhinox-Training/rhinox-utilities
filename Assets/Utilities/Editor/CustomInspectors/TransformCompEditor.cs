@@ -21,6 +21,7 @@ namespace Rhinox.Utilities.Editor
 			public const string PosName = "m_LocalPosition";
 			public const string RotName = "m_LocalRotation";
 			public const string ScaleName = "m_LocalScale";
+			public const string ScaleConstraintName = "m_ConstrainProportionsScale";
 			
 			public static GUIContent WorldPositionLabel = new GUIContent("WP", "World Position");
 			public static GUIContent PositionLabel = new GUIContent("P", "Position; Click to rest to 0,0,0");
@@ -34,25 +35,42 @@ namespace Rhinox.Utilities.Editor
 			public const string OpenLockedBtnTooltip = "Open a locked inspector with this object selected";
 
 			public static GUIContent CopyBtnLabel = new GUIContent("C", "Copy");
-			public static GUIContent PasteBtnLabel = new GUIContent("P", "Paste"); 
+			public static GUIContent PasteBtnLabel = new GUIContent("P", "Paste");
+			
+#if UNITY_2021_1_OR_NEWER // Default icon but it does not exist prior to this version
+			private static Texture2D _linkedIcon = UnityIcon.InternalIcon("d_Linked");
+#else // We offer a substitute behaviour, so we need an icon for it
+			private static Texture2D _linkedIcon = UnityIcon.AssetIcon("Fa_Link").Pad(20);
+#endif
+			public static GUIContent LinkedContent = new GUIContent(_linkedIcon, "Disable Constrained Scale");
+			
+#if UNITY_2021_1_OR_NEWER // Default icon but it does not exist prior to this version
+			private static Texture2D _unlinkedIcon = UnityIcon.InternalIcon("d_Unlinked");
+#else // We offer a substitute behaviour, so we need an icon for it
+			private static Texture2D _unlinkedIcon = UnityIcon.AssetIcon("Fa_Unlink").Pad(20);
+#endif
+			public static GUIContent UnlinkedContent = new GUIContent(_unlinkedIcon, "Enable Constrained scale");
+			
+			public const int ButtonHeight = 18;
 		}
 		
-		Vector3 worldPos;
-		SerializedProperty mPos;
-		SerializedProperty mRot;
-		SerializedProperty mScale;
-
-		private static Vector3? positionClipboard = null;
-		private static Quaternion? rotationClipboard = null;
-		private static Vector3? scaleClipboard = null;
-
-		private const int _buttonHeight = 18;
+		private Vector3 _worldPos;
+		private SerializedProperty _pos;
+		private SerializedProperty _rot;
+		private SerializedProperty _scale;
+		private SerializedProperty _scaleConstraint;
 
 		private bool _initialized;
+		private bool _isConstrained; // backup for when it was unsupported
 		private Transform _target;
 		
-		void OnEnable()
-		{
+		private static Vector3? _positionClipboard = null;
+		private static Quaternion? _rotationClipboard = null;
+		private static Vector3? _scaleClipboard = null;
+
+
+		protected void OnEnable()
+		{ 
 			Init();
 		}
 
@@ -62,20 +80,32 @@ namespace Rhinox.Utilities.Editor
 
 			_target = (Transform) serializedObject.targetObject;
 
-			worldPos = _target.position;
-			mPos = serializedObject.FindProperty(Properties.PosName);
-			mRot = serializedObject.FindProperty(Properties.RotName);
-			mScale = serializedObject.FindProperty(Properties.ScaleName);
+			_pos = serializedObject.FindProperty(Properties.PosName);
+			_rot = serializedObject.FindProperty(Properties.RotName);
+			_scale = serializedObject.FindProperty(Properties.ScaleName);
+			_scaleConstraint = serializedObject.FindProperty(Properties.ScaleConstraintName);
+			if (_scaleConstraint != null)
+				_isConstrained = _scaleConstraint.boolValue;
+
+			_worldPos = _target.position;
 
 			return _initialized = true;
+		}
+
+		private bool Button(GUIContent content, GUIStyle style = null)
+		{
+			if (style == null)
+				style = CustomGUIStyles.Button;
+			return GUILayout.Button(content, style, GUILayout.Height(Properties.ButtonHeight));
 		}
 
 		public override void OnInspectorGUI()
 		{
 			// if cannot initialize, draw the base gui
-			if (!_initialized && !Init())
+			if ((!_initialized && !Init()) || _drawDefault)
 			{
 				base.OnInspectorGUI();
+				return;
 			}
 			
 			var labelWidth = EditorGUIUtility.labelWidth;
@@ -91,7 +121,6 @@ namespace Rhinox.Utilities.Editor
 					DrawRotation();
 					DrawScale();
 					
-					EditorGUIUtility.labelWidth = 20;
 					DrawWorldPosition();
 				}
 				
@@ -99,13 +128,12 @@ namespace Rhinox.Utilities.Editor
 				
 				using (new eUtility.VerticalGroup(false, GUILayout.Width(25)))
 				{
-					if (GUILayout.Button(Properties.CenterBtnLabel, GUILayout.Height(_buttonHeight)))
+					if (Button(Properties.CenterBtnLabel))
 						HandlePivotShift();
 					
 					DrawCopyPaste();
-					
-					if (GUILayout.Button(Properties.ResetBtnLabel, CustomGUIStyles.Button, GUILayout.Height(_buttonHeight)))
-						HandleScaleShift();
+
+					DrawScaleHelpers();
 
 					DrawHierarchyHelpers();
 				}
@@ -164,7 +192,7 @@ namespace Rhinox.Utilities.Editor
 			GenericMenu.MenuFunction reset,
 			float width = 20f)
 		{
-			if (!GUILayout.Button(label, GUILayout.Width(20f))) return;
+			if (!GUILayout.Button(label, GUILayout.Width(width))) return;
 			
 			if (Event.current.button == 0)
 			{
@@ -194,14 +222,14 @@ namespace Rhinox.Utilities.Editor
 		private void DrawPosition()
 		{
 			GUILayout.BeginHorizontal();
-			DrawResetButton(mPos, Properties.PositionLabel, 
+			DrawResetButton(_pos, Properties.PositionLabel, 
 				() => SaveToClipboard(scale: false, rot: false), targets.Length == 1, 
-				() => ApplyClipboard(scale: false, rot: false), positionClipboard.HasValue,
-				() => Set(mPos, Vector3.zero));
+				() => ApplyClipboard(scale: false, rot: false), _positionClipboard.HasValue,
+				() => Set(_pos, Vector3.zero));
 			
-			EditorGUILayout.PropertyField(mPos.FindPropertyRelative("x"));
-			EditorGUILayout.PropertyField(mPos.FindPropertyRelative("y"));
-			EditorGUILayout.PropertyField(mPos.FindPropertyRelative("z"));
+			EditorGUILayout.PropertyField(_pos.FindPropertyRelative("x"));
+			EditorGUILayout.PropertyField(_pos.FindPropertyRelative("y"));
+			EditorGUILayout.PropertyField(_pos.FindPropertyRelative("z"));
 			GUILayout.EndHorizontal();
 		}
 
@@ -224,10 +252,10 @@ namespace Rhinox.Utilities.Editor
 		void DrawRotation()
 		{
 			GUILayout.BeginHorizontal();
-			DrawResetButton(mRot, Properties.RotationLabel,
+			DrawResetButton(_rot, Properties.RotationLabel,
 				() => SaveToClipboard(scale: false, pos: false), targets.Length == 1,
-				() => ApplyClipboard(scale: false, pos: false), rotationClipboard.HasValue,
-				() => Set(mRot, Quaternion.identity));
+				() => ApplyClipboard(scale: false, pos: false), _rotationClipboard.HasValue,
+				() => Set(_rot, Quaternion.identity));
 
 			Vector3 visible = _target.localEulerAngles;
 
@@ -235,7 +263,7 @@ namespace Rhinox.Utilities.Editor
 			visible.y = WrapAngle(visible.y);
 			visible.z = WrapAngle(visible.z);
 
-			Axis changed = CheckDifference(mRot);
+			Axis changed = CheckDifference(_rot);
 			Axis altered = Axis.None;
 
 			GUILayoutOption opt = GUILayout.MinWidth(30f);
@@ -262,21 +290,50 @@ namespace Rhinox.Utilities.Editor
 
 			GUILayout.EndHorizontal();
 		}
-
+		
 		private void DrawScale()
 		{
 			GUILayout.BeginHorizontal();
 			{ 
-				DrawResetButton(mScale, Properties.ScaleLabel, 
+				DrawResetButton(_scale, Properties.ScaleLabel, 
 					() => SaveToClipboard(pos: false, rot: false), targets.Length == 1, 
-					() => ApplyClipboard(pos: false, rot: false), scaleClipboard.HasValue,
-					() => Set(mScale, Vector3.one));
+					() => ApplyClipboard(pos: false, rot: false), _scaleClipboard.HasValue,
+					() => Set(_scale, Vector3.one));
 
-				EditorGUILayout.PropertyField(mScale.FindPropertyRelative("x"));
-				EditorGUILayout.PropertyField(mScale.FindPropertyRelative("y"));
-				EditorGUILayout.PropertyField(mScale.FindPropertyRelative("z"));
+				var scale = _scale.vector3Value;
+				if (_isConstrained && scale.LossyEquals(Vector3.zero)) scale = Vector3.one;
+
+				using (new eUtility.DisabledGroup(_isConstrained && scale.x.LossyEquals(0)))
+					EditorGUILayout.PropertyField(_scale.FindPropertyRelative("x"));
+				using (new eUtility.DisabledGroup(_isConstrained && scale.y.LossyEquals(0)))
+					EditorGUILayout.PropertyField(_scale.FindPropertyRelative("y"));
+				using (new eUtility.DisabledGroup(_isConstrained && scale.z.LossyEquals(0)))
+					EditorGUILayout.PropertyField(_scale.FindPropertyRelative("z"));
+
+				if (_isConstrained)
+					ApplyConstrainedScale(scale);
 			}
 			GUILayout.EndHorizontal();
+		}
+
+		private void ApplyConstrainedScale(Vector3 scale)
+		{
+			var newScale = _scale.vector3Value;
+			if (!newScale.x.LossyEquals(scale.x))
+			{
+				var ratio = newScale.x / scale.x;
+				_scale.vector3Value = new Vector3(newScale.x, ratio * scale.y, ratio * scale.z);
+			}
+			else if (!newScale.y.LossyEquals(scale.y))
+			{
+				var ratio = newScale.y / scale.y;
+				_scale.vector3Value = new Vector3(ratio * scale.x, newScale.y, ratio * scale.z);
+			}
+			else if (!newScale.z.LossyEquals(scale.z))
+			{
+				var ratio = newScale.z / scale.z;
+				_scale.vector3Value = new Vector3(ratio * scale.x, ratio * scale.y, newScale.z);
+			}
 		}
 
 		private void DrawWorldPosition()
@@ -286,7 +343,10 @@ namespace Rhinox.Utilities.Editor
 				using (new eUtility.DisabledGroup(true))
 				{
 					EditorGUILayout.LabelField(Properties.WorldPositionLabel, GUILayout.Width(20));
-					EditorGUILayout.Vector3Field(GUIContent.none, worldPos);
+					EditorGUILayout.FloatField("X", _worldPos.x);
+					EditorGUILayout.FloatField("Y", _worldPos.y);
+					EditorGUILayout.FloatField("Z", _worldPos.z);
+
 				}
 			}
 		}
@@ -295,18 +355,35 @@ namespace Rhinox.Utilities.Editor
 		{
 			using (new eUtility.HorizontalGroup())
 			{
-				if (GUILayout.Button(Properties.CopyBtnLabel, CustomGUIStyles.ButtonLeft, GUILayout.Height(_buttonHeight)))
+				if (Button(Properties.CopyBtnLabel, CustomGUIStyles.ButtonLeft))
 					SaveToClipboard();
 
-				using (new eUtility.DisabledGroup(!positionClipboard.HasValue))
+				using (new eUtility.DisabledGroup(!_positionClipboard.HasValue))
 				{
-					if (GUILayout.Button(Properties.PasteBtnLabel, CustomGUIStyles.ButtonRight, GUILayout.Height(_buttonHeight)))
+					if (Button(Properties.PasteBtnLabel, CustomGUIStyles.ButtonRight))
 					{
 						ApplyClipboard();
 						GUI.FocusControl(null);
 					}
 				}
 			}
+		}
+		
+		private void DrawScaleHelpers()
+		{
+			using (new eUtility.HorizontalGroup())
+			{
+				if (CustomEditorGUI.IconButton(_isConstrained ? Properties.LinkedContent : Properties.UnlinkedContent, CustomGUIStyles.IconButtonLeft))
+				{
+					_isConstrained = !_isConstrained;
+					if (_scaleConstraint != null)
+						_scaleConstraint.boolValue = _isConstrained;
+				}
+
+				if (Button(Properties.ResetBtnLabel, CustomGUIStyles.ButtonRight))
+					HandleScaleShift();
+			}
+			
 		}
 
 		private void DrawHierarchyHelpers()
@@ -316,12 +393,12 @@ namespace Rhinox.Utilities.Editor
 				var go = ((Transform) target).gameObject;
 				using (new eUtility.DisabledGroup(!go.activeInHierarchy))
 				{
-					if (GUILayout.Button(Properties.PingBtnLabel, CustomGUIStyles.ButtonLeft, GUILayout.Height(_buttonHeight)))
+					if (Button(Properties.PingBtnLabel, CustomGUIStyles.ButtonLeft))
 						EditorGUIUtility.PingObject(go);
 				}
 			
 #if ODIN_INSPECTOR
-				if (SirenixEditorGUI.IconButton(EditorIcons.Pen, CustomGUIStyles.ButtonRight, _buttonHeight, _buttonHeight, Properties.OpenLockedBtnTooltip))
+				if (SirenixEditorGUI.IconButton(EditorIcons.Pen, CustomGUIStyles.ButtonRight, Properties.ButtonHeight, Properties.ButtonHeight, Properties.OpenLockedBtnTooltip))
 					GUIHelper.OpenInspectorWindow(go);
 #endif
 			}
@@ -329,30 +406,30 @@ namespace Rhinox.Utilities.Editor
 
 		private void SaveToClipboard(bool pos = true, bool rot = true, bool scale = true)
 		{
-			if (pos) positionClipboard = _target.localPosition;
-			else positionClipboard = null;
+			if (pos) _positionClipboard = _target.localPosition;
+			else _positionClipboard = null;
 			
-			if (rot) rotationClipboard = _target.localRotation;
-			else rotationClipboard = null;
+			if (rot) _rotationClipboard = _target.localRotation;
+			else _rotationClipboard = null;
 			
-			if (scale) scaleClipboard = _target.localScale;
-			else scaleClipboard = null;
+			if (scale) _scaleClipboard = _target.localScale;
+			else _scaleClipboard = null;
 		}
 
 		private void ApplyClipboard(bool pos = true, bool rot = true, bool scale = true)
 		{
 			// If applying nothing, just return
-			if (!(pos   && positionClipboard.HasValue) &&
-			    !(rot   && rotationClipboard.HasValue) &&
-			    !(scale && scaleClipboard.HasValue)) return;
+			if (!(pos   && _positionClipboard.HasValue) &&
+			    !(rot   && _rotationClipboard.HasValue) &&
+			    !(scale && _scaleClipboard.HasValue)) return;
 			
 			Undo.RecordObjects(targets, "Paste Clipboard Values");
 			for (int i = 0; i < targets.Length; i++)
 			{
 				var t = ((Transform) targets[i]);
-				if (pos   && positionClipboard.HasValue) t.localPosition = positionClipboard.Value;
-				if (rot   && rotationClipboard.HasValue) t.localRotation = rotationClipboard.Value;
-				if (scale && scaleClipboard.HasValue) t.localScale = scaleClipboard.Value;
+				if (pos   && _positionClipboard.HasValue) t.localPosition = _positionClipboard.Value;
+				if (rot   && _rotationClipboard.HasValue) t.localRotation = _rotationClipboard.Value;
+				if (scale && _scaleClipboard.HasValue) t.localScale = _scaleClipboard.Value;
 			}
 		}
 
@@ -441,8 +518,8 @@ namespace Rhinox.Utilities.Editor
 		{
 			return Mathf.Abs(a - b) > 0.0001f;
 		}
-		
-		static public void RegisterUndo(string name, params Object[] objects)
+
+		private static void RegisterUndo(string name, params Object[] objects)
 		{
 			if (objects == null || objects.Length <= 0) return;
 			
@@ -455,7 +532,7 @@ namespace Rhinox.Utilities.Editor
 			}
 		}
 
-		static public float WrapAngle(float angle)
+		public static float WrapAngle(float angle)
 		{
 			while (angle > 180f) angle -= 360f;
 			while (angle < -180f) angle += 360f;
@@ -526,5 +603,15 @@ namespace Rhinox.Utilities.Editor
 			// default small bounds
 			return new Bounds(t.position, Vector3.one);
 		}
+		
+		
+		private static bool _drawDefault;
+
+		[MenuItem("CONTEXT/Transform/Toggle Custom Editor", false)]
+		private static void ToggleCustomEditor(MenuCommand menuCommand)
+		{
+			_drawDefault = !_drawDefault;
+		}
+
 	}
 }
