@@ -15,7 +15,7 @@ namespace Rhinox.Utilities.Odin.Editor
 {
     public class ScriptableObjectCreator : OdinMenuEditorWindow
     {
-        static HashSet<Type> scriptableObjectTypes = LinqExtensions.ToHashSet(
+        static HashSet<Type> scriptableObjectTypes = new HashSet<Type>(
             AssemblyUtilities.GetTypes(AssemblyTypeFlags.CustomTypes)
                 .Where(t =>
                     t.IsClass &&
