@@ -213,8 +213,20 @@ namespace Rhinox.Utilities.Editor
                 {
                     rootPath = Path.GetFullPath(Path.Combine(rootPath, "..", ".."));
                     path = FileHelper.GetRelativePath(path, rootPath);
-                    AssetDatabase.CreateAsset(Target.sharedMesh, path);
-                    AssetDatabase.SaveAssets();
+                    try
+                    {
+                        AssetDatabase.CreateAsset(Target.sharedMesh, path);
+                        AssetDatabase.SaveAssets();
+                    }
+                    // if the above failed it is an addressable TODO try not using try catch...
+                    // I cannot find a way to fetch whether it is so we have to try catch...
+                    catch 
+                    {
+                        // Copy the mesh (getter of mesh makes a copy and assigns it)
+                        // We don't want to do this by default because it throws a warning / memory leak
+                        AssetDatabase.CreateAsset(Target.mesh, path);
+                        AssetDatabase.SaveAssets();
+                    }
                 }
             }
         }
