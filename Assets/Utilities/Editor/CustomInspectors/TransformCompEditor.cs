@@ -68,7 +68,6 @@ namespace Rhinox.Utilities.Editor
 		private static Quaternion? _rotationClipboard = null;
 		private static Vector3? _scaleClipboard = null;
 
-
 		protected void OnEnable()
 		{ 
 			Init();
