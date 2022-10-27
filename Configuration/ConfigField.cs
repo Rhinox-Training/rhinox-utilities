@@ -6,11 +6,10 @@ namespace Rhinox.Utilities
 {
     public class ConfigField : IConfigField
     {
-        public FieldInfo Field;
-        
+        public FieldInfo Field { get; private set; }
         public string Section { get; private set; }
-        public string Name => Field?.Name;
         
+        public string Name => Field?.Name;
         public Type Type => Field?.FieldType;
 
         public ConfigField(FieldInfo field, string section)
