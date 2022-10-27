@@ -15,7 +15,7 @@ namespace Rhinox.Utilities
 
     public abstract class ConfigLoader : IConfigLoader
     {
-        private ICollection<FieldParser> _parsers;
+        protected ICollection<FieldParser> _parsers;
         
         public virtual bool SupportsDynamicGroups => false;
         
@@ -70,38 +70,38 @@ namespace Rhinox.Utilities
             var fields = configFile.FindFields();
             foreach (var configField in fields)
             {
-                FieldInfo field = configField.Field;
+                // FieldInfo field = configField.Field;
                 if (FindSetting(configField, out string settingsVal))
                 {
                     if (ValidateField(configField, settingsVal, out object value))
                     {
-                        field.SetValue(configFile, value);
-                        PLog.Debug<UtilityLogger>($"Setting {field.Name} loaded: {settingsVal}");
+                        configField.SetValue(configFile, value);
+                        PLog.Debug<UtilityLogger>($"Setting {configField.Name} loaded: {settingsVal}");
                     }
                     else
-                        PLog.Error<UtilityLogger>($"No load INI support for {field.FieldType.FullName} with value '{settingsVal}'");
+                        PLog.Error<UtilityLogger>($"No load INI support for {configField.Type.FullName} with value '{settingsVal}'");
                 }
                 else
                 {
-                    if (!SupportsDynamicGroups || configField.Field.FieldType != typeof(DynamicConfigFieldEntry[]))
+                    if (!SupportsDynamicGroups || configField.Type != typeof(DynamicConfigFieldEntry[]))
                         continue;
                     if (!FindGroupSetting(configField, out var dynamicFields))
                         continue;
                     
-                    field.SetValue(configFile, dynamicFields.ToArray());
-                    PLog.Debug<UtilityLogger>($"Dynamic Group Setting {field.Name} loaded: group of size {dynamicFields.Length}");
+                    configField.SetValue(configFile, dynamicFields.ToArray());
+                    PLog.Debug<UtilityLogger>($"Dynamic Group Setting {configField.Name} loaded: group of size {dynamicFields.Length}");
                 }
             }
         }
 
-        protected virtual bool FindGroupSetting(ConfigField configField, out DynamicConfigFieldEntry[] fields)
+        protected virtual bool FindGroupSetting(IConfigField configField, out DynamicConfigFieldEntry[] fields)
         {
             throw new NotImplementedException();
         }
 
-        protected abstract bool FindSetting(ConfigField configField, out string value);
+        protected abstract bool FindSetting(IConfigField configField, out string value);
         
-        private bool ValidateField(ConfigField configField, string fieldValue, out object value)
+        protected virtual bool ValidateField(IConfigField configField, string fieldValue, out object value)
         {
             if (_parsers == null)
             {

@@ -14,11 +14,11 @@ namespace Rhinox.Utilities
             TargetType = type;
         }
 
-        public override bool CanParse(ConfigField configField)
+        public override bool CanParse(IConfigField configField)
         {
-            if (configField == null || configField.Field == null)
+            if (configField == null || configField.Type == null)
                 return false;
-            return TargetType.IsAssignableFrom(configField.Field.FieldType);
+            return TargetType.IsAssignableFrom(configField.Type);
         }
     }
 
@@ -26,7 +26,7 @@ namespace Rhinox.Utilities
     {
         public FloatFieldParser() : base(typeof(float)) { }
 
-        public override bool ParseValue(ConfigField field, string fieldValue, out object value)
+        public override bool ParseValue(IConfigField field, string fieldValue, out object value)
         {
             if (float.TryParse(fieldValue, out float result))
             {
@@ -43,7 +43,7 @@ namespace Rhinox.Utilities
     {
         public IntFieldParser() : base(typeof(int)) { }
 
-        public override bool ParseValue(ConfigField field, string fieldValue, out object value)
+        public override bool ParseValue(IConfigField field, string fieldValue, out object value)
         {
             if (int.TryParse(fieldValue, out int result))
             {
@@ -60,7 +60,7 @@ namespace Rhinox.Utilities
     {
         public BoolFieldParser() : base(typeof(bool)) { }
 
-        public override bool ParseValue(ConfigField field, string fieldValue, out object value)
+        public override bool ParseValue(IConfigField field, string fieldValue, out object value)
         {
             if (bool.TryParse(fieldValue, out bool result))
             {
@@ -84,7 +84,7 @@ namespace Rhinox.Utilities
     {
         public StringFieldParser() : base(typeof(string)) { }
 
-        public override bool ParseValue(ConfigField field, string fieldValue, out object value)
+        public override bool ParseValue(IConfigField field, string fieldValue, out object value)
         {
             value = fieldValue;
             return true;

@@ -5,6 +5,6 @@ namespace Rhinox.Utilities
     public interface IConfigFile
     {
         void Initialize();
-        ICollection<ConfigField> FindFields();
+        ICollection<IConfigField> FindFields();
     }
 }

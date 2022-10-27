@@ -26,10 +26,10 @@ namespace Rhinox.Utilities
             
         }
 
-        public ICollection<ConfigField> FindFields()
+        public virtual ICollection<IConfigField> FindFields()
         {
             Type configType = GetType();
-            List<ConfigField> list = new List<ConfigField>();
+            List<IConfigField> list = new List<IConfigField>();
             var fieldInfos = configType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var fi in fieldInfos)
             {
