@@ -4,9 +4,9 @@ namespace Rhinox.Utilities
 {
     public abstract class FieldParser
     {
-        public abstract bool CanParse(ConfigField configField);
+        public abstract bool CanParse(IConfigField configField);
 
-        public abstract bool ParseValue(ConfigField field, string fieldValue, out object value);
+        public abstract bool ParseValue(IConfigField field, string fieldValue, out object value);
     }
 
     public static class FieldParserHelper

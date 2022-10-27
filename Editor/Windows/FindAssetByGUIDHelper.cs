@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
 {
-    public class FindAssetByGUIDHelper : EditorWindow
+    public static class FindAssetByGUIDHelper
     {
         public static void DoFindByGuidMenu()
         {
