@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Perceptor;
 
@@ -22,20 +20,19 @@ namespace Rhinox.Utilities
             });
         }
 
-        protected override bool FindSetting(ConfigField configField, out string value)
+        protected override bool FindSetting(IConfigField configField, out string value)
         {
-            FieldInfo field = configField.Field;
-            if (_reader == null || !_reader.HasSetting(configField.Section, field.Name))
+            if (_reader == null || !_reader.HasSetting(configField.Section, configField.Name))
             {
                 value = null;
                 return false;
             }
             
-            value = _reader.GetSetting(configField.Section, field.Name);
+            value = _reader.GetSetting(configField.Section, configField.Name);
             return true;
         }
 
-        protected override bool FindGroupSetting(ConfigField configField, out DynamicConfigFieldEntry[] fields)
+        protected override bool FindGroupSetting(IConfigField configField, out DynamicConfigFieldEntry[] fields)
         {
             if (_reader == null)
             {
@@ -43,7 +40,6 @@ namespace Rhinox.Utilities
                 return false;
             }
             
-            FieldInfo field = configField.Field;
             var keys = _reader.EnumSection(configField.Section);
             var fieldResult = new List<DynamicConfigFieldEntry>();
             foreach (var key in keys)
@@ -67,8 +63,7 @@ namespace Rhinox.Utilities
             IniParser parser = IniParser.Open(path, true);
             foreach (var configField in file.FindFields())
             {
-                FieldInfo field = configField.Field;
-                parser.AddSetting(configField.Section, field.Name, field.GetValue(file).ToString());
+                parser.AddSetting(configField.Section, configField.Name, configField.GetValue(file).ToString());
             }
 
             parser.SaveSettings();

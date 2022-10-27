@@ -4,18 +4,18 @@ namespace Rhinox.Utilities
 {
     public class EnumFieldParser : FieldParser
     {
-        public override bool CanParse(ConfigField configField)
+        public override bool CanParse(IConfigField configField)
         {
-            if (configField == null || configField.Field == null)
+            if (configField == null || configField.Type == null)
                 return false;
-            return configField.Field.FieldType.IsEnum;
+            return configField.Type.IsEnum;
         }
 
-        public override bool ParseValue(ConfigField field, string fieldValue, out object value)
+        public override bool ParseValue(IConfigField field, string fieldValue, out object value)
         {
             try
             {
-                object enumVal = Enum.Parse(field.Field.FieldType, fieldValue);
+                object enumVal = Enum.Parse(field.Type, fieldValue);
                 value = enumVal;
                 return true;
             }
