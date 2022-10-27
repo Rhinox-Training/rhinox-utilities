@@ -15,7 +15,7 @@ namespace Rhinox.Utilities
 
     public abstract class ConfigLoader : IConfigLoader
     {
-        private ICollection<FieldParser> _parsers;
+        protected ICollection<FieldParser> _parsers;
         
         public virtual bool SupportsDynamicGroups => false;
         
@@ -101,7 +101,7 @@ namespace Rhinox.Utilities
 
         protected abstract bool FindSetting(IConfigField configField, out string value);
         
-        private bool ValidateField(IConfigField configField, string fieldValue, out object value)
+        protected virtual bool ValidateField(IConfigField configField, string fieldValue, out object value)
         {
             if (_parsers == null)
             {

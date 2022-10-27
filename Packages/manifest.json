@@ -4,7 +4,6 @@
       "name": "OpenUPM",
       "url": "https://package.openupm.com",
       "scopes": [
-        "com.openupm",
         "com.rhinox.open",
         "io.github"
       ]
