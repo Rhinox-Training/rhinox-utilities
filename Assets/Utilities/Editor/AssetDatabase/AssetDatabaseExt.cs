@@ -55,21 +55,23 @@ namespace Rhinox.Utilities.Editor
 
         public static bool ImportAssets(ICollection<string> files, string targetFolder, Action<AssetChanges> callback = null)
         {
-            var _completedImportProcessor = new CompletedImportProcessor(files.Count, callback);
+            var completedImportProcessor = new CompletedImportProcessor(files.Count, callback);
             foreach (var file in files)
             {
                 string fullPath = FileHelper.GetFullPath(file, FileHelper.GetProjectPath());
-                ImportAsset(fullPath, targetFolder, _completedImportProcessor);
+                if (!ImportAsset(fullPath, targetFolder, completedImportProcessor))
+                    completedImportProcessor.MarkFailed(fullPath);
             }
 
 
-            // TODO: this does not check if jobs can be added correctly, what if one fails to be queued
-            return true;
+            // TODO: what if a job wasn't added correctly, how do we continue? (How do we expose the specific failure)
+            return !completedImportProcessor.HasFailed;
         }
         
         private class CompletedImportProcessor : IJobProcessor
         {
             private int _completeCount = 0;
+            private int _failedCount = 0;
             public int CompleteCount => _completeCount;
             private readonly object _lockObject = new object();
             private readonly int _targetCount;
@@ -78,7 +80,9 @@ namespace Rhinox.Utilities.Editor
 
             private readonly List<string> _importedAssets;
 
-            public bool IsComplete => _completeCount >= _targetCount;
+            public bool IsComplete => (_completeCount + _failedCount) >= _targetCount;
+
+            public bool HasFailed => _failedCount > 0;
 
             public CompletedImportProcessor(int targetCount, Action<AssetChanges> callback)
             {
@@ -122,6 +126,15 @@ namespace Rhinox.Utilities.Editor
                 }
 
                 return importChanges;
+            }
+
+            public void MarkFailed(string jobFile)
+            {
+                lock (_lockObject)
+                {
+                    ++_failedCount;
+                    PLog.Error($"AssetDatabase.CompletionCollection: failed import stage '{jobFile}' out of {_targetCount}");
+                }
             }
             
             // TODO: move to utils?
