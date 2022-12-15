@@ -79,7 +79,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             if (d == null)
             {
-                d = new Dependency(path);
+                d = Dependency.Create(path);
                 Dependencies.Add(d);
             }
 

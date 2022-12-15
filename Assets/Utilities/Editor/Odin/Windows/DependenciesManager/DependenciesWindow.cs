@@ -21,93 +21,7 @@ using GUILayoutOptions = Sirenix.Utilities.GUILayoutOptions;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-	[TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
-	public class DependencySettings
-	{
-		[ListDrawerSettings(Expanded = true)] public List<string> FilesToIgnore;
-		[ListDrawerSettings(Expanded = true)] public List<string> DirectoriesToIgnore;
-
-		public Regex[] IgnoredFileRegexs
-		{
-			get { return FilesToIgnore.Select(x => new Regex(x, RegexOptions.IgnoreCase)).ToArray(); }
-		}
-
-		public Regex[] IgnoredDirectoryRegexs
-		{
-			get { return DirectoriesToIgnore.Select(x => new Regex(x, RegexOptions.IgnoreCase)).ToArray(); }
-		}
-
-		[OdinSerialize, PropertyOrder(10), PropertySpace(10)]
-		public Dictionary<Type, Texture> IconMapper;
-
-		[Button(ButtonSizes.Medium, ButtonStyle.FoldoutButton)]
-		public void Test(string path)
-		{
-
-			if (IsAnyMatch(path, IgnoredFileRegexs, IgnoredDirectoryRegexs))
-				Debug.Log("Match was found: This path will be ignored!");
-			else Debug.Log("Match was not found: This path will be included.");
-		}
-
-		public static bool IsAnyMatch(string path, Regex[] filesToIgnore, Regex[] directoriesToIgnore)
-		{
-			string filename = Path.GetFileName(path);
-
-			if (filesToIgnore != null && filesToIgnore.Any(r => r.IsMatch(filename)))
-				return true;
-
-			if (directoriesToIgnore != null && directoriesToIgnore.Any(r => r.IsMatch(path)))
-				return true;
-
-			return false;
-		}
-
-		[Button("Reset to defaults", ButtonSizes.Medium)]
-		public void Load()
-		{
-			IconMapper = new Dictionary<Type, Texture>
-			{
-				{typeof(Material), UnityIcon.InternalIcon("Material Icon")},
-				{typeof(Shader), UnityIcon.InternalIcon("Shader Icon")},
-				// {typeof(SubstanceArchive), UnityIcon.AssetIcon("SDDOC") },
-				{typeof(Texture), EditorIcons.ImageCollection.Active},
-				{typeof(Texture2D), EditorIcons.ImageCollection.Active},
-				{typeof(Sprite), UnityIcon.InternalIcon("d_Sprite Icon")},
-				{typeof(AudioClip), UnityIcon.InternalIcon("AudioClip Icon")},
-				{typeof(GameObject), UnityIcon.InternalIcon("GameObject Icon")},
-				{typeof(ScriptableObject), UnityIcon.InternalIcon("d_ScriptableObject Icon")},
-				{typeof(MonoScript), UnityIcon.InternalIcon("cs Script Icon")},
-				{typeof(Font), UnityIcon.InternalIcon("Font Icon")},
-#if TEXT_MESH_PRO
-				{typeof(TMP_FontAsset), UnityIcon.InternalIcon("Font Icon")}
-#endif
-			};
-
-			FilesToIgnore = new List<string>
-			{
-				"LightingData",
-				"NavMesh",
-				"ReflectionProbe",
-				"Lightmap-",
-				@".*\.asmdef",
-				".*Generated.*"
-				
-			};
-
-			DirectoriesToIgnore = new List<string>
-			{
-				"/Plugins/",
-				"/TextMesh Pro/",
-				"/VRTK/",
-				"/SteamVR/",
-				"/PATCH/",
-				"/Resonai.*/",
-				"Packages/"
-			};
-		}
-	}
-
-	public class DependenciesWindow : OdinMenuListEditorWindow
+	public class DependenciesWindow : MenuListEditorWindow
 	{
 		// =================================================================================================================
 		// PROPERTIES
@@ -115,13 +29,11 @@ namespace Rhinox.Utilities.Odin.Editor
 
 		public static GUIContent TitleContent => new GUIContent("Dependencies List", EditorIcons.MagnifyingGlass.Raw);
 
-		[ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 8, DraggableItems = false)]
-		[AssetsOnly, DrawAsUnityObject]
-		public List<Object> Objects = new List<Object>();
 
-		[HideInInspector] public AssetManager AssetManager = new AssetManager();
+		[HideInInspector] public DependencyHomePage HomePage;
+		[HideInInspector] public AssetManager AssetManager;
 		[HideInInspector] public DependenciesManager DependenciesManager = new DependenciesManager();
-		[HideInInspector] public DependencySettings Settings = new DependencySettings();
+		[HideInInspector] public DependencySettings Settings;
 
 		public bool ShowPath { get; private set; }
 
@@ -141,79 +53,29 @@ namespace Rhinox.Utilities.Odin.Editor
 		// =================================================================================================================
 		// ASSET MANAGEMENT
 
-		[Button(ButtonSizes.Large), ButtonGroup("Find", 100)]
-		public void FindDependencies()
+		
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			Settings = ScriptableObject.CreateInstance<DependencySettings>();
+			AssetManager = ScriptableObject.CreateInstance<AssetManager>();
+			HomePage = ScriptableObject.CreateInstance<DependencyHomePage>();
+			HomePage.Initialize(this);
+		}
+
+		internal void ClearSelections()
 		{
 			_currentSelections = null;
-			DependenciesManager.FindDependencies(Objects, Settings.IgnoredFileRegexs, Settings.IgnoredDirectoryRegexs);
-			ForceMenuTreeRebuild();
 		}
 
-		// [Button(ButtonSizes.Medium), ButtonGroup("Find")]
-		// public void FindDependant()
-		// {
-		// 	// NOT WORKING
-		// 	DependenciesManager.FindDependant(Objects);
-		// 	ForceMenuTreeRebuild();
-		// }
-		
-
-		[Button(ButtonSizes.Medium), ButtonGroup("Add"), GUIColor(.4f, .8f, .6f)]
-		public void AddAllScenes()
-		{
-			var paths = AssetManager.GetAssetsPaths("t:Scene")
-				.Where(p => p.StartsWith("Assets/"));
-			foreach (var path in paths)
-			{
-				Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
-			}
-		}
-
-		[Button(ButtonSizes.Medium), ButtonGroup("Add"), GUIColor(.4f, .8f, .6f)]
-		public void AddAllResources()
-		{
-			var paths = AssetManager.AllAssets
-				.Where(path => path.Contains("/Resources/"));
-			foreach (var path in paths)
-			{
-				Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
-			}
-		}
-
-		[Button(ButtonSizes.Medium), ButtonGroup("Add"), GUIColor(.4f, .8f, .6f)]
-		public void AddAllPrefabs()
-		{
-			var paths = AssetManager.GetAssetsPaths("t:Prefab");
-			foreach (var path in paths)
-				Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
-		}
-		
-		[Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.8f, .4f, .6f)]
-		public void Clear()
-		{
-			Objects.Clear();
-			DependenciesManager.Dependencies.Clear();
-			_currentSelections = null;
-
-			_selectionDescription = null;
-
-			ForceMenuTreeRebuild();
-		}
-		
-		[Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.4f, .8f, .6f)]
-		public void AddLiterallyEverything()
-		{
-			var paths = AssetManager.GetAssetsPaths("");
-			foreach (var path in paths)
-				Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
-		}
 
 		// =================================================================================================================
 		// Selection Management
 		private Dependency[] GetSelection()
 		{
 			return MenuTree.Selection
-				.Select(x => x.Value as Dependency)
+				.Select(x => x.RawValue as Dependency)
 				.Where(x => x != null)
 				.OrderBy(x => x.Path)
 				.ToArray();
@@ -344,20 +206,12 @@ namespace Rhinox.Utilities.Odin.Editor
 		}
 
 		// overrides the way a selected item is shown when multiple are selected
-		protected override object GetObject(OdinMenuItem item)
+		protected override object TransformTarget(object item)
 		{
-			if (item == null)
-				return null;
-
-			object obj = item.Value;
-			Func<object> func = obj as Func<object>;
-			if (func != null)
-				obj = func();
-
 			if (MenuTree.Selection.Count > 1)
-				return (obj as Dependency)?.GetLoadedReference();
+				return (item as Dependency)?.GetLoadedReference();
 
-			return obj;
+			return item;
 		}
 
 		// =================================================================================================================
@@ -374,27 +228,33 @@ namespace Rhinox.Utilities.Odin.Editor
 			w.Settings.Load();
 		}
 
-		protected override OdinMenuTree BuildMenuTree()
+		protected override CustomMenuTree BuildMenuTree()
 		{
-			var tree = new OdinMenuTree(true);
-			tree.DefaultMenuStyle.IconSize = 16.00f;
-			tree.Config.DrawSearchToolbar = true;
+			var tree = ScriptableObject.CreateInstance<CustomMenuTree>();
+#if ODIN_INSPECTOR
+			// TODO: enable
+			//tree.DefaultMenuStyle.IconSize = 16.00f;
+			//tree.Config.DrawSearchToolbar = true;
+#endif
+			
+			tree.Add("Home", HomePage, EditorIcons.House.Raw);
 
-			tree.Add("Home", this, EditorIcons.House);
+			tree.Add("All Assets", AssetManager, EditorIcons.List.Raw);
 
-			tree.Add("All Assets", AssetManager, EditorIcons.List);
-
-			tree.Add("Settings", Settings, EditorIcons.SettingsCog);
+			tree.Add("Settings", Settings, EditorIcons.SettingsCog.Raw);
 
 			foreach (var d in DependenciesManager.Dependencies)
 			{
-				if (!AssetManager.AllAssets.Contains(d.Path)) continue;
+				if (!AssetManager.AllAssets.Contains(d.Path)) 
+					continue;
 				
 				tree.Add(ShowPath ? d.PathNoAssets : d.Name, d, GetIconForType(d.Type));
 			}
 
 			return tree;
 		}
+		
+
 
 		private Texture GetIconForType(Type t)
 		{
@@ -413,25 +273,25 @@ namespace Rhinox.Utilities.Odin.Editor
 
 		protected override void OnBeginDrawEditors()
 		{
-			var toolbarHeight = this.MenuTree.Config.SearchToolbarHeight;
+			var toolbarHeight = this.MenuTree.ToolbarHeight;
 
-			SirenixEditorGUI.BeginHorizontalToolbar(toolbarHeight);
+			CustomEditorGUI.BeginHorizontalToolbar(toolbarHeight);
 
 			DrawToolbarBtns();
 
 			GUILayout.FlexibleSpace();
-			var newTerm = SirenixEditorGUI.ToolbarSearchField(AssetManager.SearchText);
+			var newTerm = CustomEditorGUI.ToolbarSearchField(AssetManager.SearchText);
 			if (AssetManager.CheckChange(newTerm))
 				ForceMenuTreeRebuild();
 
-			SirenixEditorGUI.EndHorizontalToolbar();
+			CustomEditorGUI.EndHorizontalToolbar();
 
 			// Secondary toolbar
 			var height = toolbarHeight / 1.5f;
-			SirenixEditorGUI.BeginHorizontalToolbar(height, paddingTop: 4 + toolbarHeight);
+			CustomEditorGUI.BeginHorizontalToolbar(height, paddingTop: 4 + toolbarHeight);
 			DrawTypeActions();
 			DrawTypeSearchButtons(height);
-			SirenixEditorGUI.EndHorizontalToolbar();
+			CustomEditorGUI.EndHorizontalToolbar();
 		}
 
 		protected override void OnGUI()
@@ -501,29 +361,32 @@ namespace Rhinox.Utilities.Odin.Editor
 
 			var toggleOpts = GUILayoutOptions.Height(height).Width(height * 1.5f);
 
-			foreach (var pair in Settings.IconMapper)
+			if (Settings != null && Settings.IconMapper != null)
 			{
-				if (pair.Key == typeof(Texture2D)
-#if TEXT_MESH_PRO
-				    || pair.Key == typeof(TMP_FontAsset)
-#endif
-				    )
-					continue;
-
-				var typeName = pair.Key.Name;
-				var content = new GUIContent(pair.Value, typeName);
-				if (GUILayout.Toggle(activeType == typeName, content, SirenixGUIStyles.ToolbarTab, toggleOpts))
+				foreach (var pair in Settings.IconMapper)
 				{
-					activeType = typeName;
-					searchPieces = searchPieces
-						.Where(x => !x.StartsWith("t:"))
-						.Append("t:" + activeType)
-						.ToArray();
+					if (pair.Key == typeof(Texture2D)
+#if TEXT_MESH_PRO
+					    || pair.Key == typeof(TMP_FontAsset)
+#endif
+					   )
+						continue;
 
-					var newSearch = string.Join(" ", searchPieces);
+					var typeName = pair.Key.Name;
+					var content = new GUIContent(pair.Value, typeName);
+					if (GUILayout.Toggle(activeType == typeName, content, SirenixGUIStyles.ToolbarTab, toggleOpts))
+					{
+						activeType = typeName;
+						searchPieces = searchPieces
+							.Where(x => !x.StartsWith("t:"))
+							.Append("t:" + activeType)
+							.ToArray();
 
-					if (AssetManager.CheckChange(newSearch))
-						changed = true;
+						var newSearch = string.Join(" ", searchPieces);
+
+						if (AssetManager.CheckChange(newSearch))
+							changed = true;
+					}
 				}
 			}
 
@@ -583,7 +446,7 @@ namespace Rhinox.Utilities.Odin.Editor
 			if (type == typeof(Material))
 			{
 				GUILayout.BeginHorizontal();
-				if (SirenixEditorGUI.ToolbarButton("Replace Material with:"))
+				if (GUILayout.Button("Replace Material with:"))
 				{
 					if (_replacementMaterial == null)
 						Debug.LogError("You must fill in a Replacement Material first!");
@@ -661,5 +524,16 @@ namespace Rhinox.Utilities.Odin.Editor
 		}
 
 		#endregion
+
+		public void Clear()
+		{
+			
+			DependenciesManager.Dependencies.Clear();
+			ClearSelections();
+
+			_selectionDescription = null;
+
+			ForceMenuTreeRebuild();
+		}
 	}
 }

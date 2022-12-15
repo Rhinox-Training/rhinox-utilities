@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Sirenix.OdinInspector;
 using UnityEditor;
+using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class AssetManager
+    public class AssetManager : ScriptableObject
     {
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 25, IsReadOnly = true), ReadOnly]
         public string[] AllAssets = new string[0];
@@ -65,7 +66,7 @@ namespace Rhinox.Utilities.Odin.Editor
             return AllAssets
                 .Where(path => !paths.Contains(path))
                 .Where(path => !DependencySettings.IsAnyMatch(path, filesToIgnore, directoriesToIgnore))
-                .Select(path => new DependencyAsset(path))
+                .Select(path => DependencyAsset.Create(path))
                 .ToArray();
         }
     }
