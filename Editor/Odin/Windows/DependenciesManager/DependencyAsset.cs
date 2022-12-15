@@ -3,28 +3,36 @@ using System.Collections.Generic;
 using Rhinox.GUIUtils.Attributes;
 using Sirenix.OdinInspector;
 using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class DependencyAsset
+    public class DependencyAsset : ScriptableObject
     {
-        public DependencyAsset(string path)
+        public static DependencyAsset Create(string path)
+        {
+            var dep = CreateInstance<DependencyAsset>();
+            dep.Initialize(path);
+            return dep;
+        }
+        
+        public virtual void Initialize(string path)
         {
             Path = path;
             Directory = GetDirectory(Path);
             // _reference = GetLoadedReference();
         }
 
-        public DependencyAsset(Object reference, string path = null)
+        public virtual void Initialize(Object reference, string path = null)
         {
             _reference = reference;
             Path = path ?? AssetDatabase.GetAssetPath(reference);
             Directory = GetDirectory(Path);
         }
 
-        [ShowInInspector, ReadOnly] public string Path { get; }
-        public string Directory { get; }
+        [ShowInInspector, ReadOnly] public string Path { get; protected set; }
+        public string Directory { get; private set; }
 
         [PropertyOrder(5), ShowInInspector, InlineEditor(InlineEditorObjectFieldModes.Boxed, Expanded = true),
          HideLabel]
@@ -69,12 +77,18 @@ namespace Rhinox.Utilities.Odin.Editor
 
     public class Dependency : DependencyAsset
     {
-        public Dependency(string path) : base(path)
+        public static Dependency Create(string path)
         {
+            var dep = CreateInstance<Dependency>();
+            dep.Initialize(path);
+            return dep;
         }
 
-        public Dependency(Object reference, string path = null) : base(reference, path)
+        public static Dependency Create(Object reference, string path = null)
         {
+            var dep = CreateInstance<Dependency>();
+            dep.Initialize(reference, path);
+            return dep;
         }
 
         [ListDrawerSettings(IsReadOnly = true)]

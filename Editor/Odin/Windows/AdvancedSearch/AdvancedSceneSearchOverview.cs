@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils.Editor;
+using Rhinox.GUIUtils.Editor.Helpers;
 using Rhinox.Lightspeed;
 using Rhinox.GUIUtils.Odin.Editor;
 using Sirenix.OdinInspector.Editor;
@@ -15,7 +16,7 @@ using GUILayoutOptions = Sirenix.Utilities.GUILayoutOptions;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class AdvancedSceneSearchOverview : OdinPagerPage, IHasCustomMenu
+    public class AdvancedSceneSearchOverview : PagerPage<AdvancedSceneSearchWindow>, IHasCustomMenu
     {
         #region wrapper
 
@@ -120,7 +121,7 @@ namespace Rhinox.Utilities.Odin.Editor
         private SettingData _includeDisabled;
         private SettingData _onlyInSelection;
 
-        public AdvancedSceneSearchOverview(SlidePagedWindowNavigationHelper<object> pager) : base(pager)
+        public AdvancedSceneSearchOverview(SlidePagedWindowNavigationHelper<object, AdvancedSceneSearchWindow> pager) : base(pager)
         {
             _pager = pager;
 

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Sirenix.OdinInspector;
+using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
-using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class MissingScriptsWindow : OdinEditorWindow
+    public class MissingScriptsWindow : CustomEditorWindow
     {
         private static int _goCount;
         private static int _componentsCount;
@@ -24,17 +23,24 @@ namespace Rhinox.Utilities.Odin.Editor
             win.titleContent = new GUIContent("Missing Comp cleaner");
         }
 
-        [OnInspectorGUI]
-        private void OnInspectorGUI()
+        protected override void OnGUI()
         {
-            if (!_bHaveRun) return;
+            base.OnGUI();
+            
+            if (_bHaveRun)
+            {
 
-            GUILayout.TextField(_goCount + " GameObjects Selected");
-            if (_goCount > 0) GUILayout.TextField(_componentsCount + " Components");
-            if (_goCount > 0) GUILayout.TextField(_missingCount + " Deleted");
+                GUILayout.TextField(_goCount + " GameObjects Selected");
+                if (_goCount > 0) GUILayout.TextField(_componentsCount + " Components");
+                if (_goCount > 0) GUILayout.TextField(_missingCount + " Deleted");
+            }
+            
+            if (GUILayout.Button("Remove from Selection"))
+                FindAndRemoveInSelection();
+            
+            GUILayout.FlexibleSpace();
         }
-
-        [Button("Remove from Selection")]
+        
         private static void FindAndRemoveInSelection()
         {
             var go = Selection.gameObjects;
