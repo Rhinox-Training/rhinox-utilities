@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Rhinox.GUIUtils.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    [HideReferenceObjectPicker]
+    [HideReferenceObjectPicker, Serializable, DrawAsReference]
     public abstract class BaseToolbarButton
     {
         protected const int ToolbarHeight = 24;
@@ -34,6 +35,7 @@ namespace Rhinox.Utilities.Odin.Editor
         protected abstract void Execute();
     }
 
+    [Serializable]
     public abstract class BaseToolbarIconButton : BaseToolbarButton
     {
         protected override string Label => string.Empty;

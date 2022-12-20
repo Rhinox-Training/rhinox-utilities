@@ -11,6 +11,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
+    [Serializable]
     public class MenuItemButton : BaseToolbarIconButton
     {
         [SerializeField, ValueDropdown(nameof(GetIconOptions)), OnValueChanged(nameof(ResolveIcon))]

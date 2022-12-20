@@ -23,14 +23,14 @@ namespace Rhinox.Utilities.Odin.Editor
         [EnumToggleButtons]
         public ButtonPositions LeftPosition = ButtonPositions.Right;
         
-        [ListDrawerSettings(DraggableItems = true)]
+        [ListDrawerSettings(DraggableItems = true), SerializeReference]
         public List<BaseToolbarButton> LeftButtons = new List<BaseToolbarButton>();
         
      
         [EnumToggleButtons, Space(10)]
         public ButtonPositions RightPosition = ButtonPositions.Left;
         
-        [ListDrawerSettings(DraggableItems = true)]
+        [ListDrawerSettings(DraggableItems = true), SerializeReference]
         public List<BaseToolbarButton> RightButtons = new List<BaseToolbarButton>();
 
 
