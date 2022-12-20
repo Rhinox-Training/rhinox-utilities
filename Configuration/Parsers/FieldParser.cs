@@ -16,6 +16,7 @@ namespace Rhinox.Utilities
             return new FieldParser[]
             {
                 new FloatFieldParser(),
+                new DoubleFieldParser(),
                 new IntFieldParser(),
                 new BoolFieldParser(),
                 new StringFieldParser(),
