@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Rhinox.GUIUtils.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
+using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -27,6 +29,9 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private static T _instance = null;
         private PropertyTree _propertyTree;
+        private UnityEditor.Editor _editor;
+        private SerializedObject _serializedObject;
+        private ICollection<ISimpleDrawable> _drawables;
 
         public static bool HasInstance => _instance != null;
         
@@ -63,7 +68,10 @@ namespace Rhinox.Utilities.Odin.Editor
 
         public virtual void OnActivate(string searchContext, VisualElement rootElement)
         {
-            
+            if (_serializedObject == null)
+                _serializedObject = new SerializedObject(this);
+
+            _drawables = DrawableFactory.ParseSerializedObject(_serializedObject);
         }
 
         public virtual void OnChanged()
@@ -80,14 +88,25 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (_propertyTree == null)
                 _propertyTree = PropertyTree.Create(Instance);
+
+
+            // if (_editor == null)
+            //     _editor = UnityEditor.Editor.CreateEditor(this, typeof(GenericSmartUnityObjectEditor));
+            // _editor.DrawDefaultInspector();
+
             
-            EditorGUI.BeginChangeCheck();
-            
-            
-            _propertyTree.Draw();
-            
-            if (EditorGUI.EndChangeCheck())
-                OnChanged();
+            using (new eUtility.PaddedGUIScope())
+            {
+                EditorGUI.BeginChangeCheck();
+
+                foreach (var drawable in _drawables)
+                    drawable.Draw();
+
+                //_propertyTree.Draw();
+
+                if (EditorGUI.EndChangeCheck())
+                    OnChanged();
+            }
         }
 
         protected SettingsProvider CreateSettingsProvider()

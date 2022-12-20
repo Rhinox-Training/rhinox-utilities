@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
+    [Serializable]
     public class StringExpressionAction : BaseToolbarButton
     {
         public string Name;
