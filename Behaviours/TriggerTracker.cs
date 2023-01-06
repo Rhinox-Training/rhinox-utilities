@@ -26,7 +26,7 @@ namespace Rhinox.Utilities
         protected Dictionary<T, HashSet<Collider>> _containedObjectsDict = new Dictionary<T, HashSet<Collider>>();
 
         [ShowInInspector, ReadOnly] public ICollection<T> ContainedObjects => _containedObjectsDict.Keys;
-        public IEnumerable<T> ActiveContainedObjects => _containedObjectsDict.Keys.Where(x => x.gameObject.activeInHierarchy);
+        public IEnumerable<T> ActiveContainedObjects => _containedObjectsDict.Keys.Where(x => x != null && x.gameObject.activeInHierarchy);
 
         public event Action<T> ObjectEnter;
         public event Action<T> ObjectExit;

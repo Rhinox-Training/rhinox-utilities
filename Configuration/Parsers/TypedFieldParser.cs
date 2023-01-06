@@ -39,6 +39,23 @@ namespace Rhinox.Utilities
         }
     }
     
+    public class DoubleFieldParser : TypedFieldParser
+    {
+        public DoubleFieldParser() : base(typeof(double)) { }
+
+        public override bool ParseValue(IConfigField field, string fieldValue, out object value)
+        {
+            if (double.TryParse(fieldValue, out double result))
+            {
+                value = result;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+    }
+    
     public class IntFieldParser : TypedFieldParser
     {
         public IntFieldParser() : base(typeof(int)) { }
