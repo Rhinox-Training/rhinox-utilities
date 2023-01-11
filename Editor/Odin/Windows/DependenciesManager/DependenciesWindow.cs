@@ -29,6 +29,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
 		public static GUIContent TitleContent => new GUIContent("Dependencies List", EditorIcons.MagnifyingGlass.Raw);
 
+		[HideInInspector] public DependencyHomePage HomePage;
 		[HideInInspector] public AssetManager AssetManager = new AssetManager();
 		[HideInInspector] public DependenciesManager DependenciesManager = new DependenciesManager();
 		[HideInInspector] public DependencySettings Settings = new DependencySettings();
@@ -51,6 +52,13 @@ namespace Rhinox.Utilities.Odin.Editor
 		
 		// =================================================================================================================
 		// ASSET MANAGEMENT
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			HomePage = ScriptableObject.CreateInstance<DependencyHomePage>();
+			HomePage.Initialize(this);
+		}
+		
 		internal void ClearSelections()
 		{
 			_currentSelections = null;
@@ -239,7 +247,7 @@ namespace Rhinox.Utilities.Odin.Editor
 			tree.DefaultMenuStyle.IconSize = 16.00f;
 			tree.Config.DrawSearchToolbar = true;
 
-			tree.Add("Home", this, EditorIcons.House);
+			tree.Add("Home", HomePage, EditorIcons.House);
 
 			tree.Add("All Assets", AssetManager, EditorIcons.List);
 
