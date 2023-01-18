@@ -7,8 +7,10 @@ using Sirenix.OdinInspector;
 
 namespace Rhinox.Utilities
 {
+    public interface ISingleton { }
+
     // Reason of this interface -> disallows you from doing Singleton<Monobehaviour> & making mistakes
-    public interface ISingleton<out T> where T : MonoBehaviour { }
+    public interface ISingleton<out T> : ISingleton where T : MonoBehaviour { }
     
     /// <summary>
     /// NOTE: this only spawns one if there isn't one yet
@@ -47,7 +49,7 @@ namespace Rhinox.Utilities
                     var singleton = new GameObject();
                     _instance = singleton.AddComponent<T>();
                     singleton.name = "(singleton) "+ typeof(T);
-						
+                    
                     DontDestroyOnLoad(singleton);
                 }
 
