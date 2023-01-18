@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Rhinox.Perceptor;
 using UnityEngine;
 #if ODIN_INSPECTOR
@@ -7,7 +8,7 @@ using Sirenix.OdinInspector;
 
 namespace Rhinox.Utilities
 {
-    public interface ISingleton { }
+    public interface ISingleton { bool IsDestroying { get; set; }  }
 
     // Reason of this interface -> disallows you from doing Singleton<Monobehaviour> & making mistakes
     public interface ISingleton<out T> : ISingleton where T : MonoBehaviour { }
@@ -25,10 +26,10 @@ namespace Rhinox.Utilities
         {
             get
             {
-                if (_instance != null) return true;
+                if (_instance != null && !_instance.IsDestroying) return true;
                 
-                _instance = FindObjectOfType<T>();
-                
+                _instance = FindInstance();
+
                 return _instance != null;
             }
         }
@@ -39,8 +40,8 @@ namespace Rhinox.Utilities
         {
             get
             {
-                if (_instance == null)
-                    _instance = FindObjectOfType<T>();
+                if (_instance == null || _instance.IsDestroying)
+                    _instance = FindInstance();
                 
                 if (_instance == null)
                 {
@@ -59,12 +60,22 @@ namespace Rhinox.Utilities
             set { _instance = value; }
         }
         
+        public bool IsDestroying { get; set; }
+        
         // No need to check for HasInstance as this is called on an Instance
         protected bool ShouldDestroy() => Instance != this;
 
         protected virtual void OnDestroy()
         {
             PLog.Trace<UtilityLogger>($"Destroying Singleton {name} (Type:{typeof(T).Name})");
+            IsDestroying = true;
+        }
+
+        private static T FindInstance()
+        {
+            var instances = FindObjectsOfType<T>();
+            var instance = instances.FirstOrDefault(x => !x.IsDestroying);
+            return instance;
         }
     }
     
@@ -76,10 +87,10 @@ namespace Rhinox.Utilities
         {
             get
             {
-                if (_instance != null) return true;
+                if (_instance != null && !_instance.IsDestroying) return true;
                 
-                _instance = FindObjectOfType<T>();
-                
+                _instance = FindInstance();
+
                 return _instance != null;
             }
         }
@@ -90,8 +101,8 @@ namespace Rhinox.Utilities
         {
             get
             {
-                if (_instance == null)
-                    _instance = FindObjectOfType<T>();
+                if (_instance == null || _instance.IsDestroying)
+                    _instance = FindInstance();
                 
                 if (_instance == null && Application.isPlaying)
                 {
@@ -109,12 +120,22 @@ namespace Rhinox.Utilities
             set { _instance = value; }
         }
         
+        public bool IsDestroying { get; set; }
+        
         // No need to check for HasInstance as this is called on an Instance
         protected bool ShouldDestroy() => Instance != this;
 
         protected virtual void OnDestroy()
         {
             PLog.Trace<UtilityLogger>($"Destroying SerializedSingleton {name} (Type:{typeof(T).Name})");
+            IsDestroying = true;
+        }
+
+        private static T FindInstance()
+        {
+            var instances = FindObjectsOfType<T>();
+            var instance = instances.FirstOrDefault(x => !x.IsDestroying);
+            return instance;
         }
     }
 #endif
