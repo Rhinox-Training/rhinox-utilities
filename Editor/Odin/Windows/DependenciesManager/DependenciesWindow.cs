@@ -465,31 +465,7 @@ namespace Rhinox.Utilities.Odin.Editor
 					typeof(Material), allowSceneObjects: false);
 				GUILayout.EndHorizontal();
 			}
-
-			// SUBSTANCE ARCHIVE is deprecated from 2018 onwards
-#if UNITY_5_3_OR_NEWER && !UNITY_2018_1_OR_NEWER
-		if (type == typeof(SubstanceArchive))
-		{
-			if (SirenixEditorGUI.ToolbarButton("Migrate Substance To Material"))
-				MigrateSubstance(selection);
 		}
-#endif
-		}
-
-// SUBSTANCE ARCHIVE is deprecated from 2018 onwards
-#if UNITY_5_3_OR_NEWER && !UNITY_2018_1_OR_NEWER
-	private void MigrateSubstance(Dependency[] selection)
-	{
-		foreach (var dep in selection)
-		{
-			var archive = dep.GetLoadedReference() as SubstanceArchive;
-
-			SubstanceInfo info = SubstanceToMaterial.Extract(archive);
-
-			ReplaceMaterialInPrefabs(info.SubstanceMaterial, info.NewMaterial, dep.Users.OfType<GameObject>().ToArray());
-		}
-	}
-#endif
 
 		private void ReplaceMaterialInPrefabs(Material old, Material newMaterial, params GameObject[] objects)
 		{
