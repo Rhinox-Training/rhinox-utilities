@@ -17,6 +17,8 @@ namespace Rhinox.Utilities.Editor
         private static EditorCoroutine _jobQueueProcessor;
         private static IImportJob _runningJob;
 
+        public delegate void JobCompleteHandler(AssetChanges changes, bool failed);
+        
         public delegate void JobEventHandler(IImportJob job);
 
         public static event JobEventHandler JobStarted;
@@ -47,19 +49,19 @@ namespace Rhinox.Utilities.Editor
             return true;
         }
 
-        public static bool ImportAsset(string assetPath, string targetFolder, params IJobProcessor[] processors)
+        public static bool CreateAndRunImportAssetJob(string assetPath, string targetFolder, params IJobProcessor[] processors)
         {
             var importJob = JobFactory.CreateJob(assetPath, targetFolder, _logger, processors);
             return RegisterJob(importJob);
         }
 
-        public static bool ImportAssets(ICollection<string> files, string targetFolder, Action<AssetChanges> callback = null)
+        public static bool CreateAndRunImportAssetJob(ICollection<string> files, string targetFolder, JobCompleteHandler callback = null)
         {
             var completedImportProcessor = new CompletedImportProcessor(files.Count, callback);
             foreach (var file in files)
             {
                 string fullPath = FileHelper.GetFullPath(file, FileHelper.GetProjectPath());
-                if (!ImportAsset(fullPath, targetFolder, completedImportProcessor))
+                if (!CreateAndRunImportAssetJob(fullPath, targetFolder, completedImportProcessor))
                     completedImportProcessor.MarkFailed(fullPath);
             }
 
@@ -75,7 +77,7 @@ namespace Rhinox.Utilities.Editor
             public int CompleteCount => _completeCount;
             private readonly object _lockObject = new object();
             private readonly int _targetCount;
-            private readonly Action<AssetChanges> _callback;
+            private readonly JobCompleteHandler _callback;
             private bool _firedEvent = false;
 
             private readonly List<string> _importedAssets;
@@ -84,48 +86,69 @@ namespace Rhinox.Utilities.Editor
 
             public bool HasFailed => _failedCount > 0;
 
-            public CompletedImportProcessor(int targetCount, Action<AssetChanges> callback)
+            public CompletedImportProcessor(int targetCount, JobCompleteHandler callback)
             {
                 _targetCount = targetCount;
                 _callback = callback;
                 _importedAssets = new List<string>();
             }
             
-            public AssetChanges OnCompleted(IImportJob job, AssetChanges importChanges)
+            public AssetChanges OnCompleted(IImportJob job, ImportState completedState, AssetChanges importChanges)
             {
                 lock (_lockObject)
                 {
-                    ++_completeCount;
-                    PLog.Info($"AssetDatabase.CompletionCollection: completed import stage {_completeCount} out of {_targetCount}");
-                    if (importChanges != null && importChanges.ImportedAssets != null)
+                    if (completedState == ImportState.Completed)
                     {
-                        foreach (var importedAsset in importChanges.ImportedAssets)
+                        ++_completeCount;
+                        PLog.Info($"AssetDatabase.CompletionCollection: completed import stage {_completeCount} out of {_targetCount}");
+                        if (importChanges != null && importChanges.ImportedAssets != null)
                         {
-                            if (CaseInsensitiveContains(_importedAssets, importedAsset))
+                            foreach (var importedAsset in importChanges.ImportedAssets)
                             {
-                                PLog.Warn($"Asset '{importedAsset}' was doubly imported, '{job.Name}', skipping... add");
-                                continue;
+                                if (CaseInsensitiveContains(_importedAssets, importedAsset))
+                                {
+                                    PLog.Warn(
+                                        $"Asset '{importedAsset}' was doubly imported, '{job.Name}', skipping... add");
+                                    continue;
+                                }
+
+                                _importedAssets.Add(importedAsset);
                             }
-                            _importedAssets.Add(importedAsset);
+
+                            PLog.Info(
+                                $"AssetDatabase.CompletionCollection: added {importChanges.ImportedAssets.Count} assets (total: {_importedAssets.Count})");
                         }
-
-                        PLog.Info($"AssetDatabase.CompletionCollection: added {importChanges.ImportedAssets.Count} assets (total: {_importedAssets.Count})");
                     }
-
-                    if (CompleteCount >= _targetCount && !_firedEvent)
+                    else
                     {
-                        try
-                        {
-                            _callback?.Invoke(new AssetChanges(_importedAssets));
-                        }
-                        catch (Exception e)
-                        {
-                            PLog.Error($"AssetDatabase.ImportAssets ({job.Name}) callback failed: {e.ToString()}");
-                        }
+                        ++_failedCount;
+                        PLog.Info($"AssetDatabase.CompletionCollection: finished import stage {job.Name} with state {completedState} (total stages: {_targetCount})");
                     }
+
+                    if (IsComplete)
+                        TriggerFinishedCallback(job.Name);
                 }
 
                 return importChanges;
+            }
+
+            private void TriggerFinishedCallback(string jobIdentifier)
+            {
+                if (_firedEvent)
+                {
+                    PLog.Debug("Duplicate invoke of TriggerFinished, skipping...");
+                    return;
+                }
+                
+                try
+                {
+                    _firedEvent = true;
+                    _callback?.Invoke(new AssetChanges(_importedAssets), _failedCount > 0);
+                }
+                catch (Exception e)
+                {
+                    PLog.Error($"AssetDatabase.ImportAssets ({jobIdentifier}) callback failed: {e.ToString()}");
+                }
             }
 
             public void MarkFailed(string jobFile)
@@ -134,6 +157,9 @@ namespace Rhinox.Utilities.Editor
                 {
                     ++_failedCount;
                     PLog.Error($"AssetDatabase.CompletionCollection: failed import stage '{jobFile}' out of {_targetCount}");
+                    
+                    if (IsComplete)
+                        TriggerFinishedCallback(jobFile);
                 }
             }
             
