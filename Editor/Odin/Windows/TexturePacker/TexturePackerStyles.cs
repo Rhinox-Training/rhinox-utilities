@@ -7,7 +7,6 @@ namespace Rhinox.Utilities.Odin.Editor
 {
     public class TexturePackerStyles
     {
-
         static GUIStyle heading = null;
         public static GUIStyle Heading
         {

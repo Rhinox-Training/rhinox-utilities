@@ -1,6 +1,4 @@
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,15 +6,19 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Attributes;
+using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
+using Rhinox.Lightspeed.Reflection;
 using UnityEditor;
 using UnityEngine;
+using RectExtensions = Rhinox.Lightspeed.RectExtensions;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
     public class ScriptableObjectCreator : OdinMenuEditorWindow
     {
         static HashSet<Type> scriptableObjectTypes = new HashSet<Type>(
-            AssemblyUtilities.GetTypes(AssemblyTypeFlags.CustomTypes)
+            AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
                 .Where(t =>
                     t.IsClass &&
                     typeof(ScriptableObject).IsAssignableFrom(t) &&
@@ -56,7 +58,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             var window = CreateInstance<ScriptableObjectCreator>();
             window.ShowUtility();
-            window.position = GUIHelper.GetEditorWindowRect().AlignCenter(800, 500);
+            window.position = RectExtensions.AlignCenter(CustomEditorGUI.GetEditorWindowRect(), 800, 500);
             window.titleContent = new GUIContent(path);
             window.targetFolder = path.Trim('/');
         }
@@ -124,7 +126,7 @@ namespace Rhinox.Utilities.Odin.Editor
             if (isBaseType && !string.IsNullOrWhiteSpace(t.Namespace) && MatchesIgnoredNamespace(t.Namespace))
                 return string.Empty;
 
-            var name = t.Name.Split('`').First().SplitPascalCase();
+            var name = t.Name.Split('`').First().SplitCamelCase();
             var nameSpace = t.Namespace;
             var basePath = GetMenuPathForType(t.BaseType, true);
             if (!string.IsNullOrWhiteSpace(basePath))
@@ -146,13 +148,15 @@ namespace Rhinox.Utilities.Odin.Editor
             if (MenuTree.Selection.Count == 1 && MenuTree.Selection[0].Value != null)
             {
                 var type = MenuTree.Selection[0].Value as Type;
-                SirenixEditorGUI.BeginToolbarBox();
+                //SirenixEditorGUI.BeginToolbarBox();
+                CustomEditorGUI.BeginHorizontalToolbar();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(type.FullName);
                 if (type.BaseType != null)
                     GUILayout.Label(type.BaseType.FullName, CustomGUIStyles.SubtitleRight);
                 GUILayout.EndHorizontal();
-                SirenixEditorGUI.EndToolbarBox();
+                CustomEditorGUI.EndHorizontalToolbar();
+                //SirenixEditorGUI.EndToolbarBox();
             }
 
             this.scroll = GUILayout.BeginScrollView(this.scroll);
@@ -164,7 +168,7 @@ namespace Rhinox.Utilities.Odin.Editor
             if (this.previewObject)
             {
                 GUILayout.FlexibleSpace();
-                SirenixEditorGUI.HorizontalLineSeparator(1);
+                CustomEditorGUI.HorizontalLine(1);
                 if (GUILayout.Button("Create Asset", GUILayout.Height(25)))
                 {
                     this.CreateAsset();

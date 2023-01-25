@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Rhinox.GUIUtils.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -22,13 +24,16 @@ namespace Rhinox.Utilities.Odin.Editor
             get
             {
                 if (_settingsPath == null)
-                    _settingsPath = $"Assets/Editor/{typeof(T).Name}.asset";
+                    _settingsPath = $"ProjectSettings/{typeof(T).Name}.asset";
                 return _settingsPath;
             }
         }
 
         private static T _instance = null;
+        
         private PropertyTree _propertyTree;
+
+
         private UnityEditor.Editor _editor;
         private SerializedObject _serializedObject;
         private ICollection<ISimpleDrawable> _drawables;
@@ -47,20 +52,17 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private static T GetOrCreateSettings()
         {
-            var settings = AssetDatabase.LoadAssetAtPath<T>(SettingsPath);
+            var settingsObjs = InternalEditorUtility.LoadSerializedFileAndForget(SettingsPath);
+            T settings = null;
+            if (settingsObjs != null)
+                settings = settingsObjs.OfType<T>().FirstOrDefault();
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<T>();
                 settings.LoadDefaults();
-                if (!AssetDatabase.IsValidFolder("Assets/Editor"))
-                {
-                    AssetDatabase.CreateFolder("Assets", "Editor");
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
-                }
 
-                AssetDatabase.CreateAsset(settings, SettingsPath);
-                AssetDatabase.SaveAssets();
+
+                InternalEditorUtility.SaveToSerializedFileAndForget(new[] {settings}, SettingsPath, true);
             }
 
             return settings;
@@ -104,9 +106,31 @@ namespace Rhinox.Utilities.Odin.Editor
 
                 //_propertyTree.Draw();
 
+                bool hasEditorFile = HasOldFile();
+                EditorGUI.BeginDisabledGroup(!hasEditorFile);
+                {
+                    if (GUILayout.Button("Import"))
+                        TryImport();
+                }
+                EditorGUI.EndDisabledGroup();
+
                 if (EditorGUI.EndChangeCheck())
                     OnChanged();
             }
+        }
+
+        private bool HasOldFile()
+        {
+            var assetPath = $"Assets/Editor/{typeof(T).Name}.asset";
+            var settingsGuid = AssetDatabase.AssetPathToGUID(assetPath);
+            return string.IsNullOrWhiteSpace(settingsGuid) || Guid.Parse(settingsGuid) != Guid.Empty;
+        }
+
+        private void TryImport()
+        {
+            var assetPath = $"Assets/Editor/{typeof(T).Name}.asset";
+            var settings = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            
         }
 
         protected SettingsProvider CreateSettingsProvider()

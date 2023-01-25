@@ -3,7 +3,6 @@ using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using System;
 using System.Linq;
-using Rhinox.GUIUtils.Odin;
 using UnityEditor;
 using UnityEngine;
 

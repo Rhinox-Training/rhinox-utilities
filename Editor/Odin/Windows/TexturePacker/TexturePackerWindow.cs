@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
+using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 using UnityEditor;
 using UnityEngine;
-using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class TexturePackerWindow : OdinEditorWindow
+    public class TexturePackerWindow : EditorWindow
     {
         /// ================================================================================================================
         /// PARAMETERS
@@ -35,16 +33,23 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             var window = GetWindow<TexturePackerWindow>();
             window.titleContent.text = "Texture Packer";
-            window.position = GUIHelper.GetEditorWindowRect().AlignCenter(800, 500);
+            window.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(800, 500);
         }
 
-        protected override void Initialize()
+        private void Awake()
         {
-            base.Initialize();
-            
             _texturePacker.Initialize();
+
+
+           // DrawableFactory.ParseSerializedObject(_texturePacker);
+
         }
-        
+
+        private void OnGUI()
+        {
+            //_texturePacker = EditorGUILayout.ObjectField(GUIContent.none, _texturePacker, typeof(TexturePacker), false);
+        }
+
         public void DrawPreview(TexturePacker texPacker, int resolution = 128)
         {
             GUILayout.Label("Preview", TexturePackerStyles.Heading);

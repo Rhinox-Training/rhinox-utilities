@@ -4,13 +4,12 @@ using System.Linq;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities.Editor;
+using Rhinox.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     internal static class PolyCounter
     {
@@ -18,9 +17,9 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private const string _menuItemPath = "Tools/Show Polygon info";
 
-        private static GlobalPersistentContext<bool> IncludeChildren;
-        private static GlobalPersistentContext<bool> IncludeDisabled;
-        private static GlobalPersistentContext<bool> IncludeLODs;
+        private static PersistentUserValue<bool> IncludeChildren;
+        private static PersistentUserValue<bool> IncludeDisabled;
+        private static PersistentUserValue<bool> IncludeLODs;
         
         private static List<Mesh> _meshes;
         private static bool _requiresRefresh;
@@ -31,9 +30,9 @@ namespace Rhinox.Utilities.Odin.Editor
         [MenuItem(_menuItemPath, false, 100)]
         public static void ActivateSizeVisualizer()
         {
-            IncludeChildren = PersistentContext.Get(typeof(PolyCounter), nameof(IncludeChildren), true);
-            IncludeDisabled = PersistentContext.Get(typeof(PolyCounter), nameof(IncludeDisabled), false);
-            IncludeLODs = PersistentContext.Get(typeof(PolyCounter), nameof(IncludeLODs), false);
+            IncludeChildren = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeChildren), true);
+            IncludeDisabled = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeDisabled), false);
+            IncludeLODs = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeLODs), false);
             _meshes = new List<Mesh>();
 
             if (!_active)
@@ -82,14 +81,14 @@ namespace Rhinox.Utilities.Odin.Editor
             
             if (_meshes.Any())
             {
-                SirenixEditorGUI.HorizontalLineSeparator(SirenixGUIStyles.BorderColor);
+                CustomEditorGUI.HorizontalLine(CustomGUIStyles.BorderColor);
             
                 GUILayout.Label(_meshInfo, CustomGUIStyles.BoldLabelCentered);
-                GUILayout.Label(_secondaryMeshInfo, SirenixGUIStyles.CenteredGreyMiniLabel);
+                GUILayout.Label(_secondaryMeshInfo, CustomGUIStyles.MiniLabel);
             }
         }
 
-        private static void EditorPreferenceToggle(string label, GlobalPersistentContext<bool> context)
+        private static void EditorPreferenceToggle(string label, PersistentUserValue<bool> context)
         {
             var value = context.Value;
             var newValue = EditorGUILayout.Toggle(label, value);
