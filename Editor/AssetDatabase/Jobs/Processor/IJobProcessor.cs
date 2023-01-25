@@ -2,6 +2,6 @@
 {
     public interface IJobProcessor
     {
-        AssetChanges OnCompleted(IImportJob job, AssetChanges importChanges);
+        AssetChanges OnCompleted(IImportJob job, ImportState completedState, AssetChanges importChanges);
     }
 }
