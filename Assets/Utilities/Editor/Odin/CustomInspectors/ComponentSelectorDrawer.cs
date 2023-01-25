@@ -1,20 +1,26 @@
 ﻿using Rhinox.GUIUtils;
+using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
     [CustomEditor(typeof(ComponentSelector))]
-    public class ComponentSelectorDrawer : OdinEditor
+    public class ComponentSelectorDrawer : 
+#if ODIN_INSPECTOR
+        OdinEditor
+#else
+        UnityEditor.Editor
+#endif
     {
         private ComponentSelector Target;
-        protected override void OnEnable()
+        private SerializedProperty _baseProperty;
+        private DrawableList _listDrawing;
+        
+        private void OnEnable()
         {
-            base.OnEnable();
-
             Target = target as ComponentSelector;
         }
 
@@ -23,7 +29,21 @@ namespace Rhinox.Utilities.Odin.Editor
             // If we're editing, just call the regular editor
             if (Target.IsEditing)
             {
+            #if ODIN_INSPECTOR
                 base.OnInspectorGUI();
+            #else
+                var prop = serializedObject.FindProperty(nameof(Target.internalComponents));
+                if (_baseProperty == null || prop != _baseProperty)
+                {
+                    _baseProperty = serializedObject.FindProperty(nameof(Target.internalComponents));
+                    _listDrawing = new DrawableList(_baseProperty);
+                }
+                if (_listDrawing != null)
+                    _listDrawing.Draw();
+                if (Target.IsEditing && GUILayout.Button("Close Editor"))
+                    Target.IsEditing = false;
+            #endif
+
                 return;
             }
             
