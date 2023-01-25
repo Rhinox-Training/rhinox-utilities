@@ -97,21 +97,32 @@ namespace Rhinox.Utilities.Editor
             {
                 lock (_lockObject)
                 {
-                    ++_completeCount;
-                    PLog.Info($"AssetDatabase.CompletionCollection: completed import stage {_completeCount} out of {_targetCount}");
-                    if (importChanges != null && importChanges.ImportedAssets != null)
+                    if (completedState == ImportState.Completed)
                     {
-                        foreach (var importedAsset in importChanges.ImportedAssets)
+                        ++_completeCount;
+                        PLog.Info($"AssetDatabase.CompletionCollection: completed import stage {_completeCount} out of {_targetCount}");
+                        if (importChanges != null && importChanges.ImportedAssets != null)
                         {
-                            if (CaseInsensitiveContains(_importedAssets, importedAsset))
+                            foreach (var importedAsset in importChanges.ImportedAssets)
                             {
-                                PLog.Warn($"Asset '{importedAsset}' was doubly imported, '{job.Name}', skipping... add");
-                                continue;
-                            }
-                            _importedAssets.Add(importedAsset);
-                        }
+                                if (CaseInsensitiveContains(_importedAssets, importedAsset))
+                                {
+                                    PLog.Warn(
+                                        $"Asset '{importedAsset}' was doubly imported, '{job.Name}', skipping... add");
+                                    continue;
+                                }
 
-                        PLog.Info($"AssetDatabase.CompletionCollection: added {importChanges.ImportedAssets.Count} assets (total: {_importedAssets.Count})");
+                                _importedAssets.Add(importedAsset);
+                            }
+
+                            PLog.Info(
+                                $"AssetDatabase.CompletionCollection: added {importChanges.ImportedAssets.Count} assets (total: {_importedAssets.Count})");
+                        }
+                    }
+                    else
+                    {
+                        ++_failedCount;
+                        PLog.Info($"AssetDatabase.CompletionCollection: finished import stage {job.Name} with state {completedState} (total stages: {_targetCount})");
                     }
 
                     if (IsComplete)
