@@ -19,11 +19,17 @@ namespace Rhinox.Utilities.Editor
             _importedFiles = new List<string>();
         }
 
-        public AssetChanges OnCompleted(IImportJob job, AssetChanges importChanges)
+        public AssetChanges OnCompleted(IImportJob job, ImportState completedState, AssetChanges importChanges)
         {
             if (importChanges == null || importChanges.ImportedAssets == null)
             {
                 PLog.Info($"Job '{job.Name}' cannot be post-processed, no ImportChanges detected. (PostProcessor: '{GetType().Name}')");
+                return null;
+            }
+            
+            if (completedState == ImportState.Failed || completedState == ImportState.Cancelled)
+            {
+                PLog.Warn($"Job '{job.Name}' cannot be post-processed, ImportJob was/has {completedState}.");
                 return null;
             }
             

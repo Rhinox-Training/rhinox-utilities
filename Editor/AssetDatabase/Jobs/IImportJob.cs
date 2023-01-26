@@ -94,7 +94,7 @@ namespace Rhinox.Utilities.Editor
                 {
                     var importChanges = ImportChanges;
                     foreach (var processor in PostProcessors)
-                        importChanges = processor.OnCompleted(this, importChanges);
+                        importChanges = processor.OnCompleted(this, state, importChanges);
                 }
 
                 OnCompleted();
