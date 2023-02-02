@@ -75,7 +75,12 @@ namespace Rhinox.Utilities.Editor
 
 		private bool Init()
 		{
-			if (serializedObject.targetObject == null) return false;
+			// NOTE:
+			// Sometimes on Unity 2021, recompiling with a closed inspector will yield an exception on 'serializedObject'(get):
+			// SerializedObjectNotCreatableException: Object at index 0 is null
+			// To alleviate this we also check the target fields for null just in case
+			// This prevents the error from occurring on basic recompiles of the project
+			if (targets.IsNullOrEmpty() || target == null || serializedObject.targetObject == null) return false;
 
 			_target = (Transform) serializedObject.targetObject;
 
