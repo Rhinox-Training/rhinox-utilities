@@ -1,7 +1,9 @@
+#if ODIN_INSPECTOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rhinox.Lightspeed.Reflection;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -52,10 +54,11 @@ namespace Rhinox.Utilities.Odin.Editor
             if (_cachedProperties != null)
                 return _cachedProperties;
 
-            return _cachedProperties = EditorIconType.GetProperties(Flags.StaticPublic)
+            return _cachedProperties = EditorIconType.GetProperties(BindingFlags.Static | BindingFlags.Public)
                 .Where(x => typeof(EditorIcon).IsAssignableFrom(x.GetReturnType()) )
                 .OrderBy(x => x.Name)
                 .ToArray();
         }
     }
 }
+#endif

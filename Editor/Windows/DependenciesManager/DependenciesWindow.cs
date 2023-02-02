@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Attributes;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Serialization;
-using Sirenix.Utilities.Editor;
 #if TEXT_MESH_PRO
 using TMPro;
 #endif
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GUILayoutOptions = Sirenix.Utilities.GUILayoutOptions;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
@@ -27,7 +23,13 @@ namespace Rhinox.Utilities.Odin.Editor
 		// PROPERTIES
 		// =================================================================================================================
 
-		public static GUIContent TitleContent => new GUIContent("Dependencies List", EditorIcons.MagnifyingGlass.Raw);
+		public static GUIContent TitleContent => new GUIContent("Dependencies List",
+#if ODIN_INSPECTOR
+			EditorIcons.MagnifyingGlass.Raw
+#else
+			UnityIcon.AssetIcon("Fa_Search").Pad(5)
+#endif
+			);
 
 
 		[HideInInspector] public DependencyHomePage HomePage;
@@ -223,7 +225,7 @@ namespace Rhinox.Utilities.Odin.Editor
 		{
 			var w = GetWindow<DependenciesWindow>();
 			w.titleContent = TitleContent;
-			w.position = GUIHelper.GetEditorWindowRect().AlignCenter(800, 600);
+			w.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(800, 600);
 
 			w.Settings.Load();
 		}
@@ -235,13 +237,20 @@ namespace Rhinox.Utilities.Odin.Editor
 			// TODO: enable
 			//tree.DefaultMenuStyle.IconSize = 16.00f;
 			//tree.Config.DrawSearchToolbar = true;
+
+			Texture homeIcon = EditorIcons.House.Raw;
+			Texture listIcon = EditorIcons.List.Raw;
+			Texture settingsIcon = EditorIcons.SettingsCog.Raw;
+#else
+			const int padding = 8;
+			Texture homeIcon = UnityIcon.AssetIcon("Fa_Home").Pad(padding);
+			Texture listIcon = UnityIcon.AssetIcon("Fa_ListUI").Pad(padding);
+			Texture settingsIcon = UnityIcon.AssetIcon("Fa_Cog").Pad(padding);
 #endif
 			
-			tree.Add("Home", HomePage, EditorIcons.House.Raw);
-
-			tree.Add("All Assets", AssetManager, EditorIcons.List.Raw);
-
-			tree.Add("Settings", Settings, EditorIcons.SettingsCog.Raw);
+			tree.Add("Home", HomePage, homeIcon);
+			tree.Add("All Assets", AssetManager, listIcon);
+			tree.Add("Settings", Settings, settingsIcon);
 
 			foreach (var d in DependenciesManager.Dependencies)
 			{
@@ -306,28 +315,28 @@ namespace Rhinox.Utilities.Odin.Editor
 			const int spacer = 10;
 
 			// Selection manager Toolbar
-			SirenixEditorGUI.BeginHorizontalToolbar(20);
+			CustomEditorGUI.BeginHorizontalToolbar(20);
 
 			GUILayout.Space(spacer);
 
 			if (_currentSelection != null)
 			{
-				if (SirenixEditorGUI.ToolbarButton(new GUIContent("<<", tooltip: "Select all in previous folder")))
+				if (CustomEditorGUI.ToolbarButton(new GUIContent("<<", tooltip: "Select all in previous folder")))
 					SelectDirectory(-1);
 				GUILayout.Space(spacer);
-				if (SirenixEditorGUI.ToolbarButton(new GUIContent("<", tooltip: "Select previous asset")))
+				if (CustomEditorGUI.ToolbarButton(new GUIContent("<", tooltip: "Select previous asset")))
 					SelectOther(-1);
 				GUILayout.Space(spacer);
 			}
 
-			if (SirenixEditorGUI.ToolbarButton("Restore Selection")) RestoreSelection();
+			if (CustomEditorGUI.ToolbarButton("Restore Selection")) RestoreSelection();
 
 			if (_currentSelection != null)
 			{
 				GUILayout.Space(spacer);
-				if (SirenixEditorGUI.ToolbarButton(new GUIContent(">", tooltip: "Select next asset"))) SelectOther(1);
+				if (CustomEditorGUI.ToolbarButton(new GUIContent(">", tooltip: "Select next asset"))) SelectOther(1);
 				GUILayout.Space(spacer);
-				if (SirenixEditorGUI.ToolbarButton(new GUIContent(">>", tooltip: "Select all in next folder")))
+				if (CustomEditorGUI.ToolbarButton(new GUIContent(">>", tooltip: "Select all in next folder")))
 					SelectDirectory(1);
 			}
 
@@ -340,7 +349,7 @@ namespace Rhinox.Utilities.Odin.Editor
 			EditorGUILayout.EndVertical();
 
 			GUILayout.Space(spacer);
-			SirenixEditorGUI.EndHorizontalToolbar();
+			CustomEditorGUI.EndHorizontalToolbar();
 		}
 
 		#endregion GUI Methods
@@ -359,7 +368,7 @@ namespace Rhinox.Utilities.Odin.Editor
 			var searchPieces = AssetManager.SearchText.Split();
 			var activeType = searchPieces.FirstOrDefault(x => x.StartsWith("t:"))?.Split(':').Last();
 
-			var toggleOpts = GUILayoutOptions.Height(height).Width(height * 1.5f);
+			var toggleOpts = new GUILayoutOption[] { GUILayout.Height(height), GUILayout.Width(height * 1.5f) };
 
 			if (Settings != null && Settings.IconMapper != null)
 			{
@@ -374,7 +383,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
 					var typeName = pair.Key.Name;
 					var content = new GUIContent(pair.Value, typeName);
-					if (GUILayout.Toggle(activeType == typeName, content, SirenixGUIStyles.ToolbarTab, toggleOpts))
+					if (GUILayout.Toggle(activeType == typeName, content, CustomGUIStyles.ToolbarTab, toggleOpts))
 					{
 						activeType = typeName;
 						searchPieces = searchPieces
@@ -398,7 +407,9 @@ namespace Rhinox.Utilities.Odin.Editor
 		{
 			// TOGGLES
 			var prev = ShowPath;
-			ShowPath = SirenixEditorGUI.ToolbarToggle(ShowPath, new GUIContent("Show path", EditorIcons.Folder.Raw));
+			
+			ShowPath = GUILayout.Toggle(ShowPath, new GUIContent("Show path", UnityIcon.AssetIcon("Fa_Folder")), CustomGUIStyles.ToolbarButtonCentered, 
+				GUILayout.Width(22), GUILayout.Height(22));
 
 			if (prev != ShowPath)
 				ForceMenuTreeRebuild();
@@ -407,13 +418,13 @@ namespace Rhinox.Utilities.Odin.Editor
 				return;
 
 			// BUTTONS
-			if (SirenixEditorGUI.ToolbarButton("Select ALL"))
+			if (CustomEditorGUI.ToolbarButton("Select ALL"))
 			{
 				SetSelection(DependenciesManager.Dependencies);
 				_selectionDescription = $"ALL ({Selection.instanceIDs.Length})";
 			}
 
-			if (SirenixEditorGUI.ToolbarButton("Inverse ALL"))
+			if (CustomEditorGUI.ToolbarButton("Inverse ALL"))
 			{
 				SetInverseSelection(DependenciesManager.Dependencies);
 				_selectionDescription = $"ALL INVERSE ({Selection.instanceIDs.Length})";
@@ -421,13 +432,13 @@ namespace Rhinox.Utilities.Odin.Editor
 
 			var selection = GetSelection();
 
-			if (selection.Any() && SirenixEditorGUI.ToolbarButton("Select"))
+			if (selection.Any() && CustomEditorGUI.ToolbarButton("Select"))
 			{
 				SetSelection(selection);
 				_selectionDescription = $"selection ({Selection.instanceIDs.Length})";
 			}
 
-			if (selection.Any() && SirenixEditorGUI.ToolbarButton("Inverse Select"))
+			if (selection.Any() && CustomEditorGUI.ToolbarButton("Inverse Select"))
 			{
 				SetInverseSelection(selection.Select(x => x.Path).ToArray());
 				_selectionDescription = $"selection INVERSE ({Selection.instanceIDs.Length})";

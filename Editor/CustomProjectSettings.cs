@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
+#if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
+#endif
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -14,9 +17,10 @@ using UnityEngine.UIElements;
 namespace Rhinox.Utilities.Odin.Editor
 {
     // Create a new type of Settings Asset.
-    public abstract class CustomProjectSettings<T> : SerializedScriptableObject where T : CustomProjectSettings<T>
+    // TODO: add new odin version?
+    public abstract class CustomProjectSettings<T> : ScriptableObject where T : CustomProjectSettings<T>
     {
-        public virtual string Name => GetType().Name.SplitPascalCase();
+        public virtual string Name => GetType().Name.SplitCamelCase();
         
         private static string _settingsPath = null;
         public static string SettingsPath
@@ -31,7 +35,9 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private static T _instance = null;
         
+#if ODIN_INSPECTOR
         private PropertyTree _propertyTree;
+#endif
 
 
         private UnityEditor.Editor _editor;
@@ -60,8 +66,7 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 settings = ScriptableObject.CreateInstance<T>();
                 settings.LoadDefaults();
-
-
+                
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] {settings}, SettingsPath, true);
             }
 
@@ -78,7 +83,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         public virtual void OnChanged()
         {
-            
+            InternalEditorUtility.SaveToSerializedFileAndForget(new[] {this}, SettingsPath, true);
         }
 
         protected virtual void LoadDefaults()
@@ -88,8 +93,10 @@ namespace Rhinox.Utilities.Odin.Editor
 
         internal virtual void OnCustomGUI(string searchContext)
         {
+#if ODIN_INSPECTOR
             if (_propertyTree == null)
                 _propertyTree = PropertyTree.Create(Instance);
+#endif
 
 
             // if (_editor == null)

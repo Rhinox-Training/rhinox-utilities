@@ -1,8 +1,6 @@
 ﻿using System;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
-using Rhinox.Utilities.Editor;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -46,9 +44,9 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 if (SettingIcon)
                     State = GUILayout.Toggle(State, new GUIContent(SettingIcon, tooltip: SettingName),
-                        SirenixGUIStyles.Label, GUILayoutOptions.Height(16).Width(20));
+                        CustomGUIStyles.Label, GUILayout.Height(16), GUILayout.Width(20));
                 else
-                    State = GUILayout.Toggle(State, SettingName, SirenixGUIStyles.Label);
+                    State = GUILayout.Toggle(State, SettingName, CustomGUIStyles.Label);
 
             }
         }

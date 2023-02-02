@@ -1,7 +1,10 @@
+using System;
+using Rhinox.GUIUtils.Attributes;
 using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
+    [Serializable, DrawAsReference]
     public class ToolbarSpacer : BaseToolbarButton
     {
         public int Amount;
