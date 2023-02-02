@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Attributes;
+using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
+#if ODIN_INSPECTOR
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
+#endif
 using UnityEditor;
 using UnityEngine;
 
@@ -16,18 +21,18 @@ namespace Rhinox.Utilities.Odin.Editor
         protected const int ToolbarHeight = 24;
         
         [ShowInInspector, DisplayAsString, HideLabel, PropertyOrder(-100)]
-        private string TypeName => GetType().Name.SplitPascalCase();
+        private string TypeName => GetType().Name.SplitCamelCase();
 
-        protected virtual GUIStyle Style => SirenixGUIStyles.Button;
+        protected virtual GUIStyle Style => CustomGUIStyles.Button;
         
-        protected virtual GUILayoutOptions.GUILayoutOptionsInstance LayoutOptions => GUILayoutOptions.ExpandWidth(false).ExpandHeight();
+        protected virtual GUILayoutOption[] LayoutOptions => new [] { GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true) };
 		
         protected abstract string Label { get; }
         protected virtual string Tooltip => String.Empty;
         
         public virtual void Draw()
         {
-            var content = GUIHelper.TempContent(Label, Tooltip);
+            var content = GUIContentHelper.TempContent(Label, Tooltip);
             if (GUILayout.Button(content, Style, LayoutOptions))
                 Execute();
         }
@@ -40,18 +45,18 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         protected override string Label => string.Empty;
         
-        protected abstract EditorIcon Icon { get; }
+        protected abstract Texture Icon { get; }
         
         public override void Draw()
         {
             if (Icon == null) return;
 
-            var rect = GUILayoutUtility.GetRect(Icon.HighlightedGUIContent, Style, LayoutOptions.Width(ToolbarHeight).Height(ToolbarHeight));
-            if (SirenixEditorGUI.IconButton(rect, Icon, Style, Tooltip))
+            if (CustomEditorGUI.IconButton(Icon, Style, ToolbarHeight, ToolbarHeight, Tooltip))
                 Execute();
         }
     }
     
+#if ODIN_INSPECTOR
     public abstract class BaseToolbarDropdown<T> : BaseToolbarButton
     {
         protected int _selected;
@@ -97,4 +102,5 @@ namespace Rhinox.Utilities.Odin.Editor
                 Execute();
         }
     }
+#endif
 }

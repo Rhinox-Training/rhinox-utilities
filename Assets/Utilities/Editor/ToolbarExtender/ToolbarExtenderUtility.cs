@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Sirenix.Utilities;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
@@ -25,7 +24,7 @@ namespace Rhinox.Utilities.Odin.Editor
 #else
 			string fieldName = "s_ShownToolIcons";
 #endif
-            FieldInfo toolIcons = ToolbarType.GetField(fieldName, Flags.StaticAnyVisibility);
+            FieldInfo toolIcons = ToolbarType.GetField(fieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             
 #if UNITY_2019_3_OR_NEWER
             return toolIcons != null ? ((int) toolIcons.GetValue(null)) : 8;

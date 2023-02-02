@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Rhinox.GUIUtils.Editor;
 using Sirenix.OdinInspector;
-using Sirenix.Serialization;
-using Sirenix.Utilities.Editor;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -14,7 +12,7 @@ using UnityEngine;
 namespace Rhinox.Utilities.Odin.Editor
 {
     [TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
-    public class DependencySettings : ScriptableObject
+    public class DependencySettings : ScriptableObject, ISerializationCallbackReceiver
     {
         [ListDrawerSettings(Expanded = true)] public List<string> FilesToIgnore;
         [ListDrawerSettings(Expanded = true)] public List<string> DirectoriesToIgnore;
@@ -29,7 +27,7 @@ namespace Rhinox.Utilities.Odin.Editor
             get { return DirectoriesToIgnore.Select(x => new Regex(x, RegexOptions.IgnoreCase)).ToArray(); }
         }
 
-        [OdinSerialize, PropertyOrder(10), PropertySpace(10)]
+        [PropertyOrder(10), PropertySpace(10)]
         public Dictionary<Type, Texture> IconMapper { get; private set; }
 
         [Button(ButtonSizes.Medium, ButtonStyle.FoldoutButton)]
@@ -61,8 +59,8 @@ namespace Rhinox.Utilities.Odin.Editor
                 {typeof(Material), UnityIcon.InternalIcon("Material Icon")},
                 {typeof(Shader), UnityIcon.InternalIcon("Shader Icon")},
                 // {typeof(SubstanceArchive), UnityIcon.AssetIcon("SDDOC") },
-                {typeof(Texture), EditorIcons.ImageCollection.Active},
-                {typeof(Texture2D), EditorIcons.ImageCollection.Active},
+                {typeof(Texture), UnityIcon.InternalIcon("Fa_Images")},
+                {typeof(Texture2D), UnityIcon.InternalIcon("Fa_Images")},
                 {typeof(Sprite), UnityIcon.InternalIcon("d_Sprite Icon")},
                 {typeof(AudioClip), UnityIcon.InternalIcon("AudioClip Icon")},
                 {typeof(GameObject), UnityIcon.InternalIcon("GameObject Icon")},
@@ -94,6 +92,52 @@ namespace Rhinox.Utilities.Odin.Editor
                 "/Resonai.*/",
                 "Packages/"
             };
+        }
+
+
+        // =============================================================================================================
+        // Serialization
+        [Serializable]
+        private struct IconEntry
+        {
+            public Type TypeKey;
+            public Texture Value;
+        }
+
+        [SerializeField] private List<IconEntry> _backingSerializationDict;
+        
+        public void OnBeforeSerialize()
+        {
+            if (_backingSerializationDict == null)
+                _backingSerializationDict = new List<IconEntry>();
+
+            if (IconMapper != null)
+            {
+                _backingSerializationDict.Clear();
+                foreach (var entry in IconMapper)
+                {
+                    _backingSerializationDict.Add(new IconEntry()
+                    {
+                        TypeKey = entry.Key,
+                        Value = entry.Value
+                    });
+                }
+            }
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (_backingSerializationDict != null)
+            {
+                if (IconMapper == null)
+                    IconMapper = new Dictionary<Type, Texture>();
+                
+                IconMapper.Clear();
+                foreach (var entry in _backingSerializationDict)
+                {
+                    IconMapper.Add(entry.TypeKey, entry.Value);
+                }
+            }
         }
     }
 }

@@ -39,9 +39,5 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             return Instance.CreateSettingsProvider();
         }
-
-        public override void OnChanged()
-        {
-        }
     }
 }

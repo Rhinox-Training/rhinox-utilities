@@ -1,3 +1,4 @@
+#if ODIN_INSPECTOR
 using System;
 using Sirenix.Utilities.Editor.Expressions;
 using UnityEngine;
@@ -24,3 +25,4 @@ namespace Rhinox.Utilities.Odin.Editor
         }
     }
 }
+#endif

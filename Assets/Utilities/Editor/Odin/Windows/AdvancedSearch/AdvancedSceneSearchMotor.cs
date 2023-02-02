@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Rhinox.Utilities;
-using Rhinox.Utilities.Editor;
+using Rhinox.GUIUtils;
 using Sirenix.OdinInspector;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -126,7 +124,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 }
             }
 
-            GUILayout.Label(_matchesInfo, SirenixGUIStyles.BoldLabelCentered);
+            GUILayout.Label(_matchesInfo, CustomGUIStyles.BoldLabelCentered);
             GUILayout.Label(_searchInfo, WrappedLabelStyle);
             GUILayout.Label(_filterInfo, WrappedLabelStyle);
         }
