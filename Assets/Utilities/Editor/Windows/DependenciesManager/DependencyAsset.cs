@@ -77,7 +77,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
     public class Dependency : DependencyAsset
     {
-        public static Dependency Create(string path)
+        public new static Dependency Create(string path)
         {
             var dep = CreateInstance<Dependency>();
             dep.Initialize(path);
