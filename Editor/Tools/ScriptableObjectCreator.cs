@@ -1,4 +1,3 @@
-using Sirenix.OdinInspector.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,13 +8,14 @@ using Rhinox.GUIUtils.Attributes;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
+using Rhinox.Perceptor;
 using UnityEditor;
 using UnityEngine;
 using RectExtensions = Rhinox.Lightspeed.RectExtensions;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class ScriptableObjectCreator : OdinMenuEditorWindow
+    public class ScriptableObjectCreator : CustomMenuEditorWindow
     {
         static HashSet<Type> scriptableObjectTypes = new HashSet<Type>(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
@@ -57,10 +57,10 @@ namespace Rhinox.Utilities.Odin.Editor
             }
 
             var window = CreateInstance<ScriptableObjectCreator>();
-            window.ShowUtility();
             window.position = RectExtensions.AlignCenter(CustomEditorGUI.GetEditorWindowRect(), 800, 500);
             window.titleContent = new GUIContent(path);
             window.targetFolder = path.Trim('/');
+            window.ShowUtility();
         }
 
         private ScriptableObject previewObject;
@@ -72,7 +72,7 @@ namespace Rhinox.Utilities.Odin.Editor
             get
             {
                 var m = this.MenuTree.Selection.LastOrDefault();
-                return m == null ? null : m.Value as Type;
+                return m == null ? null : m.RawValue as Type;
             }
         }
 
@@ -84,28 +84,30 @@ namespace Rhinox.Utilities.Odin.Editor
                 .Where(x => Attribute.GetCustomAttribute(x, typeof(IgnoreInScriptableObjectCreatorAttribute)) == null);
         }
 
-        protected override OdinMenuTree BuildMenuTree()
+        protected override CustomMenuTree BuildMenuTree()
         {
             this.MenuWidth = 270;
             this.WindowPadding = Vector4.zero;
 
-            OdinMenuTree tree = new OdinMenuTree(false);
+            CustomMenuTree tree = ScriptableObject.CreateInstance<CustomMenuTree>();
+#if ODIN_INSPECTOR
             tree.Config.DrawSearchToolbar = true;
             tree.DefaultMenuStyle = OdinMenuStyle.TreeViewStyle;
-            tree.AddRange(GetTypesForTree(), GetMenuPathForType).AddThumbnailIcons();
+#endif
+            foreach (var entry in GetTypesForTree())
+            {
+                tree.Add(GetMenuPathForType(entry), entry);
+            }
             tree.SortMenuItemsByName();
-            tree.Selection.SelectionConfirmed += x => this.CreateAsset();
-            tree.Selection.SelectionChanged += e =>
+            tree.SelectionChanged += () =>
             {
                 if (this.previewObject && !AssetDatabase.Contains(this.previewObject))
                 {
                     DestroyImmediate(this.previewObject);
                 }
 
-                if (e != SelectionChangedType.ItemAdded)
-                {
+                if (tree.Selection.Count == 0)
                     return;
-                }
 
                 var t = this.SelectedType;
                 if (t != null && !t.IsAbstract)
@@ -145,9 +147,9 @@ namespace Rhinox.Utilities.Odin.Editor
 
         protected override void DrawEditor(int index)
         {
-            if (MenuTree.Selection.Count == 1 && MenuTree.Selection[0].Value != null)
+            if (MenuTree.Selection.Count == 1 && MenuTree.Selection[0].RawValue != null)
             {
-                var type = MenuTree.Selection[0].Value as Type;
+                var type = MenuTree.Selection[0].RawValue as Type;
                 //SirenixEditorGUI.BeginToolbarBox();
                 CustomEditorGUI.BeginHorizontalToolbar();
                 GUILayout.BeginHorizontal();
@@ -171,18 +173,27 @@ namespace Rhinox.Utilities.Odin.Editor
                 CustomEditorGUI.HorizontalLine(1);
                 if (GUILayout.Button("Create Asset", GUILayout.Height(25)))
                 {
-                    this.CreateAsset();
+                    this.CreateAsset(MenuTree.Selection.First());
                 }
             }
         }
 
-        private void CreateAsset()
+        private void CreateAsset(UIMenuItem uiMenuItem)
         {
             if (!this.previewObject) return;
 
-            var dest = this.targetFolder + "/new " + this.MenuTree.Selection.First().Name.ToLower() + ".asset";
+            var dest = this.targetFolder + "/new " + (uiMenuItem.RawValue as Type).Name.ToLower() + ".asset";
             dest = AssetDatabase.GenerateUniqueAssetPath(dest);
-            AssetDatabase.CreateAsset(this.previewObject, dest);
+            try
+            {
+                AssetDatabase.CreateAsset(this.previewObject, dest);
+            }
+            catch (Exception e)
+            {
+                PLog.Error<UtilityLogger>($"Failed to create asset '{this.previewObject}' at '{dest}'");
+                throw;
+            }
+
             AssetDatabase.Refresh();
             Selection.activeObject = this.previewObject;
             EditorApplication.delayCall += this.Close;

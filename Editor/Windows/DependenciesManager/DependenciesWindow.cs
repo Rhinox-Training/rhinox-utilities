@@ -30,8 +30,7 @@ namespace Rhinox.Utilities.Odin.Editor
 			UnityIcon.AssetIcon("Fa_Search").Pad(5)
 #endif
 			);
-
-
+		
 		[HideInInspector] public DependencyHomePage HomePage;
 		[HideInInspector] public AssetManager AssetManager;
 		[HideInInspector] public DependenciesManager DependenciesManager = new DependenciesManager();
