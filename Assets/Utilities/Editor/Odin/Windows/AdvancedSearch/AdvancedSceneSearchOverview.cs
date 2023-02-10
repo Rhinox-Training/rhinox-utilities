@@ -191,7 +191,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             var rect = r.AlignRight(18).AlignTop(18);
 
-            if (CustomEditorGUI.IconButton(rect, EditorIcons.X))
+            if (CustomEditorGUI.IconButton(rect, EditorIcons.X.Raw))
                 _removedWrappers.Add(wrapper);
         }
 
@@ -218,7 +218,7 @@ namespace Rhinox.Utilities.Odin.Editor
             SirenixEditorGUI.VerticalLineSeparator(Color.grey);
             GUILayout.Space(5);
 
-            if (CustomEditorGUI.IconButton(EditorIcons.Refresh, 16, 16, tooltip: "Reset"))
+            if (CustomEditorGUI.IconButton(EditorIcons.Refresh.Raw, 16, 16, tooltip: "Reset"))
                 Reset();
         }
 

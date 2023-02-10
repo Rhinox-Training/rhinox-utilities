@@ -9,6 +9,9 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
 using Rhinox.Perceptor;
+#if ODIN_INSPECTOR
+using Sirenix.OdinInspector.Editor;
+#endif
 using UnityEditor;
 using UnityEngine;
 using RectExtensions = Rhinox.Lightspeed.RectExtensions;
@@ -91,7 +94,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             CustomMenuTree tree = ScriptableObject.CreateInstance<CustomMenuTree>();
 #if ODIN_INSPECTOR
-            tree.Config.DrawSearchToolbar = true;
+            tree.DrawSearchToolbar = true;
             tree.DefaultMenuStyle = OdinMenuStyle.TreeViewStyle;
 #endif
             foreach (var entry in GetTypesForTree())

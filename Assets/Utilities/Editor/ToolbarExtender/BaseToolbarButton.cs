@@ -56,28 +56,43 @@ namespace Rhinox.Utilities.Odin.Editor
         }
     }
     
-#if ODIN_INSPECTOR
     public abstract class BaseToolbarDropdown<T> : BaseToolbarButton
     {
         protected int _selected;
 
         protected abstract T[] _options { get; }
 
+#if ODIN_INSPECTOR
         protected bool _supportMultiselect;
+#endif
 
         protected override void Execute()
         {
+#if ODIN_INSPECTOR
             OdinSelector<T> selector = new GenericSelector<T>(string.Empty, _options, _supportMultiselect, GetName);
             selector.SelectionConfirmed += SelectionMade;
             ConfigureSelector(selector);
             selector.ShowInPopup();
+#else
+            var menu = new GenericMenu();
+            foreach (var option in _options)
+            {
+                menu.AddItem(new GUIContent(option.ToString()), false, () =>
+                {
+                    SelectionMade(new[] {option});
+                });
+            }
+            menu.ShowAsContext();
+#endif
         }
-
+        
+#if ODIN_INSPECTOR
         protected virtual void ConfigureSelector(OdinSelector<T> selector)
         {
             if (!_supportMultiselect)
                 selector.EnableSingleClickToSelect();
         }
+#endif
 
         protected virtual string GetName(T data)
         {
@@ -91,16 +106,14 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         protected override string Label => string.Empty;
         
-        protected abstract EditorIcon Icon { get; }
+        protected abstract Texture Icon { get; }
         
         public override void Draw()
         {
             if (Icon == null) return;
             
-            var rect = GUILayoutUtility.GetRect(Icon.HighlightedGUIContent, Style, LayoutOptions.Width(ToolbarHeight).Height(ToolbarHeight));
-            if (SirenixEditorGUI.IconButton(rect, Icon, Style, Tooltip))
+            if (CustomEditorGUI.IconButton(Icon, Style, ToolbarHeight, ToolbarHeight, Tooltip))
                 Execute();
         }
     }
-#endif
 }

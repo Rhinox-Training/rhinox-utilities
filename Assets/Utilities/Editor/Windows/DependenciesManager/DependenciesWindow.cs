@@ -8,6 +8,9 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
 using Sirenix.OdinInspector;
+#if ODIN_INSPECTOR
+using Sirenix.Utilities.Editor;
+#endif
 #if TEXT_MESH_PRO
 using TMPro;
 #endif

@@ -37,12 +37,13 @@ namespace Rhinox.Utilities.Odin.Editor
         
 #if ODIN_INSPECTOR
         private PropertyTree _propertyTree;
+#else
+        private DrawablePropertyView _propertyView;
 #endif
 
 
         private UnityEditor.Editor _editor;
         private SerializedObject _serializedObject;
-        private ICollection<ISimpleDrawable> _drawables;
 
         public static bool HasInstance => _instance != null;
         
@@ -77,8 +78,6 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (_serializedObject == null)
                 _serializedObject = new SerializedObject(this);
-
-            _drawables = DrawableFactory.ParseSerializedObject(_serializedObject);
         }
 
         public virtual void OnChanged()
@@ -96,6 +95,9 @@ namespace Rhinox.Utilities.Odin.Editor
 #if ODIN_INSPECTOR
             if (_propertyTree == null)
                 _propertyTree = PropertyTree.Create(Instance);
+#else
+            if (_propertyView == null)
+                _propertyView = new DrawablePropertyView(_serializedObject);
 #endif
 
 
@@ -108,10 +110,11 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 EditorGUI.BeginChangeCheck();
 
-                foreach (var drawable in _drawables)
-                    drawable.Draw();
-
-                //_propertyTree.Draw();
+#if ODIN_INSPECTOR
+                _propertyTree.Draw();
+#else
+                _propertyView.DrawLayout();
+#endif
 
                 bool hasEditorFile = HasOldFile();
                 EditorGUI.BeginDisabledGroup(!hasEditorFile);
