@@ -24,7 +24,7 @@ namespace Rhinox.Utilities.Odin.Editor
         private static PropertyInfo[] _cachedProperties;
 
         private EditorIcon _resolvedIcon;
-        protected override EditorIcon Icon => _resolvedIcon;
+        protected override Texture Icon => _resolvedIcon.Raw;
 
         public string MenuItem;
 
@@ -55,7 +55,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 return _cachedProperties;
 
             return _cachedProperties = EditorIconType.GetProperties(BindingFlags.Static | BindingFlags.Public)
-                .Where(x => typeof(EditorIcon).IsAssignableFrom(x.GetReturnType()) )
+                .Where(x => typeof(EditorIcon).IsAssignableFrom(Rhinox.Lightspeed.Reflection.ReflectionExtensions.GetReturnType(x)) )
                 .OrderBy(x => x.Name)
                 .ToArray();
         }
