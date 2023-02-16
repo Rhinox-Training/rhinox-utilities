@@ -18,7 +18,11 @@ namespace Rhinox.Utilities
     [HideReferenceObjectPicker, Serializable]
     public class TextureChannelInput
     {
+        [HideLabel, HorizontalGroup("Row")]
         public bool Enabled;
+        
+        [LabelWidth(50), HorizontalGroup("Row")]
+        public TextureChannel Output;
         
         public TextureChannelInput() {}
 
@@ -26,9 +30,6 @@ namespace Rhinox.Utilities
         {
             Output = output;
         }
-        
-        [LabelWidth(50), HorizontalGroup]
-        public TextureChannel Output;
         
         public TextureChannelInput(TextureChannel output, bool enabled = false)
         {
