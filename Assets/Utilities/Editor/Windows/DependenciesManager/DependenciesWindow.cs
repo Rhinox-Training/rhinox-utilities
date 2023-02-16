@@ -234,7 +234,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
 		protected override CustomMenuTree BuildMenuTree()
 		{
-			var tree = ScriptableObject.CreateInstance<CustomMenuTree>();
+			var tree = new CustomMenuTree();
 #if ODIN_INSPECTOR
 			// TODO: enable
 			//tree.DefaultMenuStyle.IconSize = 16.00f;

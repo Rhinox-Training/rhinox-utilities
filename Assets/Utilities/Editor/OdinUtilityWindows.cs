@@ -19,11 +19,13 @@ namespace Rhinox.Utilities.Odin.Editor
             DependenciesWindow.ShowWindow();
         }
 
+#if ODIN_INSPECTOR
         [MenuItem(__prefix + "/Advanced Scene Search", false, 2500)]
         public static void OpenWindow()
         {
             AdvancedSceneSearchWindow.OpenWindow();
         }
+#endif
 
         [MenuItem(__prefix + "/Clean Up Missing Components", false, 3500)]
         private static void CleanUpComponents()

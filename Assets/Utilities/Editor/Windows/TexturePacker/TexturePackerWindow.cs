@@ -3,7 +3,6 @@ using System.IO;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
 using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 using UnityEditor;
 using UnityEngine;
@@ -26,7 +25,10 @@ namespace Rhinox.Utilities.Odin.Editor
         [ValueDropdown("_textureSizes")]
         public int Resolution = 2048;
         private static int[] _textureSizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
-        
+#if !ODIN_INSPECTOR
+        private DrawablePropertyView _propertyView;
+#endif
+
         /// ================================================================================================================
         /// METHODS
         public static void Open()
@@ -40,15 +42,17 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             _texturePacker.Initialize();
 
-
-           // DrawableFactory.ParseSerializedObject(_texturePacker);
-
         }
-
+#if !ODIN_INSPECTOR
         private void OnGUI()
         {
+
+            if (_propertyView == null)
+                _propertyView = new DrawablePropertyView(_texturePacker);
+            _propertyView.DrawLayout();
             //_texturePacker = EditorGUILayout.ObjectField(GUIContent.none, _texturePacker, typeof(TexturePacker), false);
         }
+#endif
 
         public void DrawPreview(TexturePacker texPacker, int resolution = 128)
         {
