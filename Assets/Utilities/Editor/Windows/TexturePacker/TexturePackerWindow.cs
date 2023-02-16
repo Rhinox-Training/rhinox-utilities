@@ -13,7 +13,7 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         /// ================================================================================================================
         /// PARAMETERS
-        [ShowInInspector, HorizontalGroup("Root")]
+        [ShowInInspector, HorizontalGroup("Root", order: -1)]
         public TexturePacker _texturePacker = new TexturePacker();
 
         [ShowInInspector, PreviewField(ObjectFieldAlignment.Left, Height = 128), HideLabel,
