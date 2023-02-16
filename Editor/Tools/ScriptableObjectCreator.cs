@@ -92,7 +92,7 @@ namespace Rhinox.Utilities.Odin.Editor
             this.MenuWidth = 270;
             this.WindowPadding = Vector4.zero;
 
-            CustomMenuTree tree = ScriptableObject.CreateInstance<CustomMenuTree>();
+            CustomMenuTree tree = new CustomMenuTree();
 #if ODIN_INSPECTOR
             tree.DrawSearchToolbar = true;
             tree.DefaultMenuStyle = OdinMenuStyle.TreeViewStyle;
