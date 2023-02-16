@@ -9,76 +9,28 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class TexturePackerWindow : EditorWindow
+    public class TexturePackerRoot
     {
         /// ================================================================================================================
         /// PARAMETERS
         [ShowInInspector, HorizontalGroup("Root")]
-        private TexturePacker _texturePacker = new TexturePacker();
+        public TexturePacker _texturePacker = new TexturePacker();
 
         [ShowInInspector, PreviewField(ObjectFieldAlignment.Left, Height = 128), HideLabel,
          HorizontalGroup("Root/Preview", width: 138),
          TitleGroup("Root/Preview/Preview", Alignment = TitleAlignments.Centered)]
-        private Texture2D Preview { get { return _texturePacker.Create(128); } }
+        public Texture2D Preview { get { return _texturePacker.Create(128); } }
 
         [VerticalGroup("Root/Preview/Preview/Properties", order: 100), LabelWidth(70)]
         [ValueDropdown("_textureSizes")]
         public int Resolution = 2048;
         private static int[] _textureSizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
-#if !ODIN_INSPECTOR
-        private DrawablePropertyView _propertyView;
-#endif
 
-        /// ================================================================================================================
-        /// METHODS
-        public static void Open()
-        {
-            var window = GetWindow<TexturePackerWindow>();
-            window.titleContent.text = "Texture Packer";
-            window.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(800, 500);
-        }
-
-        private void Awake()
+        public void Initialize()
         {
             _texturePacker.Initialize();
-
         }
-#if !ODIN_INSPECTOR
-        private void OnGUI()
-        {
-
-            if (_propertyView == null)
-                _propertyView = new DrawablePropertyView(_texturePacker);
-            _propertyView.DrawLayout();
-            //_texturePacker = EditorGUILayout.ObjectField(GUIContent.none, _texturePacker, typeof(TexturePacker), false);
-        }
-#endif
-
-        public void DrawPreview(TexturePacker texPacker, int resolution = 128)
-        {
-            GUILayout.Label("Preview", TexturePackerStyles.Heading);
-
-            GUILayout.BeginVertical(TexturePackerStyles.Section);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            Vector2 previewSize = new Vector2(256, 256);
-            GUILayout.Label("", TexturePackerStyles.MidBox, GUILayout.Width(previewSize.x), GUILayout.Height(previewSize.y));
-            Rect previewRect = GUILayoutUtility.GetLastRect();
-            Rect alphaRect = new Rect(previewRect.x + 5, previewRect.y + 5, previewRect.width - 10, previewRect.height - 10);
-
-            texPacker.ClearProperties();
-
-            Texture2D preview = texPacker.Create(resolution);
-            EditorGUI.DrawPreviewTexture(alphaRect, preview);
-
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.EndVertical();
-        }
-
+        
         [Button("Save Texture", ButtonSizes.Medium)]
         private void Generate()
         {
@@ -111,5 +63,67 @@ namespace Rhinox.Utilities.Odin.Editor
 
             AssetDatabase.Refresh();
         }
+    }
+    
+    public class TexturePackerWindow : EditorWindow
+    {
+        [ShowInInspector]
+        private TexturePackerRoot _root = new TexturePackerRoot();
+        
+#if !ODIN_INSPECTOR
+        private DrawablePropertyView _propertyView;
+#endif
+
+        /// ================================================================================================================
+        /// METHODS
+        public static void Open()
+        {
+            var window = GetWindow<TexturePackerWindow>();
+            window.titleContent.text = "Texture Packer";
+            window.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(800, 500);
+        }
+
+        private void Awake()
+        {
+            _root.Initialize();
+
+        }
+#if !ODIN_INSPECTOR
+        private void OnGUI()
+        {
+            if (_propertyView == null)
+                _propertyView = new DrawablePropertyView(_root);
+            _propertyView.DrawLayout();
+            //_texturePacker = EditorGUILayout.ObjectField(GUIContent.none, _texturePacker, typeof(TexturePacker), false);
+        }
+#endif
+
+        // TODO: probably old code
+        // public void DrawPreview(TexturePacker texPacker, int resolution = 128)
+        // {
+        //     GUILayout.Label("Preview", TexturePackerStyles.Heading);
+        //
+        //     GUILayout.BeginVertical(TexturePackerStyles.Section);
+        //
+        //     GUILayout.BeginHorizontal();
+        //     GUILayout.FlexibleSpace();
+        //
+        //     Vector2 previewSize = new Vector2(256, 256);
+        //     GUILayout.Label("", TexturePackerStyles.MidBox, GUILayout.Width(previewSize.x), GUILayout.Height(previewSize.y));
+        //     Rect previewRect = GUILayoutUtility.GetLastRect();
+        //     Rect alphaRect = new Rect(previewRect.x + 5, previewRect.y + 5, previewRect.width - 10, previewRect.height - 10);
+        //
+        //     texPacker.ClearProperties();
+        //
+        //     Texture2D preview = texPacker.Create(resolution);
+        //     EditorGUI.DrawPreviewTexture(alphaRect, preview);
+        //
+        //     GUILayout.FlexibleSpace();
+        //     GUILayout.EndHorizontal();
+        //
+        //     GUILayout.EndVertical();
+        // }
+
+       
     }
 }
