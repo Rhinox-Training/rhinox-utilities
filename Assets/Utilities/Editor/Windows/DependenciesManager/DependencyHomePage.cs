@@ -10,7 +10,7 @@ namespace Rhinox.Utilities.Odin.Editor
 {
     public class DependencyHomePage : ScriptableObject
     {
-        [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 8, DraggableItems = false)]
+        [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 12, DraggableItems = false)]
         [AssetsOnly, DrawAsUnityObject]
         public List<Object> Objects = new List<Object>();
 

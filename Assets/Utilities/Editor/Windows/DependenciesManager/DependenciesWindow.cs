@@ -411,7 +411,7 @@ namespace Rhinox.Utilities.Odin.Editor
 			var prev = ShowPath;
 			
 			ShowPath = GUILayout.Toggle(ShowPath, new GUIContent("Show path", UnityIcon.AssetIcon("Fa_Folder")), CustomGUIStyles.ToolbarButtonCentered, 
-				GUILayout.Width(22), GUILayout.Height(22));
+				GUILayout.MinWidth(22), GUILayout.Height(22));
 
 			if (prev != ShowPath)
 				ForceMenuTreeRebuild();
