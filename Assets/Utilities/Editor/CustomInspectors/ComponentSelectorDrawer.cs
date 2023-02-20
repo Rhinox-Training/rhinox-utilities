@@ -1,7 +1,10 @@
-﻿using Rhinox.GUIUtils;
+﻿using System.Collections.Generic;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
+#if ODIN_INSPECTOR
 using Sirenix.OdinInspector.Editor;
+#endif
 using UnityEditor;
 using UnityEngine;
 
@@ -17,10 +20,16 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         private ComponentSelector Target;
         private SerializedProperty _baseProperty;
-        private DrawableList _listDrawing;
+        private ICollection<IOrderedDrawable> _drawables;
         
+#if ODIN_INSPECTOR
+        protected void OnEnable()
+        {
+            base.OnEnable();
+#else
         private void OnEnable()
         {
+#endif
             Target = target as ComponentSelector;
         }
 
@@ -36,10 +45,18 @@ namespace Rhinox.Utilities.Odin.Editor
                 if (_baseProperty == null || prop != _baseProperty)
                 {
                     _baseProperty = serializedObject.FindProperty(nameof(Target.internalComponents));
-                    _listDrawing = new DrawableList(_baseProperty);
+                    _drawables = DrawableFactory.ParseSerializedObject(_baseProperty.serializedObject);
                 }
-                if (_listDrawing != null)
-                    _listDrawing.Draw();
+
+                if (_drawables != null)
+                {
+                    foreach (var drawable in _drawables)
+                    {
+                        if (drawable != null)
+                            drawable.Draw();
+                    }
+                }
+
                 if (Target.IsEditing && GUILayout.Button("Close Editor"))
                     Target.IsEditing = false;
             #endif
