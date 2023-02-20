@@ -6,6 +6,7 @@ namespace Rhinox.Utilities.Editor
 {
     public static class FindAssetByGUIDHelper
     {
+        [MenuItem(WindowHelper.WindowPrefix + "Find Asset By GUID", false, 2500)]
         public static void DoFindByGuidMenu()
         {
             EditorInputDialog.Create("GUID", "Find an asset from it's GUID.")

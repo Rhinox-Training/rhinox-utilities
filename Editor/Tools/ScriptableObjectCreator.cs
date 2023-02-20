@@ -102,7 +102,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 tree.Add(GetMenuPathForType(entry), entry);
             }
             tree.SortMenuItemsByName();
-            tree.SelectionChanged += () =>
+            tree.SelectionChanged += (x) =>
             {
                 if (this.previewObject && !AssetDatabase.Contains(this.previewObject))
                 {

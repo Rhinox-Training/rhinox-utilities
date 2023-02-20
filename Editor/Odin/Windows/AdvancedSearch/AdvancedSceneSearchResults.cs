@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -11,6 +12,8 @@ using UnityEditor;
 using UnityEngine;
 
 using Object = UnityEngine.Object;
+using RectExtensions = Rhinox.Lightspeed.RectExtensions;
+using SelectionChangedType = Rhinox.GUIUtils.Editor.SelectionChangedType;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
@@ -24,11 +27,11 @@ namespace Rhinox.Utilities.Odin.Editor
         private bool _overviewToggle;
 
         private readonly List<ResizableColumn> _columns;
-        private OdinMenuTree _menuTree;
+        private CustomMenuTree _menuTree;
 
         private static readonly TimeSpan _maxTimeBetweenClicks = TimeSpan.FromSeconds(.5f);
         private DateTime _lastClick;
-        private OdinMenuItem _clickedItem;
+        private UIMenuItem _clickedItem;
 
         private GameObject _selectedObject;
         private readonly List<UnityEditor.Editor> _selectedObjectEditors = new List<UnityEditor.Editor>();
@@ -55,27 +58,27 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private void BuildTree()
         {
-            _menuTree = new OdinMenuTree
+            _menuTree = new CustomMenuTree(new OdinMenuTree
             {
                 Config =
                 {
                     DrawSearchToolbar = true, AutoHandleKeyboardNavigation = true, UseCachedExpandedStates = false
                 }
-            };
+            });
 
             foreach (var item in _motor.Results)
                 // can't have slashes as it will add depth to the tree
                 _menuTree.Add(item.name.Replace("/", "_"), item);
 
-            _menuTree.Selection.SelectionConfirmed += (x) =>
+            _menuTree.SelectionConfirmed += () =>
             {
-                var sel = x.FirstOrDefault()?.Value as Object;
+                var sel = _menuTree.Selection.FirstOrDefault()?.RawValue as Object;
                 if (sel == null) return;
 
-                GUIHelper.SelectObject(sel);
+                CustomEditorGUIUtility.SelectObject(sel);
             };
 
-            _menuTree.Selection.SelectionChanged += (x) =>
+            _menuTree.SelectionChanged += (x) =>
             {
                 if (x != SelectionChangedType.ItemAdded)
                 {
@@ -84,7 +87,7 @@ namespace Rhinox.Utilities.Odin.Editor
                     return;
                 }
 
-                var value = _menuTree.Selection.SelectedValue;
+                var value = _menuTree.SelectedValue;
                 var result = value as GameObject;
 
                 ClearEditors();
@@ -116,16 +119,16 @@ namespace Rhinox.Utilities.Odin.Editor
 
             // Menu editor
             Rect topRect;
-            using (new eUtility.HorizontalGroup(GUILayoutOptions.ExpandHeight()))
+            using (new eUtility.HorizontalGroup(GUILayout.ExpandHeight(true)))
             {
                 topRect = GUIHelper.GetCurrentLayoutRect();
                 GUITableUtilities.ResizeColumns(topRect, this._columns);
 
                 // Bottom Slide Toggle Bits:
                 // The bottom slide-rect toggle needs to be drawn above, but is placed below.
-                overviewSlideRect = topRect.AlignBottom(4).AddY(4);
+                overviewSlideRect = topRect.AddY(4).AlignBottom(4);
                 overviewSlideRect.width += 4;
-                toggleOverviewBtnRect = overviewSlideRect.AlignCenter(100).AlignBottom(14);
+                toggleOverviewBtnRect = overviewSlideRect.AlignBottom(14).AlignCenter(100);
                 EditorGUIUtility.AddCursorRect(toggleOverviewBtnRect, MouseCursor.Arrow);
                 if (SirenixEditorGUI.IconButton(toggleOverviewBtnRect.AddY(-2),
                     this._overviewToggle ? EditorIcons.TriangleDown : EditorIcons.TriangleUp))
@@ -147,7 +150,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 GUILayout.BeginVertical(GUILayoutOptions.Width(this._columns[0].ColWidth).ExpandHeight());
                 {
                     EditorGUI.DrawRect(GUIHelper.GetCurrentLayoutRect(), SirenixGUIStyles.EditorWindowBackgroundColor);
-                    _menuTree.DrawMenuTree();
+                    _menuTree.Draw();
                 }
                 GUILayout.EndVertical();
 
@@ -168,8 +171,8 @@ namespace Rhinox.Utilities.Odin.Editor
             }
 
             EditorGUI.DrawRect(overviewSlideRect, SirenixGUIStyles.BorderColor);
-            EditorGUI.DrawRect(toggleOverviewBtnRect.AddY(-overviewSlideRect.height), SirenixGUIStyles.BorderColor);
-            SirenixEditorGUI.IconButton(toggleOverviewBtnRect.AddY(-2),
+            EditorGUI.DrawRect(RectExtensions.AddY(toggleOverviewBtnRect, -overviewSlideRect.height), SirenixGUIStyles.BorderColor);
+            SirenixEditorGUI.IconButton(RectExtensions.AddY(toggleOverviewBtnRect, -2),
                 this._overviewToggle ? EditorIcons.TriangleDown : EditorIcons.TriangleUp);
 
             // Overview
@@ -245,16 +248,16 @@ namespace Rhinox.Utilities.Odin.Editor
             }
         }
 
-        private void HandleDoubleClick(OdinMenuItem item)
+        private void HandleDoubleClick(UIMenuItem item)
         {
-            Object obj = (Object)item.Value;
+            Object obj = (Object) item.RawValue;
             Selection.activeObject = obj;
             EditorGUIUtility.PingObject(obj);
         }
 
         private void DrawTopBarButtons()
         {
-            var rect = GUIHelper.GetCurrentLayoutRect().AlignRight(150);
+            var rect = RectExtensions.AlignRight(GUIHelper.GetCurrentLayoutRect(), 150);
 
             rect.x -= 5;
             rect.y -= 26;
