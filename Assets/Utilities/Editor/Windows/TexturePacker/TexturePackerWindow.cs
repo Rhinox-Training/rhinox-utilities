@@ -2,6 +2,7 @@
 using System.IO;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
+using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
 using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 using UnityEditor;
@@ -76,6 +77,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         /// ================================================================================================================
         /// METHODS
+        [MenuItem(WindowHelper.WindowPrefix + "Texture Packer")]
         public static void Open()
         {
             var window = GetWindow<TexturePackerWindow>();

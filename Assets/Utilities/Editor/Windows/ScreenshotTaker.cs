@@ -20,6 +20,7 @@ namespace Rhinox.Utilities.Editor
         private bool _isTransparent;
         private RenderTexture _renderTexture;
 
+        [MenuItem(WindowHelper.WindowPrefix + "Take a Screenshot", false, 100)]
         internal static void ShowWindow()
         {
             var editorWindow = GetWindow(typeof(Screenshot));

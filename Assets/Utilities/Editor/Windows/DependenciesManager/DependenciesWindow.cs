@@ -7,6 +7,7 @@ using Rhinox.GUIUtils.Attributes;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
+using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
 #if ODIN_INSPECTOR
 using Sirenix.Utilities.Editor;
@@ -222,7 +223,7 @@ namespace Rhinox.Utilities.Odin.Editor
 		// GUI METHODS
 
 		#region GUI Methods
-
+		[MenuItem(WindowHelper.WindowPrefix + "Find Dependencies", false, 2500)]
 		public static void ShowWindow()
 		{
 			var w = GetWindow<DependenciesWindow>();
