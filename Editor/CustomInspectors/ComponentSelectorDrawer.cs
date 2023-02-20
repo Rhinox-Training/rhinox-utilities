@@ -20,8 +20,8 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         private ComponentSelector Target;
         private SerializedProperty _baseProperty;
-        private ICollection<IOrderedDrawable> _drawables;
-        
+        private DrawablePropertyView _propertyView;
+
 #if ODIN_INSPECTOR
         protected void OnEnable()
         {
@@ -41,21 +41,22 @@ namespace Rhinox.Utilities.Odin.Editor
             #if ODIN_INSPECTOR
                 base.OnInspectorGUI();
             #else
-                var prop = serializedObject.FindProperty(nameof(Target.internalComponents));
-                if (_baseProperty == null || prop != _baseProperty)
-                {
-                    _baseProperty = serializedObject.FindProperty(nameof(Target.internalComponents));
-                    _drawables = DrawableFactory.ParseSerializedObject(_baseProperty.serializedObject);
-                }
+               
 
-                if (_drawables != null)
+                if (_propertyView == null)
                 {
-                    foreach (var drawable in _drawables)
+                    var prop = serializedObject.FindProperty(nameof(Target.internalComponents));
+                    if (_baseProperty == null || prop != _baseProperty)
                     {
-                        if (drawable != null)
-                            drawable.Draw();
+                        _baseProperty = serializedObject.FindProperty(nameof(Target.internalComponents));
+                        if (_baseProperty.exposedReferenceValue != null)
+                            _propertyView = new DrawablePropertyView(new SerializedObject(_baseProperty.exposedReferenceValue));
+                        else
+                            _propertyView = new DrawablePropertyView(_baseProperty.serializedObject);
                     }
                 }
+
+                _propertyView?.DrawLayout();
 
                 if (Target.IsEditing && GUILayout.Button("Close Editor"))
                     Target.IsEditing = false;
