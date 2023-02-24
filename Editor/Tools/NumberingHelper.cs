@@ -7,7 +7,7 @@ namespace Rhinox.Utilities.Editor
     public static class NumberingHelper
     {
         const string HELPER_NAME = "Update Alphabetical numbering";
-        private const string AlphabeticNumberingHeader = "Tools/Rhinox/" + HELPER_NAME;
+        private const string AlphabeticNumberingHeader = WindowHelper.WindowPrefix + HELPER_NAME;
 
         [MenuItem(AlphabeticNumberingHeader, priority = 10000)]
         private static void UpdateAlphabeticNumbering()
