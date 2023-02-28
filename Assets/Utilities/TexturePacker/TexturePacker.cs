@@ -51,12 +51,15 @@ namespace Rhinox.Utilities
 
         public void Initialize()
         {
-            if (_material == null)
-            {
-                _material = new Material(Shader.Find(_shaderName)) { hideFlags = HideFlags.HideAndDontSave };
-            }
+            TryCreateOutputMaterial();
         }
-        
+
+        private void TryCreateOutputMaterial()
+        {
+            if (_material == null)
+                _material = new Material(Shader.Find(_shaderName)) {hideFlags = HideFlags.HideAndDontSave};
+        }
+
         private void AddInput()
         {
             Input.Add(new TextureInput());
@@ -109,6 +112,9 @@ namespace Rhinox.Utilities
 
         public Texture2D Create(int resolution)
         {
+            if (_material == null)
+                TryCreateOutputMaterial();
+            
             int idx = 0;
             bool hasAlpha = false;
             foreach (var input in Input)
@@ -144,7 +150,7 @@ namespace Rhinox.Utilities
             RenderTexture tempRT = RenderTexture.GetTemporary(width, height);
             Graphics.Blit(Texture2D.blackTexture, tempRT, mat);
 
-            Texture2D output = new Texture2D(tempRT.width, tempRT.height, hasAlpha? TextureFormat.RGBA32 : TextureFormat.RGB24, false);
+            Texture2D output = new Texture2D(tempRT.width, tempRT.height, hasAlpha ? TextureFormat.RGBA32 : TextureFormat.RGB24, false);
             RenderTexture.active = tempRT;
 
             output.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);

@@ -27,7 +27,7 @@ namespace Rhinox.Utilities.Editor
         private static string _meshInfo;
         private static string _secondaryMeshInfo;
 
-        [MenuItem(_menuItemPath, false, 100)]
+        [MenuItem(_menuItemPath, false, -199)]
         public static void ActivateSizeVisualizer()
         {
             IncludeChildren = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeChildren), true);

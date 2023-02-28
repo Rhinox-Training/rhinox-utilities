@@ -75,7 +75,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 var sel = _menuTree.Selection.FirstOrDefault()?.RawValue as Object;
                 if (sel == null) return;
 
-                CustomEditorGUIUtility.SelectObject(sel);
+                CustomEditorGUI.SelectObject(sel);
             };
 
             _menuTree.SelectionChanged += (x) =>

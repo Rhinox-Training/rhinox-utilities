@@ -14,7 +14,7 @@ namespace Rhinox.Utilities.Editor
     {
         private static bool _active;
 
-        private const string _menuItemPath = "Tools/Show Unit Size #s";
+        private const string _menuItemPath = WindowHelper.ToolsPrefix + "Show Unit Size #s";
 
         private static float MeterCutoff;
         private static bool ShowAxisAligned;
@@ -22,7 +22,7 @@ namespace Rhinox.Utilities.Editor
         private const string MeterCutoff_Key = nameof(SizeVisualizer) + "_" + nameof(MeterCutoff);
         private const string ShowAxisAligned_Key = nameof(SizeVisualizer) + "_" + nameof(ShowAxisAligned);
 
-        [MenuItem(_menuItemPath, false, 100)]
+        [MenuItem(_menuItemPath, false, -198)]
         public static void ActivateSizeVisualizer()
         {
             MeterCutoff = EditorPrefs.GetFloat(MeterCutoff_Key, 1f);
