@@ -101,6 +101,9 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 tree.Add(GetMenuPathForType(entry), entry);
             }
+#if ODIN_INSPECTOR
+            tree.TryUseThumbnailIcons();
+#endif
             tree.SortMenuItemsByName();
             tree.SelectionChanged += (x) =>
             {
@@ -181,7 +184,7 @@ namespace Rhinox.Utilities.Odin.Editor
             }
         }
 
-        private void CreateAsset(UIMenuItem uiMenuItem)
+        private void CreateAsset(IMenuItem uiMenuItem)
         {
             if (!this.previewObject) return;
 

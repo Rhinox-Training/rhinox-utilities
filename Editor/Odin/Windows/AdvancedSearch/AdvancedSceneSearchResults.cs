@@ -31,7 +31,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private static readonly TimeSpan _maxTimeBetweenClicks = TimeSpan.FromSeconds(.5f);
         private DateTime _lastClick;
-        private UIMenuItem _clickedItem;
+        private IMenuItem _clickedItem;
 
         private GameObject _selectedObject;
         private readonly List<UnityEditor.Editor> _selectedObjectEditors = new List<UnityEditor.Editor>();
@@ -248,7 +248,7 @@ namespace Rhinox.Utilities.Odin.Editor
             }
         }
 
-        private void HandleDoubleClick(UIMenuItem item)
+        private void HandleDoubleClick(IMenuItem item)
         {
             Object obj = (Object) item.RawValue;
             Selection.activeObject = obj;
