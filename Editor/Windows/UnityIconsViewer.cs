@@ -30,7 +30,7 @@ namespace Rhinox.Utilities.Editor
         private Vector2 _scrollPos;
         private GUIContent _refreshButton;
         
-        [MenuItem("Tools/Icons List")]
+        [MenuItem(WindowHelper.WindowPrefix + "Asset Management/View Icons List")]
         public static void ShowWindow()
         {
             var w = GetWindow<UnityIconsViewer>();

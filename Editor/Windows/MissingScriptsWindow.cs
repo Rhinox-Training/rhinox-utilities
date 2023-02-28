@@ -18,7 +18,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private static bool _bHaveRun;
 
-        [MenuItem(WindowHelper.WindowPrefix + "Clean Up Missing Components", false, 3500)]
+        [MenuItem(WindowHelper.ToolsPrefix + "Clean Up Missing Components", false, 1500)]
         public static void ShowWindow()
         {
             var win = GetWindow(typeof(MissingScriptsWindow));

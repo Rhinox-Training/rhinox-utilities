@@ -17,7 +17,7 @@ namespace Rhinox.Utilities.Odin.Editor
         protected override object RootPage => new AdvancedSceneSearchOverview(_pager);
         protected override string RootPageName => "Overview";
 
-        [MenuItem(WindowHelper.WindowPrefix + "Advanced Scene Search", false, 2500)]
+        [MenuItem(WindowHelper.FindToolsPrefix + "Advanced Scene Search", false, -98)]
         public static void OpenWindow()
         {
             AdvancedSceneSearchWindow window;

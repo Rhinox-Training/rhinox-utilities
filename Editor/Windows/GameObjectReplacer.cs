@@ -28,7 +28,7 @@ namespace Rhinox.Utilities.Editor
 		private static Texture m_PrefabIcon;
 		private static bool m_ShowInSceneView;
 		
-		[MenuItem(WindowHelper.WindowPrefix + "GameObject Replacer")]
+		[MenuItem(WindowHelper.ToolsPrefix + "GameObject Replacer", false, 200)]
 		internal static void ShowWindow()
 		{
 			Window = GetWindow<GameObjectReplacer> (false, "GameObject Replacer");

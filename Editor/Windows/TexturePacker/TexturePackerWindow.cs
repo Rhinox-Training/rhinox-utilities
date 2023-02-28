@@ -4,12 +4,16 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
+#if ODIN_INSPECTOR
+using Sirenix.OdinInspector.Editor;
+#endif
 using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 using UnityEditor;
 using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
+    [Serializable]
     public class TexturePackerRoot
     {
         /// ================================================================================================================
@@ -68,16 +72,17 @@ namespace Rhinox.Utilities.Odin.Editor
     
     public class TexturePackerWindow : EditorWindow
     {
-        [ShowInInspector]
         private TexturePackerRoot _root = new TexturePackerRoot();
         
-#if !ODIN_INSPECTOR
+#if ODIN_INSPECTOR
+        private PropertyTree _propertyTree;
+#else
         private DrawablePropertyView _propertyView;
 #endif
 
         /// ================================================================================================================
         /// METHODS
-        [MenuItem(WindowHelper.WindowPrefix + "Texture Packer")]
+        [MenuItem(WindowHelper.ToolsPrefix + "Texture Packer", false, 202)]
         public static void Open()
         {
             var window = GetWindow<TexturePackerWindow>();
@@ -90,15 +95,21 @@ namespace Rhinox.Utilities.Odin.Editor
             _root.Initialize();
 
         }
-#if !ODIN_INSPECTOR
         private void OnGUI()
         {
+#if ODIN_INSPECTOR
+            if (_propertyTree == null)
+                _propertyTree = PropertyTree.Create(_root);
+            _propertyTree.Draw(false);
+#else
             if (_propertyView == null)
                 _propertyView = new DrawablePropertyView(_root);
             _propertyView.DrawLayout();
+#endif
+            
+            
             //_texturePacker = EditorGUILayout.ObjectField(GUIContent.none, _texturePacker, typeof(TexturePacker), false);
         }
-#endif
 
         // TODO: probably old code
         // public void DrawPreview(TexturePacker texPacker, int resolution = 128)

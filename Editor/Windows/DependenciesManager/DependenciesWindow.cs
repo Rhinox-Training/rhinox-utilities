@@ -57,15 +57,13 @@ namespace Rhinox.Utilities.Odin.Editor
 		// METHODS
 		// =================================================================================================================
 		// ASSET MANAGEMENT
-
 		
-
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 			Settings = ScriptableObject.CreateInstance<DependencySettings>();
 			AssetManager = ScriptableObject.CreateInstance<AssetManager>();
-			HomePage = ScriptableObject.CreateInstance<DependencyHomePage>();
+			HomePage = new DependencyHomePage();
 			HomePage.Initialize(this);
 		}
 
@@ -223,7 +221,7 @@ namespace Rhinox.Utilities.Odin.Editor
 		// GUI METHODS
 
 		#region GUI Methods
-		[MenuItem(WindowHelper.WindowPrefix + "Find Dependencies", false, 2500)]
+		[MenuItem(WindowHelper.FindToolsPrefix + "Find Dependencies", false, -99)]
 		public static void ShowWindow()
 		{
 			var w = GetWindow<DependenciesWindow>();

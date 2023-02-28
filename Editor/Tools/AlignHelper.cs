@@ -29,7 +29,7 @@ namespace Rhinox.Utilities.Editor
 
         private const int IconSize = 19;
 
-        [MenuItem(_menuItemPath, false, 100)]
+        [MenuItem(_menuItemPath, false, -200)]
         public static void ActivateAlignHelper()
         {
             if (!_active)

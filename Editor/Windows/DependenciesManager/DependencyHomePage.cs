@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class DependencyHomePage : ScriptableObject
+    public class DependencyHomePage
     {
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 12, DraggableItems = false)]
         [AssetsOnly, DrawAsUnityObject]
