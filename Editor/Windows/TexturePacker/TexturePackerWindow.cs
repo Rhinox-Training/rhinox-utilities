@@ -4,9 +4,6 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
-#if ODIN_INSPECTOR
-using Sirenix.OdinInspector.Editor;
-#endif
 using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 using UnityEditor;
 using UnityEngine;
@@ -74,11 +71,7 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         private TexturePackerRoot _root = new TexturePackerRoot();
         
-#if ODIN_INSPECTOR
-        private PropertyTree _propertyTree;
-#else
-        private DrawablePropertyView _propertyView;
-#endif
+        private SmartPropertyView _propertyView;
 
         /// ================================================================================================================
         /// METHODS
@@ -97,46 +90,9 @@ namespace Rhinox.Utilities.Odin.Editor
         }
         private void OnGUI()
         {
-#if ODIN_INSPECTOR
-            if (_propertyTree == null)
-                _propertyTree = PropertyTree.Create(_root);
-            _propertyTree.Draw(false);
-#else
             if (_propertyView == null)
-                _propertyView = new DrawablePropertyView(_root);
+                _propertyView = new SmartPropertyView(_root);
             _propertyView.DrawLayout();
-#endif
-            
-            
-            //_texturePacker = EditorGUILayout.ObjectField(GUIContent.none, _texturePacker, typeof(TexturePacker), false);
         }
-
-        // TODO: probably old code
-        // public void DrawPreview(TexturePacker texPacker, int resolution = 128)
-        // {
-        //     GUILayout.Label("Preview", TexturePackerStyles.Heading);
-        //
-        //     GUILayout.BeginVertical(TexturePackerStyles.Section);
-        //
-        //     GUILayout.BeginHorizontal();
-        //     GUILayout.FlexibleSpace();
-        //
-        //     Vector2 previewSize = new Vector2(256, 256);
-        //     GUILayout.Label("", TexturePackerStyles.MidBox, GUILayout.Width(previewSize.x), GUILayout.Height(previewSize.y));
-        //     Rect previewRect = GUILayoutUtility.GetLastRect();
-        //     Rect alphaRect = new Rect(previewRect.x + 5, previewRect.y + 5, previewRect.width - 10, previewRect.height - 10);
-        //
-        //     texPacker.ClearProperties();
-        //
-        //     Texture2D preview = texPacker.Create(resolution);
-        //     EditorGUI.DrawPreviewTexture(alphaRect, preview);
-        //
-        //     GUILayout.FlexibleSpace();
-        //     GUILayout.EndHorizontal();
-        //
-        //     GUILayout.EndVertical();
-        // }
-
-       
     }
 }
