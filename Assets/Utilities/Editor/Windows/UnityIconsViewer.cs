@@ -98,11 +98,9 @@ namespace Rhinox.Utilities.Editor
                     TextureUsage = "EditorIcons." + pair.Key + ".Active"
                 });
             }
-
-            // resources icons
-            _Icons.AddRange(GetAssetIcons( UnityIcon.GetAllAssetIcons() ));
 #endif
-                
+            // resources icons
+            _Icons.AddRange(GetAssetIcons(UnityIcon.GetAllAssetIcons()));
 
             _Icons.Sort();
             Resources.UnloadUnusedAssets();

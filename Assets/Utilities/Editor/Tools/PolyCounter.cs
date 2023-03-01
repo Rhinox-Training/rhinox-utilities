@@ -17,9 +17,9 @@ namespace Rhinox.Utilities.Editor
 
         private const string _menuItemPath = "Tools/Show Polygon info";
 
-        private static PersistentUserValue<bool> IncludeChildren;
-        private static PersistentUserValue<bool> IncludeDisabled;
-        private static PersistentUserValue<bool> IncludeLODs;
+        private static PersistentValue<bool> IncludeChildren;
+        private static PersistentValue<bool> IncludeDisabled;
+        private static PersistentValue<bool> IncludeLODs;
         
         private static List<Mesh> _meshes;
         private static bool _requiresRefresh;
@@ -30,9 +30,9 @@ namespace Rhinox.Utilities.Editor
         [MenuItem(_menuItemPath, false, -199)]
         public static void ActivateSizeVisualizer()
         {
-            IncludeChildren = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeChildren), true);
-            IncludeDisabled = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeDisabled), false);
-            IncludeLODs = PersistentUserValue<bool>.Get(typeof(PolyCounter), nameof(IncludeLODs), false);
+            IncludeChildren = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(IncludeChildren), true);
+            IncludeDisabled = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(IncludeDisabled), false);
+            IncludeLODs = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(IncludeLODs), false);
             _meshes = new List<Mesh>();
 
             if (!_active)
@@ -88,13 +88,12 @@ namespace Rhinox.Utilities.Editor
             }
         }
 
-        private static void EditorPreferenceToggle(string label, PersistentUserValue<bool> context)
+        private static void EditorPreferenceToggle(string label, PersistentValue<bool> context)
         {
-            var value = context.Value;
-            var newValue = EditorGUILayout.Toggle(label, value);
-            if (value != newValue)
+            var newValue = EditorGUILayout.Toggle(label, context);
+            if (context != newValue)
             {
-                context.Value = newValue;
+                context.Set(newValue);
                 _requiresRefresh = true;
             }
         }
@@ -108,13 +107,13 @@ namespace Rhinox.Utilities.Editor
 
             foreach (var go in Selection.gameObjects)
             {
-                if (IncludeChildren.Value)
+                if (IncludeChildren)
                     renderers.AddRange(go.GetComponentsInChildren<MeshRenderer>());
                 else
                     renderers.Add(go.GetComponent<MeshRenderer>());
             }
 
-            if (!IncludeLODs.Value)
+            if (!IncludeLODs)
             {
                 var lodGroups = Object.FindObjectsOfType<LODGroup>();
                 foreach (var lodGroup in lodGroups)
@@ -151,7 +150,7 @@ namespace Rhinox.Utilities.Editor
             
             if (mesh == null) return;
 
-            if (!IncludeDisabled.Value && !renderer.enabled)
+            if (!IncludeDisabled && !renderer.enabled)
                 return;
             
             _meshes.Add(mesh);
