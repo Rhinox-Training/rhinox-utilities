@@ -32,29 +32,11 @@ namespace Rhinox.Utilities.Editor
 		[MenuItem(WindowHelper.ToolsPrefix + "GameObject Replacer", false, 200)]
 		internal static void ShowWindow()
 		{
-			GetOrCreateWindow(out Window);
-		}
-		
-		protected static bool GetOrCreateWindow<T>(out T window) where T : EditorWindow
-		{
-			window = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
-			if (window != null)
+			WindowHelper.GetOrCreate(out Window, "GameObject Replacer", centerOnScreen: true, initialization: (w) =>
 			{
-				window.Focus();
-				return false;
-			}
-
-			window = GetWindow<T>(false, "GameObject Replacer");
-			Vector2 windowMinSize = window.minSize;
-			windowMinSize.x = 250;
-			windowMinSize.y = 125;
-			window.minSize = windowMinSize;
-			window.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(670, 700);
-			GameObjectReplacement = null;
-
-			window.Show();
-
-			return true;
+				w.minSize = new Vector2(250, 125);
+				GameObjectReplacement = null;
+			});
 		}
 		
 		private void OnEnable()

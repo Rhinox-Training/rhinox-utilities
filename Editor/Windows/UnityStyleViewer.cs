@@ -480,7 +480,7 @@ namespace Rhinox.Utilities.Editor
         [MenuItem(WindowHelper.WindowPrefix + "Editor Management/View Styles List", false, 2011)]
         private static void Example()
         {
-            GetWindow<UnityStyleViewer>(true);
+            WindowHelper.GetOrCreate<UnityStyleViewer>(out var window, "UnityStyleViewer", true, centerOnScreen: true);
         }
 
         private void OnGUI()
