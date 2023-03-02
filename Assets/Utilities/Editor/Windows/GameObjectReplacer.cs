@@ -4,6 +4,7 @@ using UnityEditor;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 #if UNITY_2021_1_OR_NEWER
@@ -31,12 +32,29 @@ namespace Rhinox.Utilities.Editor
 		[MenuItem(WindowHelper.ToolsPrefix + "GameObject Replacer", false, 200)]
 		internal static void ShowWindow()
 		{
-			Window = GetWindow<GameObjectReplacer> (false, "GameObject Replacer");
-			Vector2 windowMinSize = Window.minSize;
+			GetOrCreateWindow(out Window);
+		}
+		
+		protected static bool GetOrCreateWindow<T>(out T window) where T : EditorWindow
+		{
+			window = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
+			if (window != null)
+			{
+				window.Focus();
+				return false;
+			}
+
+			window = GetWindow<T>(false, "GameObject Replacer");
+			Vector2 windowMinSize = window.minSize;
 			windowMinSize.x = 250;
 			windowMinSize.y = 125;
-			Window.minSize = windowMinSize;
+			window.minSize = windowMinSize;
+			window.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(670, 700);
 			GameObjectReplacement = null;
+
+			window.Show();
+
+			return true;
 		}
 		
 		private void OnEnable()
@@ -63,19 +81,28 @@ namespace Rhinox.Utilities.Editor
 			GameObjects = Selection.gameObjects;
 			GUI.skin.font = ((GUIStyle)"ShurikenLabel").font;
 			
-			GetLayoutHeader();
-					
-			GUILayout.Space(15);
-            GUILayout.BeginHorizontal();
-			GUILayout.Space(10);
-			GUILayout.BeginVertical();
-			
-			GetLayoutFields();
-			
 			GUILayout.Space(5);
-			GUILayout.EndVertical();
-			GUILayout.Space(10);
-			GUILayout.EndHorizontal();
+			EditorGUILayout.BeginVertical((GUIStyle)"HelpBox");
+			{
+				if(m_PrefabIcon == null)
+					m_PrefabIcon = UnityIcon.InternalIcon("d_Prefab Icon").Pad(20);
+				
+				EditorGUILayout.LabelField(new GUIContent("GameObject Replacer", m_PrefabIcon), CustomGUIStyles.TitleBackground);
+
+				GUILayout.Space(15);
+				GUILayout.BeginHorizontal();
+				{
+					GUILayout.Space(10);
+					GUILayout.BeginVertical();
+
+					GetLayoutFields();
+
+					GUILayout.Space(5);
+					GUILayout.EndVertical();
+					GUILayout.Space(10);
+				}
+				GUILayout.EndHorizontal();
+			}
 			EditorGUILayout.EndVertical();
 			SceneView.RepaintAll();
 		}
@@ -133,25 +160,6 @@ namespace Rhinox.Utilities.Editor
 			Debug.Log(newSelection.Count.ToString() + goString + "been replaced with: " + GameObjectReplacement.name + "\nPrefab Type: " + prefabType);
 		}
 		
-		private void GetLayoutHeader()
-		{
-			GUILayout.Space(5);
-			EditorGUILayout.BeginVertical((GUIStyle)"HelpBox");
-			EditorGUILayout.LabelField("GameObject Replacer", (GUIStyle)"ShurikenEmitterTitle");
-            if(Event.current.type == EventType.Repaint)
-			{
-	            if(m_PrefabIcon == null)
-					m_PrefabIcon = UnityIcon.InternalIcon("d_Prefab Icon");
-	            
-	            m_PrefabIconRect = GUILayoutUtility.GetLastRect();
-	            m_PrefabIconRect.x += 4;
-	            m_PrefabIconRect.y += 1;
-	            m_PrefabIconRect.width = m_PrefabIcon.width/3;
-	            m_PrefabIconRect.height = m_PrefabIcon.height/3;
-	            GUI.DrawTexture(m_PrefabIconRect, m_PrefabIcon);
-            }
-        }
-        
 		private void GetLayoutFields(bool isSceneView = false)
 		{
 			EditorGUIUtility.labelWidth = 100;
