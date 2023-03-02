@@ -196,7 +196,7 @@ namespace Rhinox.Utilities.Odin.Editor
             }
             catch (Exception e)
             {
-                PLog.Error<UtilityLogger>($"Failed to create asset '{this.previewObject}' at '{dest}'");
+                PLog.Error<UtilityLogger>($"Failed to create asset '{this.previewObject}' at '{dest}': {e.ToString()}");
                 throw;
             }
 
