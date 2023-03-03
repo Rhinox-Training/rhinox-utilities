@@ -20,25 +20,33 @@ namespace Rhinox.Utilities.Odin.Editor
 {
     public class ScriptableObjectCreator : CustomMenuEditorWindow
     {
-        static HashSet<Type> scriptableObjectTypes = new HashSet<Type>(
-            AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
-                .Where(t =>
-                    t.IsClass &&
-                    typeof(ScriptableObject).IsAssignableFrom(t) &&
-                    !typeof(EditorWindow).IsAssignableFrom(t) &&
-                    !typeof(UnityEditor.Editor).IsAssignableFrom(t) &&
-                    !t.ImplementsOpenGenericClass(typeof(UnityEditor.ScriptableSingleton<>)))
-        );
+        private static readonly Type[] IgnoredBaseTypes = new[]
+        {
+            typeof(EditorWindow),
+            typeof(UnityEditor.Editor),
+            typeof(CustomProjectSettings<>)
+        };
 
         private static readonly string[] IgnoredNamespaces = new[]
         {
             "JetBrains.*",
+            "Packages.Rider.*",
             "Sirenix.*",
             "UnityEditor.*",
 #if TEXT_MESH_PRO
             "TMPro.*"
 #endif
         };
+        
+        static HashSet<Type> scriptableObjectTypes = new HashSet<Type>(
+            AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+                .Where(t =>
+                    t.IsClass &&
+                    typeof(ScriptableObject) != t &&
+                    typeof(ScriptableObject).IsAssignableFrom(t) &&
+                    !IgnoredBaseTypes.Any(x => t.InheritsFrom(x)) &&
+                    !t.ImplementsOpenGenericClass(typeof(UnityEditor.ScriptableSingleton<>)))
+        );
 
         private static bool MatchesIgnoredNamespace(string @namespace)
         {
@@ -99,7 +107,8 @@ namespace Rhinox.Utilities.Odin.Editor
 #endif
             foreach (var entry in GetTypesForTree())
             {
-                tree.Add(GetMenuPathForType(entry), entry);
+                string path = GetMenuPathForType(entry);
+                tree.Add(path, entry);
             }
 #if ODIN_INSPECTOR
             tree.TryUseThumbnailIcons();
@@ -135,15 +144,26 @@ namespace Rhinox.Utilities.Odin.Editor
                 return string.Empty;
 
             var name = t.Name.Split('`').First().SplitCamelCase();
-            var nameSpace = t.Namespace;
+            var nameSpace = isBaseType ? string.Empty : t.Namespace;
             var basePath = GetMenuPathForType(t.BaseType, true);
             if (!string.IsNullOrWhiteSpace(basePath))
                 basePath += "/";
 
             if (!string.IsNullOrWhiteSpace(nameSpace))
+            {
+                nameSpace = Fixup(nameSpace);
                 nameSpace += "/";
+            }
 
             return nameSpace + basePath + name;
+        }
+
+        private static string Fixup(string nameSpace)
+        {
+            var arr = nameSpace.Trim().Split('.');
+            if (arr.Length >= 2)
+                return $"{arr[0]}/{arr[1]}";
+            return nameSpace;
         }
 
         protected override IEnumerable<object> GetTargets()
