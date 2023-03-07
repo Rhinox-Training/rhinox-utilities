@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEditor;
@@ -100,7 +101,7 @@ namespace Rhinox.Utilities.Odin.Editor
         [Serializable]
         private struct IconEntry
         {
-            public Type TypeKey;
+            public SerializableType TypeKey;
             public Texture Value;
         }
 
@@ -118,7 +119,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 {
                     _backingSerializationDict.Add(new IconEntry()
                     {
-                        TypeKey = entry.Key,
+                        TypeKey = new SerializableType(entry.Key),
                         Value = entry.Value
                     });
                 }
