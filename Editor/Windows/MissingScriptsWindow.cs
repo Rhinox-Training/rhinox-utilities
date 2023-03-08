@@ -65,6 +65,7 @@ namespace Rhinox.Utilities.Odin.Editor
             AssetDatabase.SaveAssets();
         }
 
+#if !UNITY_2019_1_OR_NEWER
         private static void FindInGo(GameObject g)
         {
             ++_goCount;
@@ -102,7 +103,8 @@ namespace Rhinox.Utilities.Odin.Editor
                 FindInGo(childT.gameObject);
             }
         }
-
+#endif
+        
         private static int CountMissingInGo(GameObject go)
         {
 #if UNITY_2019_1_OR_NEWER
