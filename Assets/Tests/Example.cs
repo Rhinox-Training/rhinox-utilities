@@ -1,11 +1,29 @@
-﻿using UnityEngine;
+﻿using System;
+using Rhinox.Lightspeed.Collections;
+using UnityEngine;
 
+[Serializable]
+public class GenericList : ToggleableList<GameObject>
+{
+    
+}
+    
+    
 public class Example : MonoBehaviour
 {
     // Rotate a button 10 degrees clockwise when presed.
 
     float rotAngle = 0;
     Vector2 pivotPoint;
+
+    [SerializeReference]
+    public ToggleableList<GameObject> Objects;
+    
+    [SerializeReference]
+    public GenericList Objects2;
+
+    [SerializeReference]
+    public SimplePair<bool, bool> MyPair;
 
     void OnGUI()
     {
