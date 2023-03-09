@@ -1,5 +1,7 @@
 ﻿using System;
+using Rhinox.GUIUtils.Attributes;
 using Rhinox.Lightspeed.Collections;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 [Serializable]
@@ -9,6 +11,7 @@ public class GenericList : ToggleableList<GameObject>
 }
     
     
+[SmartFallbackDrawn]
 public class Example : MonoBehaviour
 {
     // Rotate a button 10 degrees clockwise when presed.
@@ -39,5 +42,11 @@ public class Example : MonoBehaviour
 
         
         GUILayout.Label("Test After");
+    }
+
+    [Button]
+    void PrintStoof()
+    {
+        Debug.Log("Stoof");
     }
 }
