@@ -23,7 +23,7 @@ namespace Rhinox.Utilities.Odin.Editor
         private DrawablePropertyView _propertyView;
 
 #if ODIN_INSPECTOR
-        protected void OnEnable()
+        protected override void OnEnable()
         {
             base.OnEnable();
 #else
