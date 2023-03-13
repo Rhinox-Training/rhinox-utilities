@@ -11,7 +11,7 @@ public class GenericList : ToggleableList<GameObject>
 }
     
     
-[SmartFallbackDrawn]
+[SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
     // Rotate a button 10 degrees clockwise when presed.
@@ -19,6 +19,8 @@ public class Example : MonoBehaviour
     float rotAngle = 0;
     Vector2 pivotPoint;
 
+    [TitleGroup("Foobar")] public float B;
+    
     [SerializeReference]
     public ToggleableList<GameObject> Objects;
     
