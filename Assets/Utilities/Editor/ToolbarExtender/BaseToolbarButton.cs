@@ -13,7 +13,7 @@ using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     [HideReferenceObjectPicker, Serializable, DrawAsReference]
     public abstract class BaseToolbarButton

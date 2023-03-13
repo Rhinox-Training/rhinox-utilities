@@ -10,7 +10,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     [TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
     public class DependencySettings : ScriptableObject, ISerializationCallbackReceiver

@@ -14,7 +14,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     // Create a new type of Settings Asset.
     // TODO: add new odin version?
