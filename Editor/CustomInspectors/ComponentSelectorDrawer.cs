@@ -8,7 +8,7 @@ using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     [CustomEditor(typeof(ComponentSelector))]
     public class ComponentSelectorDrawer : 

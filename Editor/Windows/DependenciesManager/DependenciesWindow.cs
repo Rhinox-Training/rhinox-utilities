@@ -19,7 +19,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
 	public class DependenciesWindow : MenuListEditorWindow
 	{

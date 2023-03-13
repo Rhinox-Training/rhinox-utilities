@@ -3,7 +3,7 @@ using System;
 using Sirenix.Utilities.Editor.Expressions;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     [Serializable]
     public class StringExpressionAction : BaseToolbarButton

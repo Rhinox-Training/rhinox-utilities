@@ -7,7 +7,7 @@ using UnityEditor;
 using System.Reflection;
 using UnityEngine.UIElements;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     public static class ToolbarCallback
     {

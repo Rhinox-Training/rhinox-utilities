@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     public class AssetManager : ScriptableObject
     {

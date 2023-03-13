@@ -2,7 +2,7 @@ using System;
 using Rhinox.GUIUtils.Attributes;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     [Serializable, DrawAsReference]
     public class ToolbarSpacer : BaseToolbarButton

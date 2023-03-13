@@ -8,7 +8,7 @@ using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     [Serializable]
     public class TexturePackerRoot

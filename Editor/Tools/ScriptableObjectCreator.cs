@@ -16,7 +16,7 @@ using UnityEditor;
 using UnityEngine;
 using RectExtensions = Rhinox.Lightspeed.RectExtensions;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     public class ScriptableObjectCreator : CustomMenuEditorWindow
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
 	public static class ToolbarExtenderUtility
 	{

@@ -6,7 +6,7 @@ using Rhinox.Lightspeed;
 using UnityEditor;
 using UnityEngine;
 
-namespace Rhinox.Utilities.Odin.Editor
+namespace Rhinox.Utilities.Editor
 {
     public static class ToolbarExtender
     {
