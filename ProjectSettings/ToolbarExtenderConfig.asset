@@ -30,42 +30,42 @@ MonoBehaviour:
   references:
     version: 1
     00000000:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 5
     00000001:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 3
     00000002:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 8
     00000003:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 0
     00000004:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 0
     00000005:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 0
     00000006:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 3
     00000007:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 0
     00000008:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 0
     00000009:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Odin.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
       data:
         Amount: 0
