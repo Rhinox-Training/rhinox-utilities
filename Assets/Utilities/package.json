@@ -12,7 +12,7 @@
   "category": "Unity",
   "dependencies": {
 	"com.rhinox.open.lightspeed": "1.4.0",
-	"com.rhinox.open.guiutils": "2.1.0",
+	"com.rhinox.open.guiutils": "2.1.2",
 	"com.rhinox.open.perceptor": "0.2.0"
   },
   "repository": {
