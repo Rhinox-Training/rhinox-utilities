@@ -1,14 +1,13 @@
 {
-    "name": "com.rhinox.utilities.test",
+    "name": "com.rhinox.utilities.testing",
     "references": [
         "GUID:487d6cb5c491f424fb4aaee827cbf415",
         "GUID:cacc866837634ee43b789e23dc71d920",
         "GUID:fc025ba4ac3997440926e87ec084af89",
-        "GUID:d8b63aba1907145bea998dd612889d6b"
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:62a965aa53b0d0e4a9715c9a86d7fd31"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

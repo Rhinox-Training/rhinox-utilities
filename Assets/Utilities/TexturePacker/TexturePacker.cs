@@ -18,7 +18,11 @@ namespace Rhinox.Utilities
     [HideReferenceObjectPicker, Serializable]
     public class TextureChannelInput
     {
+        [HideLabel, HorizontalGroup("Row")]
         public bool Enabled;
+        
+        [LabelWidth(50), HorizontalGroup("Row")]
+        public TextureChannel Output;
         
         public TextureChannelInput() {}
 
@@ -26,9 +30,6 @@ namespace Rhinox.Utilities
         {
             Output = output;
         }
-        
-        [LabelWidth(50), HorizontalGroup]
-        public TextureChannel Output;
         
         public TextureChannelInput(TextureChannel output, bool enabled = false)
         {
@@ -50,12 +51,15 @@ namespace Rhinox.Utilities
 
         public void Initialize()
         {
-            if (_material == null)
-            {
-                _material = new Material(Shader.Find(_shaderName)) { hideFlags = HideFlags.HideAndDontSave };
-            }
+            TryCreateOutputMaterial();
         }
-        
+
+        private void TryCreateOutputMaterial()
+        {
+            if (_material == null)
+                _material = new Material(Shader.Find(_shaderName)) {hideFlags = HideFlags.HideAndDontSave};
+        }
+
         private void AddInput()
         {
             Input.Add(new TextureInput());
@@ -108,6 +112,9 @@ namespace Rhinox.Utilities
 
         public Texture2D Create(int resolution)
         {
+            if (_material == null)
+                TryCreateOutputMaterial();
+            
             int idx = 0;
             bool hasAlpha = false;
             foreach (var input in Input)
@@ -140,18 +147,20 @@ namespace Rhinox.Utilities
 
         public static Texture2D GenerateTexture(int width, int height, Material mat, bool hasAlpha = true)
         {
+            var previousActive = RenderTexture.active;
             RenderTexture tempRT = RenderTexture.GetTemporary(width, height);
+            RenderTexture.active = tempRT;
+            
             Graphics.Blit(Texture2D.blackTexture, tempRT, mat);
 
-            Texture2D output = new Texture2D(tempRT.width, tempRT.height, hasAlpha? TextureFormat.RGBA32 : TextureFormat.RGB24, false);
-            RenderTexture.active = tempRT;
+            Texture2D output = new Texture2D(tempRT.width, tempRT.height, hasAlpha ? TextureFormat.RGBA32 : TextureFormat.RGB24, false);
 
             output.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);
             output.Apply();
             output.filterMode = FilterMode.Bilinear;
 
             RenderTexture.ReleaseTemporary(tempRT);
-            RenderTexture.active = null;
+            RenderTexture.active = previousActive;
 
             return output;
         }

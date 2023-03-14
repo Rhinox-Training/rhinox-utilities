@@ -7,8 +7,6 @@ using System.Reflection;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
-using Rhinox.Utilities;
-using Rhinox.Utilities.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -136,7 +134,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     Texture2D tex = AssetPreview.GetMiniTypeThumbnail(type);
-                    GUILayout.Label(new GUIContent(type.Name, tex), GUILayoutOptions.Height(18));
+                    GUILayout.Label(new GUIContent(type.Name, tex), GUILayout.Height(18));
 
                     GUILayout.FlexibleSpace();
                 }
@@ -149,14 +147,14 @@ namespace Rhinox.Utilities.Odin.Editor
                 if (value >= 0)
                 {
                     EditorGUIUtility.labelWidth = 60;
-                    return EditorGUILayout.IntField(label, value, GUILayoutOptions.ExpandWidth(false));
+                    return EditorGUILayout.IntField(label, value, GUILayout.ExpandWidth(false));
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.Label(label, GUILayoutOptions.ExpandWidth(false));
+                    GUILayout.Label(label, GUILayout.ExpandWidth(false));
 
-                    if (GUILayout.Button("Any", EditorStyles.miniButton, GUILayoutOptions.ExpandWidth(false)))
+                    if (GUILayout.Button("Any", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
                         return 1;
                 }
 
@@ -165,7 +163,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             private bool DrawExpanded(bool value, GUIContent label)
             {
-                return GUILayout.Toggle(value, "?", SirenixGUIStyles.LabelCentered, GUILayout.ExpandWidth(false));
+                return GUILayout.Toggle(value, "?", CustomGUIStyles.CenteredLabel, GUILayout.ExpandWidth(false));
             }
 
             [OnInspectorGUI]
@@ -254,8 +252,7 @@ namespace Rhinox.Utilities.Odin.Editor
                             if (serializedVar != null)
                             {
                                 // draw toggle to provide option to remove it
-                                if (!EditorGUILayout.ToggleLeft(iterator.displayName, true,
-                                    GUILayoutOptions.ExpandWidth()))
+                                if (!EditorGUILayout.ToggleLeft(iterator.displayName, true, GUILayout.ExpandWidth(true)))
                                 {
                                     SerializedVars.Remove(serializedVar);
                                     TriggerChanged();
@@ -355,7 +352,7 @@ namespace Rhinox.Utilities.Odin.Editor
                     var option = serializedVar.Options[i];
                     var style = CustomGUIStyles.GetMiniButtonGroupStyle(i, optionCount,
                         option == serializedVar.Comparer);
-                    if (GUILayout.Button(Utility.GetDescription(option), style, GUILayoutOptions.ExpandWidth(false)))
+                    if (GUILayout.Button(Utility.GetDescription(option), style, GUILayout.ExpandWidth(false)))
                         serializedVar.Comparer = option;
                 }
             }
