@@ -11,52 +11,40 @@ using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
-    internal static class AlignHelper
+    internal class AlignHelper : CustomSceneOverlayWindow<AlignHelper>
     {
+        protected override string Name => "Align Helper";
+        private const string _menuItemPath = WindowHelper.ToolsPrefix + "Align Helper &a";
+        
+        
         [Title("Align", titleAlignment: TitleAlignments.Centered)]
         public static BoundsAligner BoundsAligner = new BoundsAligner();
 
         [Title("Gap Align", titleAlignment: TitleAlignments.Centered)]
         public static GapAligner GapAligner = new GapAligner();
-
-        private static bool _active;
-
-        private static Texture AlignTopTexture = UnityIcon.AssetIcon("AlignTop");
-        private static Texture AlignBottomTexture = UnityIcon.AssetIcon("AlignBottom");
-        private static Texture AlignMiddleTexture = UnityIcon.AssetIcon("AlignMiddle");
-
-        private const string _menuItemPath = "Tools/Align Helper &a";
+        
+        private static Texture AlignTopTexture;
+        private static Texture AlignBottomTexture;
+        private static Texture AlignMiddleTexture;
 
         private const int IconSize = 19;
-
+        
         [MenuItem(_menuItemPath, false, -200)]
-        public static void ActivateAlignHelper()
-        {
-            if (!_active)
-            {
-                Utility.SubscribeToSceneGui(ShowAlignHelper);
-                _active = true;
-            }
-            else
-            {
-                Utility.UnsubscribeFromSceneGui(ShowAlignHelper);
-                _active = false;
-            }
-        }
+        public static void SetupWindow() => Window.Setup();
 
         [MenuItem(_menuItemPath, true)]
-        public static bool IsActive()
+        public static bool SetupValidateWindow() => Window.HandleValidateWindow();
+
+        protected override void Initialize()
         {
-            Menu.SetChecked(_menuItemPath, _active);
-            return true; // returns whether it is clickable
+            base.Initialize();
+            
+            AlignTopTexture = UnityIcon.AssetIcon("AlignTop");
+            AlignBottomTexture = UnityIcon.AssetIcon("AlignBottom");
+            AlignMiddleTexture = UnityIcon.AssetIcon("AlignMiddle");
         }
 
-        private static void ShowAlignHelper(SceneView sceneview)
-        {
-            SceneOverlay.AddWindow("Align Helper", AlignHelperFunc);
-        }
-
-        private static void AlignHelperFunc(Object target, SceneView sceneview)
+        protected override void OnGUI()
         {
             using (new eUtility.HorizontalGroup())
             {
@@ -107,6 +95,7 @@ namespace Rhinox.Utilities.Editor
                 GUILayout.Space(5);
                 iconRect.x += 6;
 
+                
                 // angle of rotation of the icons
                 float angle = 0;
                 if (axis == Axis.X) angle = 90;
@@ -150,6 +139,8 @@ namespace Rhinox.Utilities.Editor
                 // iconRect.x += IconSize;
             }
         }
+
+        protected override string GetMenuPath() => _menuItemPath;
     }
 
     [HideReferenceObjectPicker, HideLabel]

@@ -1,72 +1,52 @@
 using System;
-using System.Linq;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
-    internal static class SizeVisualizer
+    public class SizeVisualizer : CustomSceneOverlayWindow<SizeVisualizer>
     {
-        private static bool _active;
-
+        protected override string Name => "Size Visualizer Options";
         private const string _menuItemPath = WindowHelper.ToolsPrefix + "Show Unit Size #s";
 
-        private static float MeterCutoff;
-        private static bool ShowAxisAligned;
+        private PersistentValue<float> MeterCutoff;
+        private PersistentValue<bool> ShowAxisAligned;
         
-        private const string MeterCutoff_Key = nameof(SizeVisualizer) + "_" + nameof(MeterCutoff);
-        private const string ShowAxisAligned_Key = nameof(SizeVisualizer) + "_" + nameof(ShowAxisAligned);
-
         [MenuItem(_menuItemPath, false, -198)]
-        public static void ActivateSizeVisualizer()
-        {
-            MeterCutoff = EditorPrefs.GetFloat(MeterCutoff_Key, 1f);
-            ShowAxisAligned = EditorPrefs.GetBool(ShowAxisAligned_Key, false);
-            
-            if (!_active)
-            {
-                Utility.SubscribeToSceneGui(ShowSizeVisualizer);
-                _active = true;
-            }
-            else
-            {
-                Utility.UnsubscribeFromSceneGui(ShowSizeVisualizer);
-                _active = false;
-            }
-        }
+        public static void SetupWindow() => Window.Setup();
 
         [MenuItem(_menuItemPath, true)]
-        public static bool IsActive()
+        public static bool SetupValidateWindow() => Window.HandleValidateWindow();
+
+        protected override void Initialize()
         {
-            Menu.SetChecked(_menuItemPath, _active);
-            return true; // returns whether it is clickable
+            base.Initialize();
+            
+            MeterCutoff = PersistentValue<float>.Create(typeof(PolyCounter), nameof(MeterCutoff), 1f);
+            ShowAxisAligned = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(ShowAxisAligned), false);
         }
-        
-        private static void ShowSizeVisualizer(SceneView sceneview)
+
+        protected override void OnSceneGUI(SceneView sceneView)
         {
-            if (sceneview.camera == null) return;
-            
-            SceneOverlay.AddWindow("Size Visualizer Options", SizeVisualizerOptionsFunc);
-            
-            for (var i = 0; i < Selection.gameObjects.Length; i++)
+            base.OnSceneGUI(sceneView);
+
+            foreach (var go in Selection.gameObjects)
             {
-                var o = Selection.gameObjects[i];
-                if (!o.activeInHierarchy) continue;
-                var renderers = o.GetComponentsInChildren<Renderer>();
+                if (!go.activeInHierarchy) continue;
+                var renderers = go.GetComponentsInChildren<Renderer>();
                 if (renderers.Length == 0) continue;
-                var bounds = ShowAxisAligned ? renderers.GetCombinedLocalBounds(o.transform) : renderers.GetCombinedBounds();
+                var bounds = ShowAxisAligned ? renderers.GetCombinedBounds() : renderers.GetCombinedLocalBounds(go.transform);
                 if (bounds == default) continue;
                 
                 HandlesExt.PushZTest(CompareFunction.Less);
                 HandlesExt.PushColor(Color.grey);
                 
-                if (ShowAxisAligned)
-                    HandlesExt.PushMatrix(o.transform.localToWorldMatrix);
+                if (!ShowAxisAligned)
+                    HandlesExt.PushMatrix(go.transform.localToWorldMatrix);
                 
                 Handles.DrawWireCube(bounds.center, bounds.size);
                 var lines = GetRelevantLines(bounds);
@@ -88,28 +68,16 @@ namespace Rhinox.Utilities.Editor
                 
                 HandlesExt.PopColor();
                 
-                if (ShowAxisAligned)
+                if (!ShowAxisAligned)
                     HandlesExt.PopMatrix();
             }
         }
 
-        private static void SizeVisualizerOptionsFunc(Object target, SceneView sceneview)
+        protected override void OnGUI()
         {
-            var cutoff = EditorGUILayout.FloatField("Meter Cutoff", MeterCutoff);
-            if (cutoff < 0) cutoff = 0;
-            
-            var alignment = EditorGUILayout.Toggle("Axis Aligned", ShowAxisAligned);
-
-            if (Math.Abs(cutoff - MeterCutoff) > float.Epsilon)
-            {
-                MeterCutoff = cutoff;
-                EditorPrefs.SetFloat(MeterCutoff_Key, MeterCutoff);
-            }
-            if (alignment != ShowAxisAligned)
-            {
-                ShowAxisAligned = alignment;
-                EditorPrefs.SetBool(ShowAxisAligned_Key, ShowAxisAligned);
-            }
+            MeterCutoff.ShowField("Meter Cutoff");
+            if (MeterCutoff < 0) MeterCutoff.Set(0);
+            ShowAxisAligned.ShowField("Axis Aligned");
         }
 
         private static HandlesLine[] GetRelevantLines(Bounds bounds)
@@ -125,5 +93,7 @@ namespace Rhinox.Utilities.Editor
                 new HandlesLine(origin, origin - bounds.size.With(y: 0, z: 0), Color.red),
             };
         }
+        
+        protected override string GetMenuPath() => _menuItemPath;
     }
 }

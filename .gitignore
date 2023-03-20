@@ -79,3 +79,6 @@ ResonaiDownloads.meta
 Assets/LOCAL/
 Assets/LOCAL.meta
 Assets/LOCAL/*
+Assets/Packages/com.rhinox.odininspector
+Assets/Packages/com.rhinox.odininspector.meta
+Assets/Packages.meta
