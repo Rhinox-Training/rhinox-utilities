@@ -11,11 +11,10 @@ using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
-    internal static class PolyCounter
+    internal class PolyCounter : CustomSceneOverlayWindow<PolyCounter>
     {
-        private static bool _active;
-
-        private const string _menuItemPath = "Tools/Show Polygon info";
+        private const string _menuItemPath = WindowHelper.ToolsPrefix + "Show Polygon info";
+        protected override string Name => "Polygon info";
 
         private static PersistentValue<bool> IncludeChildren;
         private static PersistentValue<bool> IncludeDisabled;
@@ -26,58 +25,52 @@ namespace Rhinox.Utilities.Editor
 
         private static string _meshInfo;
         private static string _secondaryMeshInfo;
-
+        
         [MenuItem(_menuItemPath, false, -199)]
-        public static void ActivateSizeVisualizer()
+        public static void SetupWindow() => Window.Setup();
+
+        [MenuItem(_menuItemPath, true)]
+        public static bool SetupValidateWindow() => Window.HandleValidateWindow();
+
+        protected override void Initialize()
         {
             IncludeChildren = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(IncludeChildren), true);
             IncludeDisabled = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(IncludeDisabled), false);
             IncludeLODs = PersistentValue<bool>.Create(typeof(PolyCounter), nameof(IncludeLODs), false);
+
             _meshes = new List<Mesh>();
-
-            if (!_active)
-            {
-                Utility.SubscribeToSceneGui(ShowSceneGUI);
-                Selection.selectionChanged += OnSelectionChanged;
-                _active = true;
-            }
-            else
-            {
-                Utility.UnsubscribeFromSceneGui(ShowSceneGUI);
-                Selection.selectionChanged -= OnSelectionChanged;
-                _active = false;
-            }
-
             _requiresRefresh = true;
+            
+            base.Initialize();
         }
 
-        private static void OnSelectionChanged()
+        protected override void Setup()
+        {
+            _requiresRefresh = true;
+            base.Setup();
+        }
+
+        protected override void OnSelectionChanged()
         {
             _requiresRefresh = true;
         }
 
-        [MenuItem(_menuItemPath, true)]
-        public static bool IsActive()
+        protected override void OnBeforeDraw()
         {
-            Menu.SetChecked(_menuItemPath, _active);
-            return true; // returns whether it is clickable
-        }
-
-        private static void ShowSceneGUI(SceneView sceneview)
-        {
-            if (sceneview.camera == null) return;
-
+            base.OnBeforeDraw();
+            
             if (_requiresRefresh)
                 RefreshInfo();
-            
-            SceneOverlay.AddWindow("Polygon Info", SizeVisualizerOptionsFunc);
         }
 
-        private static void SizeVisualizerOptionsFunc(Object target, SceneView sceneview)
+        protected override void OnGUI()
         {
-            EditorPreferenceToggle("Include Children", IncludeChildren);
-            EditorPreferenceToggle("Include Disabled", IncludeDisabled);
-            EditorPreferenceToggle("Include LODs", IncludeLODs);
+            if (IncludeChildren.ShowField("Include Children"))
+                _requiresRefresh = true;
+            if (IncludeDisabled.ShowField("Include Disabled"))
+                _requiresRefresh = true;
+            if (IncludeLODs.ShowField("Include LODs"))
+                _requiresRefresh = true;
             
             if (_meshes.Any())
             {
@@ -85,16 +78,6 @@ namespace Rhinox.Utilities.Editor
             
                 GUILayout.Label(_meshInfo, CustomGUIStyles.BoldLabelCentered);
                 GUILayout.Label(_secondaryMeshInfo, CustomGUIStyles.MiniLabel);
-            }
-        }
-
-        private static void EditorPreferenceToggle(string label, PersistentValue<bool> context)
-        {
-            var newValue = EditorGUILayout.Toggle(label, context);
-            if (context != newValue)
-            {
-                context.Set(newValue);
-                _requiresRefresh = true;
             }
         }
 
@@ -131,10 +114,14 @@ namespace Rhinox.Utilities.Editor
             var vertices = _meshes.Sum(x => x.vertices.Length);
             var triangles = _meshes.Sum(x => x.triangles.Length / 3);
             var submeshes = _meshes.Sum(x => x.subMeshCount);
+            var uniqueMeshes = _meshes.Distinct().Count();
 
             _meshInfo = $"{triangles:N0} tris; {vertices:N0} verts";
-            _secondaryMeshInfo = $"{_meshes.Count:N0} meshes; {submeshes:N0} submeshes";
-            
+            if (uniqueMeshes == _meshes.Count)
+                _secondaryMeshInfo = $"{_meshes.Count:N0} meshes; {submeshes:N0} submeshes";
+            else
+                _secondaryMeshInfo = $"{_meshes.Count:N0} meshes ({uniqueMeshes:N0} unique); {submeshes:N0} submeshes";
+
             _requiresRefresh = false;
         }
 
@@ -155,5 +142,7 @@ namespace Rhinox.Utilities.Editor
             
             _meshes.Add(mesh);
         }
+
+        protected override string GetMenuPath() => _menuItemPath;
     }
 }
