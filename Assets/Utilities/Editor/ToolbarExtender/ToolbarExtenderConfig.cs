@@ -32,12 +32,5 @@ namespace Rhinox.Utilities.Editor
         
         [ListDrawerSettings(DraggableItems = true), SerializeReference]
         public List<BaseToolbarButton> RightButtons = new List<BaseToolbarButton>();
-
-
-        [SettingsProvider]
-        public static SettingsProvider CreatePostBuildSettingsProvider()
-        {
-            return Instance.CreateSettingsProvider();
-        }
     }
 }

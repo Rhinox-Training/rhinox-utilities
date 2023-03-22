@@ -10,7 +10,7 @@
     }
   ],
   "dependencies": {
-    "com.rhinox.open.guiutils": "2.1.2",
+    "com.rhinox.open.guiutils": "2.1.3",
     "com.rhinox.open.lightspeed": "1.4.0",
     "com.rhinox.open.perceptor": "0.2.0",
     "com.unity.2d.sprite": "1.0.0",
