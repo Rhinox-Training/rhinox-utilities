@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Perceptor;
+using Rhinox.Utilities.Attributes;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -23,6 +25,9 @@ namespace Rhinox.Utilities.Editor
             
             foreach (var projectSettingsInstance in ProjectSettingsHelper.EnumerateProjectSettings())
             {
+                if (projectSettingsInstance.GetType().GetCustomAttribute<RuntimeSupportAttribute>() == null)
+                    continue;
+                
                 var clone = ScriptableObject.Instantiate(projectSettingsInstance);
 
                 if (!ProjectSettingsHelper.TryGetSettingsPath(projectSettingsInstance.GetType(),
