@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
+using Rhinox.Utilities.Attributes;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 #else
@@ -40,6 +41,20 @@ namespace Rhinox.Utilities
     public abstract class CustomProjectSettings<T> : CustomProjectSettings where T : CustomProjectSettings<T>
     {
         protected static string SettingsFileName => $"{typeof(T).Name}";
+
+        private static bool? _runtimeSupported;
+        public static bool IsEditorOnly
+        {
+            get
+            {
+                if (!_runtimeSupported.HasValue)
+                {
+                    _runtimeSupported = typeof(T).GetCustomAttribute<RuntimeSupportAttribute>() != null;
+                }
+
+                return !_runtimeSupported.Value;
+            }
+        }
         
         private static string _settingsPath = null;
         public static string SettingsPath
@@ -84,6 +99,11 @@ namespace Rhinox.Utilities
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] {settings}, SettingsPath, true);
             }
 #else
+            if (IsEditorOnly)
+            {
+                PLog.Error<UtilityLogger>($"ProjectSettings '{typeof(T).Name}' not available in runtime, returning null...");
+                return null;
+            }
             string settingsPath = Path.Combine(ProjectSettingsHelper.BUILD_FOLDER, SettingsPath).ToLinuxSafePath();
             string extension = Path.GetExtension(settingsPath);
             settingsPath = settingsPath.ReplaceLast(extension, "");
