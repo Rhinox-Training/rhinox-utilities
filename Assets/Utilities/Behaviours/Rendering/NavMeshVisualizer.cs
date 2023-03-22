@@ -9,6 +9,7 @@ using UnityEngine.Profiling;
 
 namespace Rhinox.Utilities
 {
+    [SmartFallbackDrawn(false)]
     public class NavMeshVisualizer : MonoBehaviour
     {
         [Title("General Settings")]
