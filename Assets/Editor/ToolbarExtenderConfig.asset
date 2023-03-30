@@ -12,41 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 744fb13958c24dabb6745365f3027ba1, type: 3}
   m_Name: ToolbarExtenderConfig
   m_EditorClassIdentifier: 
-  serializationData:
-    SerializedFormat: 2
-    SerializedBytes: 
-    ReferencedUnityObjects: []
-    SerializedBytesString: 
-    Prefab: {fileID: 0}
-    PrefabModificationsReferencedUnityObjects: []
-    PrefabModifications: []
-    SerializationNodes:
-    - Name: LeftButtons
-      Entry: 7
-      Data: 0|System.Collections.Generic.List`1[[Rhinox.Utilities.Editor.BaseToolbarButton,
-        com.rhinox.utilities.editor]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: RightButtons
-      Entry: 7
-      Data: 1|System.Collections.Generic.List`1[[Rhinox.Utilities.Editor.BaseToolbarButton,
-        com.rhinox.utilities.editor]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
   _isActive: 0
-  LeftPosition: 2
+  LeftPosition: 1
+  LeftButtons:
+  - id: 0
   RightPosition: 0
+  RightButtons: []
+  references:
+    version: 1
+    00000000:
+      type: {class: , ns: , asm: }

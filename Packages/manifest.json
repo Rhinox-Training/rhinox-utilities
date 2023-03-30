@@ -10,8 +10,8 @@
     }
   ],
   "dependencies": {
-    "com.rhinox.open.guiutils": "2.1.2",
-    "com.rhinox.open.lightspeed": "1.4.0",
+    "com.rhinox.open.guiutils": "2.3.0",
+    "com.rhinox.open.lightspeed": "1.5.0",
     "com.rhinox.open.perceptor": "0.2.0",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.editorcoroutines": "1.0.0",
@@ -25,7 +25,6 @@
     "com.unity.textmeshpro": "2.1.4",
     "com.unity.timeline": "1.2.18",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.legacyinputhelpers": "2.1.8",
     "io.github.icsharpcode.sharpziplib": "1.2.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
