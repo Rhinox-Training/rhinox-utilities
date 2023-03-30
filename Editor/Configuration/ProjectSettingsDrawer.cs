@@ -12,7 +12,7 @@ namespace Rhinox.Utilities.Editor.Configuration
 {
     public interface IProjectSettingsDrawer
     {
-        void LoadTarget(CustomProjectSettings instance);
+        bool LoadTarget(CustomProjectSettings instance);
         void OnActivate(string searchContext, VisualElement rootElement);
         void OnCustomGUI(string searchContext);
     }
@@ -29,22 +29,42 @@ namespace Rhinox.Utilities.Editor.Configuration
         private UnityEditor.Editor _editor;
         private SerializedObject _serializedObject;
 
-        public void LoadTarget(CustomProjectSettings instance)
+        public bool LoadTarget(CustomProjectSettings instance)
         {
+            if (_targetObject == instance)
+                return false;
             _targetObject = instance;
+            return true;
         }
 
         public virtual void OnActivate(string searchContext, VisualElement rootElement)
         {
-            if (_targetObject == null)
-                return;
-            if (_serializedObject == null)
-                _serializedObject = new SerializedObject(_targetObject);
+            CheckIfPropertyViewsNeedRefresh();
         }
-        
-        public virtual void OnCustomGUI(string searchContext)
+
+        private void CheckIfPropertyViewsNeedRefresh()
         {
             if (_targetObject == null)
+                return;
+            
+            if (_serializedObject == null)
+                _serializedObject = new SerializedObject(_targetObject);
+            
+            if (_serializedObject.targetObject != _targetObject)
+            {
+#if ODIN_INSPECTOR
+                _propertyTree = PropertyTree.Create(_serializedObject);
+#else
+                _propertyView = new DrawablePropertyView(_serializedObject);
+#endif
+            }
+        }
+
+        public virtual void OnCustomGUI(string searchContext)
+        {
+            CheckIfPropertyViewsNeedRefresh();
+            
+            if (_serializedObject == null)
                 return;
 #if ODIN_INSPECTOR
             if (_propertyTree == null)

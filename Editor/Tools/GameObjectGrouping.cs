@@ -9,7 +9,7 @@ namespace Rhinox.Utilities.Editor
     {
         private const string _groupOpName = "GameObject/Group Object(s) %g";
         
-        [MenuItem(_groupOpName, false, 10)]
+        [MenuItem(_groupOpName, false, 31)]
         public static void GroupOperation(MenuCommand menuCommand)
         {
             //Prevent executing multiple times when right-clicking.
