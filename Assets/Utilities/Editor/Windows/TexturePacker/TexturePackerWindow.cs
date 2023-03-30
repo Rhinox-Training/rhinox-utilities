@@ -15,7 +15,7 @@ namespace Rhinox.Utilities.Editor
     {
         /// ================================================================================================================
         /// PARAMETERS
-        [ShowInInspector, HorizontalGroup("Root", order: -1)]
+        [ShowInInspector, HorizontalGroup("Root", order: -1), HideLabel]
         public TexturePacker _texturePacker = new TexturePacker();
 
         [ShowInInspector, PreviewField(ObjectFieldAlignment.Left, Height = 128), HideLabel,

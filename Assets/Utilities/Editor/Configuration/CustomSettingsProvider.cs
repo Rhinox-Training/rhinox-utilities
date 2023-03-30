@@ -1,50 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
 using Rhinox.Utilities.Attributes;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Rhinox.Utilities.Editor.Configuration
 {
     internal class CustomSettingsProvider : SettingsProvider
     {
-        private CustomProjectSettings _settingsInstance;
         private IProjectSettingsDrawer _drawer;
+        private readonly Type _projectSettingsType;
+        private CustomProjectSettings _activatedInstance;
 
-        public CustomSettingsProvider(CustomProjectSettings instance, SettingsScope scope = SettingsScope.User)
-            : base($"Project/Custom/{instance.Name}", scope)
+        private CustomSettingsProvider(Type projectSettingsType, SettingsScope scope) 
+            : base($"Project/Custom/{CustomProjectSettings.ProjectSettingsTypeToName(projectSettingsType)}", scope)
         {
-            _settingsInstance = instance;
+            if (!projectSettingsType.InheritsFrom(typeof(CustomProjectSettings)))
+                throw new ArgumentException(nameof(projectSettingsType));
+            _projectSettingsType = projectSettingsType;
         }
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
         {
-            _drawer = FindDrawer(_settingsInstance);
-
-            if (_drawer != null)
+            base.OnActivate(searchContext, rootElement);
+            // Create new drawer instance
+            if (_drawer == null)
             {
+                _drawer = FindDrawer(_projectSettingsType);
                 guiHandler = _drawer.OnCustomGUI;
                 activateHandler = _drawer.OnActivate;
             }
-
-            base.OnActivate(searchContext, rootElement);
+            UpdateSettingsInstanceIfNeeded();
         }
 
-        public IProjectSettingsDrawer FindDrawer(CustomProjectSettings instance)
+        public override void OnGUI(string searchContext)
+        {
+            base.OnGUI(searchContext);
+            UpdateSettingsInstanceIfNeeded();
+        }
+
+        private void UpdateSettingsInstanceIfNeeded()
+        {
+            var instance = ProjectSettingsHelper.FindProjectSettings(_projectSettingsType);
+            if (_drawer.LoadTarget(instance))
+                keywords = instance.GetKeywords();
+        }
+
+        private static IProjectSettingsDrawer FindDrawer(Type projectSettingsType)
         {
             var types = AppDomain.CurrentDomain.GetDefinedTypesOfType<IProjectSettingsDrawer>();
             Type applicableType = typeof(CustomProjectSettings);
             Type targetDrawerType = null;
-            Type instanceType = instance.GetType();
             foreach (var type in types)
             {
                 var attr = type.GetCustomAttribute<ProjectSettingsDrawerAttribute>();
                 if (attr == null || attr.SettingsType == null)
                     continue;
 
-                if (!instanceType.InheritsFrom(attr.SettingsType))
+                if (!projectSettingsType.InheritsFrom(attr.SettingsType))
                     continue;
 
                 if (attr.SettingsType != applicableType && attr.SettingsType.InheritsFrom(applicableType))
@@ -60,7 +77,6 @@ namespace Rhinox.Utilities.Editor.Configuration
             else
                 drawerInstance = new ProjectSettingsDrawer();
             
-            drawerInstance.LoadTarget(instance);
             return drawerInstance;
         }
         
@@ -82,10 +98,7 @@ namespace Rhinox.Utilities.Editor.Configuration
 
         private static SettingsProvider CreateProvider(CustomProjectSettings instance)
         {
-            var provider = new CustomSettingsProvider(instance, SettingsScope.Project);
-
-            // Automatically extract all keywords from the Styles.
-            provider.keywords = instance.GetKeywords();
+            var provider = new CustomSettingsProvider(instance.GetType(), SettingsScope.Project);
             return provider;
         }
     }

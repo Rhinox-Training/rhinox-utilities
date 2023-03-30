@@ -10,11 +10,8 @@ namespace Rhinox.Utilities
     {
         public const string BUILD_FOLDER = "__BUILD__";
         private static List<Type> _implementedProjectSettingsTypes;
-        private class Finder : CustomProjectSettings<Finder>
-        {
-            
-        }
-        
+        private class Finder : CustomProjectSettings<Finder> { }
+
         public static bool TryGetSettingsPath(Type t, out string settingsPath)
         {
             if (!t.InheritsFrom(typeof(CustomProjectSettings<>)))
@@ -60,6 +57,18 @@ namespace Rhinox.Utilities
                     continue;
                 yield return customProjectSettings;
             }
+        }
+        
+        public static CustomProjectSettings FindProjectSettings(Type projectSettingsType)
+        {
+            if (projectSettingsType == typeof(Finder))
+                return null;
+            
+            PropertyInfo propertyInfo = FindProperty(projectSettingsType);
+            if (propertyInfo == null)
+                return null;
+            var customProjectSettings = propertyInfo.GetValue(null) as CustomProjectSettings;
+            return customProjectSettings;
         }
 
         private static PropertyInfo FindProperty(Type type)

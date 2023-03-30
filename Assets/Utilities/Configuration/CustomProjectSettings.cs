@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
+using Rhinox.Perceptor;
 using Rhinox.Utilities.Attributes;
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -19,8 +21,24 @@ namespace Rhinox.Utilities
     // Create a new type of Settings Asset.
     public abstract class CustomProjectSettings : ScriptableObject
     {
-        public virtual string Name => GetType().Name.SplitCamelCase();
+        private string _name;
+        public virtual string Name
+        {
+            get
+            {
+                if (_name == null)
+                    _name = ProjectSettingsTypeToName(GetType());
+                return _name;
+            }
+        }
 
+        public static string ProjectSettingsTypeToName(Type projectSettingsType)
+        {
+            if (projectSettingsType == null || !projectSettingsType.InheritsFrom(typeof(CustomProjectSettings)))
+                return string.Empty;
+            return projectSettingsType.Name.SplitCamelCase();
+        }
+        
         protected virtual void LoadDefaults()
         {
             
@@ -34,6 +52,35 @@ namespace Rhinox.Utilities
         public virtual ICollection<string> GetKeywords()
         {
             return Array.Empty<string>();
+        }
+        
+#if UNITY_EDITOR
+        public virtual bool HasBackingFileChanged()
+        {
+            return false;
+        }
+#endif
+
+        internal bool CopyValuesFrom(CustomProjectSettings settings)
+        {
+            if (settings.GetType() != this.GetType())
+                return false;
+            var members = SerializeHelper.GetSerializedMembers(settings.GetType());
+            foreach (var member in members)
+            {
+                try
+                {
+                    var value = member.GetValue(settings);
+                    member.TrySetValue(this, value);
+                }
+                catch (Exception e)
+                {
+                    // NOTE: member could have a missing setter
+                    PLog.Error<UtilityLogger>(e.ToString());
+                }
+            }
+
+            return true;
         }
     }
     
@@ -69,6 +116,9 @@ namespace Rhinox.Utilities
         
         private static T _instance = null;
         
+#if UNITY_EDITOR
+        private static DateTime _lastFileUpdateTime = DateTime.MinValue;
+#endif
         public static bool HasInstance => _instance != null;
         
         public static T Instance
@@ -76,8 +126,12 @@ namespace Rhinox.Utilities
             get
             {
                 if (_instance == null)
-                {
                     _instance = GetOrCreateSettings();
+                else if (_instance.HasBackingFileChanged())
+                {
+                    var newDataInstance = GetOrCreateSettings();
+                    _instance.CopyValuesFrom(newDataInstance);
+                    _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
                 }
 
                 return _instance;
@@ -97,7 +151,11 @@ namespace Rhinox.Utilities
                 settings.LoadDefaults();
                 
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] {settings}, SettingsPath, true);
+                _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
             }
+            
+            if (_lastFileUpdateTime == DateTime.MinValue)
+                _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
 #else
             if (IsEditorOnly)
             {
@@ -117,13 +175,19 @@ namespace Rhinox.Utilities
 #endif
             return settings;
         }
-
+        
+#if UNITY_EDITOR
+        public override bool HasBackingFileChanged()
+        {
+            return File.GetLastWriteTime(SettingsPath) != _lastFileUpdateTime;
+        }
+        
         public override void OnChanged()
         {
             base.OnChanged();
-#if UNITY_EDITOR
             InternalEditorUtility.SaveToSerializedFileAndForget(new[] {this}, SettingsPath, true);
-#endif
+            _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
         }
+#endif
     }
 }
