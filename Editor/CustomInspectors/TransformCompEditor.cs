@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
@@ -577,35 +578,71 @@ namespace Rhinox.Utilities.Editor
 		public Bounds OnGetFrameBounds()
 		{
 			// assuming it will not get here if there is a child mesh, hence not calculating that
+			// See HasFrameBounds why it wouldn't get in here then
+			Transform smartTarget = (Transform) target;
+			
+			if (Selection.transforms.Length > 1)
+			{
+				List<Bounds> bounds = new List<Bounds>();
+				foreach (var t in Selection.transforms)
+				{
+					if (TryGetBounds(t, out Bounds b))
+						bounds.Add(b);
+				}
 
-			var t = (Transform) target;
+				if (!bounds.IsNullOrEmpty())
+				{
+					var b = bounds[0];
+			
+					for (int i = 1; i < bounds.Count; ++i)
+						b.Encapsulate(bounds[i]);
+					return b;
+				}
+			}
+			else
+			{
+				if (TryGetBounds(smartTarget, out Bounds b))
+					return b;
+			}
+			
+			// default small bounds
+			return new Bounds(smartTarget.position, Vector3.one);
+		}
+		
+		
 
-			var system = t.gameObject.GetComponent<ParticleSystemRenderer>();
-			if (system)
-				return system.bounds;
+		private bool TryGetBounds(Transform t, out Bounds b)
+		{
+			b = t.gameObject.GetObjectBounds();
+			if (b != default)
+				return true;
 			
 			var parent = t.parent;
 			if (parent != null)
 			{
 				// Find it from parent down (aka in parent or siblings)
-				var b = parent.gameObject.GetObjectBounds();
+				b = parent.gameObject.GetObjectBounds();
 				if (!b.Equals(default))
-					return b;
+					return true;
 				
 				// If not found there, try to find it above the parent
-				var mesh = t.gameObject.GetComponentInParent<MeshRenderer>();
+				var renderers = t.gameObject.GetComponentsInParent<Renderer>();
 
-				if (mesh != null)
-					return mesh.bounds;
+				if (!renderers.IsNullOrEmpty())
+				{
+					b = renderers.GetCombinedBounds();
+					return true;
+				}
 			
-				var collider = t.gameObject.GetComponentInParent<Collider>();
-
-				if (collider != null)
-					return collider.bounds;
+				var colliders = t.gameObject.GetComponentsInParent<Collider>();
+				if (!colliders.IsNullOrEmpty())
+				{
+					b = colliders.GetCombinedBounds();
+					return true;
+				}
 			}
 			
-			// default small bounds
-			return new Bounds(t.position, Vector3.one);
+			return false;
 		}
 		
 		
