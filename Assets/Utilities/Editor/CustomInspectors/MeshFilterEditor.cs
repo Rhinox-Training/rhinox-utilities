@@ -5,6 +5,12 @@ using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.IO;
+#if UNITY_2021_1_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
+using UnityEditor.Experimental.SceneManagement;
+#endif
+
 #if UNITY_2019_2_OR_NEWER && PROBUILDER
 using UnityEngine.ProBuilder;
 #elif PROBUILDER
@@ -64,6 +70,8 @@ namespace Rhinox.Utilities.Editor
                 GUILayout.Label(_mesh.bounds.ToString(), CustomGUIStyles.MiniLabelRight);
                 EditorGUILayout.EndHorizontal();
             }
+
+            DrawSaveMeshUnderPrefab();
         }
 
         private void DrawPivotEditor()
@@ -78,7 +86,7 @@ namespace Rhinox.Utilities.Editor
                     if (_onlyThisMesh)
                     {
                         // deep copy mesh so you don't alter original
-                        _mesh = Mesh.Instantiate(Target.sharedMesh) as Mesh; //make a deep copy
+                        _mesh = Instantiate(Target.sharedMesh); //make a deep copy
                         Target.mesh = _mesh;
                     }
                     else _mesh = Target.sharedMesh;
@@ -129,7 +137,7 @@ namespace Rhinox.Utilities.Editor
                     if (_onlyThisMesh)
                     {
                         // deep copy mesh so you don't alter original
-                        _mesh = Mesh.Instantiate(Target.sharedMesh) as Mesh; //make a deep copy
+                        _mesh = Instantiate(Target.sharedMesh); //make a deep copy
                         Target.mesh = _mesh;
                     }
                     else _mesh = Target.sharedMesh;
@@ -205,30 +213,81 @@ namespace Rhinox.Utilities.Editor
             
             if (GUILayout.Button("Save Mesh", GUILayout.ExpandWidth(false)))
             {
-                var rootPath = Path.Combine(Application.dataPath, "_Models");
-                var name = Target.gameObject.name;
-                name = name.Replace(" ", "_");
-                path = EditorUtility.SaveFilePanel("Where to save?", rootPath, name, "asset");
-                if (!string.IsNullOrWhiteSpace(path))
+                string rootPath = AskForPath(out path);
+                SaveMeshAtPath(path, rootPath);
+            }
+        }
+        
+        private void DrawSaveMeshUnderPrefab()
+        {
+            if (Target.sharedMesh == null) return;
+            
+            var path = AssetDatabase.GetAssetPath(Target.sharedMesh);
+
+            if (!string.IsNullOrWhiteSpace(path)) return;
+
+            string activePrefabPath = null;
+            PrefabStage stage = null;
+
+            if (PrefabUtility.IsPartOfAnyPrefab(Target.gameObject))
+            {
+                activePrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(Target);
+            }
+            else
+            {
+                stage = PrefabStageUtility.GetCurrentPrefabStage();
+                if (stage != null)
+#if UNITY_2020_1_OR_NEWER
+                    activePrefabPath = stage.assetPath;
+#else
+                    activePrefabPath = stage.prefabAssetPath;
+#endif
+            }
+
+            if (activePrefabPath.IsNullOrEmpty()) return;
+            
+            if (GUILayout.Button("Save Mesh under prefab"))
+            {
+                if (Target.sharedMesh.name.IsNullOrEmpty())
+                    Target.sharedMesh.name = Target.name;
+                
+                AssetDatabase.AddObjectToAsset(Target.sharedMesh, activePrefabPath);
+                if (stage != null)
+                    PrefabUtility.SavePrefabAsset(stage.prefabContentsRoot);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private void SaveMeshAtPath(string path, string rootPath)
+        {
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                rootPath = Path.GetFullPath(Path.Combine(rootPath, "..", ".."));
+                path = FileHelper.GetRelativePath(path, rootPath);
+                try
                 {
-                    rootPath = Path.GetFullPath(Path.Combine(rootPath, "..", ".."));
-                    path = FileHelper.GetRelativePath(path, rootPath);
-                    try
-                    {
-                        AssetDatabase.CreateAsset(Target.sharedMesh, path);
-                        AssetDatabase.SaveAssets();
-                    }
-                    // if the above failed it is an addressable TODO try not using try catch...
-                    // I cannot find a way to fetch whether it is so we have to try catch...
-                    catch 
-                    {
-                        // Copy the mesh (getter of mesh makes a copy and assigns it)
-                        // We don't want to do this by default because it throws a warning / memory leak
-                        AssetDatabase.CreateAsset(Target.mesh, path);
-                        AssetDatabase.SaveAssets();
-                    }
+                    AssetDatabase.CreateAsset(Target.sharedMesh, path);
+                    AssetDatabase.SaveAssets();
+                }
+                // if the above failed it is an addressable TODO try not using try catch...
+                // I cannot find a way to fetch whether it is so we have to try catch...
+                catch
+                {
+                    // Copy the mesh (getter of mesh makes a copy and assigns it)
+                    // We don't want to do this by default because it throws a warning / memory leak
+                    AssetDatabase.CreateAsset(Target.mesh, path);
+                    AssetDatabase.SaveAssets();
                 }
             }
+        }
+
+        private string AskForPath(out string path)
+        {
+            var rootPath = Path.Combine(Application.dataPath, "_Models");
+            var name = Target.gameObject.name;
+            name = name.Replace(" ", "_");
+            path = EditorUtility.SaveFilePanel("Where to save?", rootPath, name, "asset");
+            return rootPath;
         }
 
         void PrepareForPivotChanges()
@@ -280,8 +339,8 @@ namespace Rhinox.Utilities.Editor
             
             switch (_col)
             {
-                case BoxCollider BoxCollider:
-                    BoxCollider.center += movement;
+                case BoxCollider boxCollider:
+                    boxCollider.center += movement;
                     break;
                 case CapsuleCollider capsuleCollider:
                     capsuleCollider.center += movement;
@@ -329,7 +388,6 @@ namespace Rhinox.Utilities.Editor
         private static void MoveToChild (MenuCommand menuCommand)
         {
             MeshFilter mf = menuCommand.context as MeshFilter;
-            Mesh m = mf.sharedMesh;
 
             var t = mf.transform;
             var child = t.Find("Mesh");
@@ -349,27 +407,81 @@ namespace Rhinox.Utilities.Editor
             // Copy MeshRenderer as well
             var renderer = t.GetComponent<MeshRenderer>();
 
-            if (renderer != null)
+            CopyRenderer(renderer, child);
+            
+            Undo.DestroyObjectImmediate(renderer);
+        }
+
+        [MenuItem("CONTEXT/SkinnedMeshRenderer/Bake Mesh To Child")]
+        private static void BakeToChild(MenuCommand menuCommand)
+        {
+            SkinnedMeshRenderer renderer = menuCommand.context as SkinnedMeshRenderer;
+            
+            var t = renderer.transform;
+            // Copy meshfilter (after meshrenderer due to requirecomponent)
+            Undo.RegisterCompleteObjectUndo(renderer, "Bake to Child");
+            
+            var root = renderer.rootBone;
+            while (root.parent != null && !t.IsChildOf(root))
+                root = root.parent;
+            if (!t.IsChildOf(root))
+            {
+                Debug.LogError("Cannot process SkinnedMeshRenderer");
+                return;
+            }
+            
+            var child = t.Find("Mesh");
+            if (!child)
+            {
+                child = t.Create("Mesh");
+                child.gameObject.CopyObjectSettingsFrom(t.gameObject);
+            }
+            var newFilter = Undo.AddComponent<MeshFilter>(child.gameObject);
+
+            newFilter.sharedMesh = new Mesh();
+
+            var parent = root.parent;
+            root.SetParent(null, false);
+            
+            renderer.BakeMesh(newFilter.sharedMesh);
+            
+            root.SetParent(parent, false);
+
+            renderer.enabled = false;
+
+            CopyRenderer(renderer, child);
+        }
+
+        private static void CopyRenderer<T>(T source, Transform child)
+            where T : Renderer
+        {
+            if (source != null)
             {
                 var newRenderer = Undo.AddComponent<MeshRenderer>(child.gameObject);
-                
-                newRenderer.materials = renderer.sharedMaterials;
-                newRenderer.additionalVertexStreams = renderer.additionalVertexStreams;
+
+                if (source is MeshRenderer meshRenderer)
+                    CopyMeshRendererParams(meshRenderer, newRenderer);
+
+                newRenderer.materials = source.sharedMaterials;
+
+                newRenderer.receiveShadows = source.receiveShadows;
+                newRenderer.lightmapIndex = source.lightmapIndex;
+                newRenderer.probeAnchor = source.probeAnchor;
+                newRenderer.rendererPriority = source.rendererPriority;
+                newRenderer.shadowCastingMode = source.shadowCastingMode;
+            }
+        }
+
+        private static void CopyMeshRendererParams(MeshRenderer source, MeshRenderer target)
+        {
+            target.additionalVertexStreams = source.additionalVertexStreams;
 #if UNITY_2019_2_OR_NEWER
-                newRenderer.receiveGI = renderer.receiveGI;
+            target.receiveGI = source.receiveGI;
 #endif
 #if UNITY_2019_4_OR_NEWER // Introduced in _3 but only in the latter versions
-                newRenderer.scaleInLightmap = renderer.scaleInLightmap;
-                newRenderer.stitchLightmapSeams = renderer.stitchLightmapSeams;
+            target.scaleInLightmap = source.scaleInLightmap;
+            target.stitchLightmapSeams = source.stitchLightmapSeams;
 #endif
-                newRenderer.receiveShadows = renderer.receiveShadows;
-                newRenderer.lightmapIndex = renderer.lightmapIndex;
-                newRenderer.probeAnchor = renderer.probeAnchor;
-                newRenderer.rendererPriority = renderer.rendererPriority;
-                newRenderer.shadowCastingMode = renderer.shadowCastingMode;
-                
-                Undo.DestroyObjectImmediate(renderer);
-            }
         }
     }
 }
