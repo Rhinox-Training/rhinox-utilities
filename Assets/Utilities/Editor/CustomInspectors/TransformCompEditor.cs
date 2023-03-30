@@ -107,7 +107,7 @@ namespace Rhinox.Utilities.Editor
 		public override void OnInspectorGUI()
 		{
 			// if cannot initialize, draw the base gui
-			if ((!_initialized && !Init()) || _drawDefault)
+			if ((!_initialized && !Init()) || !UtilitiesEditorSettings.Instance.OverrideTransformInspector)
 			{
 				base.OnInspectorGUI();
 				return;
@@ -553,6 +553,9 @@ namespace Rhinox.Utilities.Editor
 		/// </summary>
 		public bool HasFrameBounds()
 		{
+			if (!UtilitiesEditorSettings.Instance.OverrideFocusBehaviour)
+				return false;
+			
 			var t = ((Transform) target);
 			
 			// If there are MeshRenderers or colliders in the children
@@ -644,15 +647,5 @@ namespace Rhinox.Utilities.Editor
 			
 			return false;
 		}
-		
-		
-		private static bool _drawDefault;
-
-		[MenuItem("CONTEXT/Transform/Toggle Custom Editor", false)]
-		private static void ToggleCustomEditor(MenuCommand menuCommand)
-		{
-			_drawDefault = !_drawDefault;
-		}
-
 	}
 }

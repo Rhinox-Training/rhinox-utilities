@@ -40,8 +40,15 @@ namespace Rhinox.Utilities.Editor
         
         private bool _preservePosition = true;
 
+        
         public override void OnInspectorGUI()
         {
+            if (!UtilitiesEditorSettings.Instance.OverrideMeshFilterInspector)
+            {
+                base.OnInspectorGUI();
+                return;
+            }
+            
             using (new eUtility.HorizontalGroup())
             {
                 base.OnInspectorGUI();
