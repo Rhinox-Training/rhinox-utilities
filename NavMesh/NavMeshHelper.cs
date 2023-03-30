@@ -104,9 +104,9 @@ namespace Rhinox.Utilities
         }
         
         
-        public static Mesh GenerateNavMesh(string name = "navmesh", float textureScale = 1f, bool forceUpNormal = false)
+        public static Mesh GenerateNavMesh(string name = "navmesh", float textureScale = 1f, bool forceUpNormal = false, int areaMask = NavMesh.AllAreas)
         {
-            var triangulation = NavMesh.CalculateTriangulation();
+            var triangulation = CalculateTriangulation(areaMask);
 
             return new Mesh()
             {
@@ -115,6 +115,50 @@ namespace Rhinox.Utilities
                 triangles = triangulation.indices,
                 uv = CalculateUVs(triangulation.vertices, triangulation.indices, textureScale, forceUpNormal)
             };
+        }
+
+        public static NavMeshTriangulation CalculateTriangulation(int areaMask = NavMesh.AllAreas)
+        {
+            var triangulation = NavMesh.CalculateTriangulation();
+
+            if (areaMask == NavMesh.AllAreas)
+                return triangulation;
+
+            var filteredVerts = new List<Vector3>();
+            var filteredIndices = new List<int>();
+            var filteredAreas = new List<int>();
+            for (var triangleIndex = 0; triangleIndex < triangulation.areas.Length; ++triangleIndex)
+            {
+                var areaIndex = triangulation.areas[triangleIndex];
+                if ((areaMask & (1 << areaIndex)) == 0)
+                    continue;
+                
+                for (int i = 0; i < 3; ++i)
+                {
+                    int vertIndex = (triangleIndex * 3) + i;
+                    filteredIndices.Add(triangulation.indices[vertIndex]);
+                }
+
+                filteredAreas.Add(areaIndex);
+            }
+
+            var filteredVectorIndices = filteredIndices.Distinct().OrderBy(x => x).ToArray();
+            foreach (var vectorI in filteredVectorIndices)
+                filteredVerts.Add(triangulation.vertices[vectorI]);
+            // Retarget indices in the new vertex range
+            for (int i = 0; i < filteredIndices.Count; ++i)
+            {
+                var index = filteredIndices[i];
+                var newIndex = filteredVectorIndices.IndexOf(index);
+                filteredIndices[i] = newIndex;
+            }
+
+            var filteredTriangulation = new NavMeshTriangulation();
+            filteredTriangulation.vertices = filteredVerts.ToArray();
+            filteredTriangulation.indices = filteredIndices.ToArray();
+            filteredTriangulation.areas = filteredAreas.ToArray();
+            
+            return filteredTriangulation;
         }
 
         public static Mesh GenerateBorderMesh(Mesh navMesh, float borderWidth, string name = "NavMesh - Border", 
