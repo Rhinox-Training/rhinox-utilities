@@ -36,12 +36,18 @@ namespace Rhinox.Utilities.Editor
         
         private static void OnSceneGUI(SceneView obj)
         {
+            if (!UtilitiesEditorSettings.Instance.ShowSelectionInfoInSceneOverlay)
+                return;
+            
             if (Selection.transforms.Length > 0)
                 SceneOverlay.AddWindow("Selected", DrawGlobalHierarchyCounter);
         }
 
         static void DrawSelectionCounter(int instanceID, Rect selectionRect)
         {
+            if (!UtilitiesEditorSettings.Instance.ShowSelectionInfoInHierarchy)
+                return;
+            
             if (!Selection.instanceIDs.Contains(instanceID)) return;
 
             _currentObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
