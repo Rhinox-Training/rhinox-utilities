@@ -121,7 +121,7 @@ namespace Rhinox.Utilities.Editor
                 _secondaryMeshInfo = $"{_meshes.Count:N0} meshes; {submeshes:N0} submeshes";
             else
                 _secondaryMeshInfo = $"{_meshes.Count:N0} meshes ({uniqueMeshes:N0} unique); {submeshes:N0} submeshes";
-
+            
             _requiresRefresh = false;
         }
 
@@ -142,7 +142,7 @@ namespace Rhinox.Utilities.Editor
             
             _meshes.Add(mesh);
         }
-
+        
         protected override string GetMenuPath() => _menuItemPath;
     }
 }
