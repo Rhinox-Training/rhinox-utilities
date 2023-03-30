@@ -1,7 +1,7 @@
 {
   "name": "com.rhinox.open.utilities",
   "displayName": "Rhinox.Utilities",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "unity": "2019.3",
   "description": "Utility code for Unity projects.",
   "keywords": [
@@ -11,8 +11,8 @@
   ],
   "category": "Unity",
   "dependencies": {
-	"com.rhinox.open.lightspeed": "1.4.0",
-	"com.rhinox.open.guiutils": "2.1.3",
+	"com.rhinox.open.lightspeed": "1.5.0",
+	"com.rhinox.open.guiutils": "2.3.0",
 	"com.rhinox.open.perceptor": "0.2.0"
   },
   "repository": {

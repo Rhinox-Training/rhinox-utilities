@@ -9,10 +9,14 @@ using UnityEngine.Profiling;
 
 namespace Rhinox.Utilities
 {
+    [SmartFallbackDrawn(false)]
     public class NavMeshVisualizer : MonoBehaviour
     {
         [Title("General Settings")]
         public bool AutoGenerate = false;
+        
+        [NavMeshArea(true)]
+        public int AreaMask = NavMesh.AllAreas;
 
         [Tooltip("Removes edges that extend each other, assumption is made that this only happens inside the navmesh and that they are not edges.")]
         public bool RemoveExtendingEdges = true;
@@ -80,7 +84,7 @@ namespace Rhinox.Utilities
             if (oldBorderMesh != null)
                 oldBorderMesh.name = "TO BE DELETED";
             
-            var navMesh = NavMeshHelper.GenerateNavMesh(textureScale: NavmeshTextureScale, forceUpNormal: ForceUpNormal);
+            var navMesh = NavMeshHelper.GenerateNavMesh(textureScale: NavmeshTextureScale, forceUpNormal: ForceUpNormal, areaMask: AreaMask);
             _navMeshGraphicsObj = MeshObject.GetOrCreateChild(transform, NAV_MESH_NAME, navMesh, NavMeshMaterials);
             _navMeshGraphicsObj.transform.SetPosition(y: OffsetY);
             _navMeshGraphicsObj.SetVisible(_renderersEnabled);
