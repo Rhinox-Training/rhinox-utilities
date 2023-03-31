@@ -555,21 +555,21 @@ namespace Rhinox.Utilities.Editor
 		{
 			if (!UtilitiesEditorSettings.Instance.OverrideFocusBehaviour)
 				return false;
+
+			foreach (var target in targets)
+			{
+				var t = ((Transform) target);
+				
+				// If there are MeshRenderers or colliders in the children
+				// Let unity handle it => return false
+				if (t.gameObject.GetComponentInChildren<Renderer>()) return false;
+				if (t.gameObject.GetComponentInChildren<Collider>()) return false;
 			
-			var t = ((Transform) target);
-			
-			// If there are MeshRenderers or colliders in the children
-			// Let unity handle it => return false
-			if (t.gameObject.GetComponentInChildren<MeshRenderer>()) return false;
-			if (t.gameObject.GetComponentInChildren<Collider>()) return false;
-			
-			// Override ParticleSystem behaviour
-			if (t.gameObject.GetComponent<ParticleSystemRenderer>()) return true;
-			
-			// If there are MeshRenderers or colliders in the parent
-			// We override it (see below) => return true
-			if (t.gameObject.GetComponentInParent<MeshRenderer>()) return true;
-			if (t.gameObject.GetComponentInParent<Collider>()) return true;
+				// If there are MeshRenderers or colliders in the parent
+				// We override it (see below) => return true
+				if (t.gameObject.GetComponentInParent<MeshRenderer>()) return true;
+				if (t.gameObject.GetComponentInParent<Collider>()) return true;
+			}
 
 			return true;
 		}
@@ -609,7 +609,7 @@ namespace Rhinox.Utilities.Editor
 			}
 			
 			// default small bounds
-			return new Bounds(smartTarget.position, Vector3.one);
+			return new Bounds(smartTarget.position, Vector3.one * UtilitiesEditorSettings.Instance.DefaultBoundsSize);
 		}
 		
 		

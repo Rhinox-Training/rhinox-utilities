@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4798b6dc9af0068478d1b5ef16187f19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShowSelectionInfoInSceneOverlay: 1
-  ShowSelectionInfoInHierarchy: 1
+  ShowSelectionInfoInSceneOverlay: 0
+  ShowSelectionInfoInHierarchy: 0
   OverrideFocusBehaviour: 0
+  DefaultBoundsSize: 1
   OverrideTransformInspector: 1
   OverrideMeshFilterInspector: 1
