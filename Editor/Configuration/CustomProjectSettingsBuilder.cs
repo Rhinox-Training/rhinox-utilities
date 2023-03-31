@@ -25,7 +25,8 @@ namespace Rhinox.Utilities.Editor
             
             foreach (var projectSettingsInstance in ProjectSettingsHelper.EnumerateProjectSettings())
             {
-                if (projectSettingsInstance.GetType().GetCustomAttribute<RuntimeSupportAttribute>() == null)
+                var attr = projectSettingsInstance.GetType().GetCustomAttribute<CustomProjectSettingsAttribute>();
+                if (attr == null || !attr.RuntimeSupported)
                     continue;
                 
                 var clone = ScriptableObject.Instantiate(projectSettingsInstance);

@@ -9,7 +9,7 @@ namespace Rhinox.Utilities
     public class UtilitiesEditorSettings : CustomProjectSettings<UtilitiesEditorSettings>
     {
         public override string Name => "Editor Utilities";
-
+        
         [Title("Scene/Hierarchy Helper")]
         public bool ShowSelectionInfoInSceneOverlay = false;
         public bool ShowSelectionInfoInHierarchy = false;

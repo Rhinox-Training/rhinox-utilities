@@ -16,12 +16,21 @@ namespace Rhinox.Utilities.Editor.Configuration
         private readonly Type _projectSettingsType;
         private CustomProjectSettings _activatedInstance;
 
-        private CustomSettingsProvider(Type projectSettingsType, SettingsScope scope) 
-            : base($"Project/Custom/{CustomProjectSettings.ProjectSettingsTypeToName(projectSettingsType)}", scope)
+        private CustomSettingsProvider(Type projectSettingsType, SettingsScope scope, string name, string collection = null) 
+            : base(GetPath(collection, name), scope)
         {
             if (!projectSettingsType.InheritsFrom(typeof(CustomProjectSettings)))
                 throw new ArgumentException(nameof(projectSettingsType));
             _projectSettingsType = projectSettingsType;
+        }
+
+        private static string GetPath(string collection, string name)
+        {
+            if (collection == null)
+                collection = "Custom";
+            if (collection == string.Empty)
+                return $"Project/{name}";
+            return $"Project/{collection}/{name}";
         }
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
@@ -98,7 +107,9 @@ namespace Rhinox.Utilities.Editor.Configuration
 
         private static SettingsProvider CreateProvider(CustomProjectSettings instance)
         {
-            var provider = new CustomSettingsProvider(instance.GetType(), SettingsScope.Project);
+            var attr = instance.GetType().GetCustomAttribute<CustomProjectSettingsAttribute>();
+            
+            var provider = new CustomSettingsProvider(instance.GetType(), SettingsScope.Project, instance.Name, attr?.CustomCollection);
             return provider;
         }
     }
