@@ -15,6 +15,9 @@ namespace Rhinox.Utilities
         public bool ShowSelectionInfoInHierarchy = false;
         public bool OverrideFocusBehaviour = false;
 
+        [Indent, ShowIf(nameof(OverrideFocusBehaviour))]
+        public float DefaultBoundsSize = 1;
+
         [Title("Custom Inspectors")]
         public bool OverrideTransformInspector = true;
         public bool OverrideMeshFilterInspector = true;
