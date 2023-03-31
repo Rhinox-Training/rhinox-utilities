@@ -48,7 +48,8 @@ namespace Rhinox.Utilities
         
         private static TextureChannelInput Draw(TextureChannelInput value, GUIContent label)
         {
-#if UNITY_EDITOR && ODIN_INSPECTOR
+#if UNITY_EDITOR
+    #if ODIN_INSPECTOR
             SirenixEditorGUI.BeginToolbarBox();
             EditorGUILayout.BeginHorizontal();
 
@@ -57,6 +58,17 @@ namespace Rhinox.Utilities
             
             EditorGUILayout.EndHorizontal();
             SirenixEditorGUI.EndToolbarBox();
+    #else
+            // TODO: should we reference GUIUtils.editor?
+            //CustomEditorGUI.BeginHorizontalToolbar();
+            EditorGUILayout.BeginHorizontal();
+
+            value.Enabled = EditorGUILayout.ToggleLeft("", value.Enabled, GUILayout.Width(10));
+            value.Output = (TextureChannel) EditorGUILayout.EnumPopup(string.Format("{0} > ", label.text), value.Output);
+            
+            EditorGUILayout.EndHorizontal();
+            //CustomEditorGUI.EndHorizontalToolbar();
+    #endif
 #endif
 
             return value;

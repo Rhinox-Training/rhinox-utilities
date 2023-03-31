@@ -21,7 +21,7 @@ namespace Rhinox.Utilities
         [HideLabel, HorizontalGroup("Row")]
         public bool Enabled;
         
-        [LabelWidth(50), HorizontalGroup("Row")]
+        [LabelWidth(50), HorizontalGroup("Row"), HideLabel]
         public TextureChannel Output;
         
         public TextureChannelInput() {}
