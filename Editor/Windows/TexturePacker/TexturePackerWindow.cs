@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Rhinox.GUIUtils.Attributes;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Utilities.Editor;
@@ -21,12 +22,14 @@ namespace Rhinox.Utilities.Editor
         [ShowInInspector, PreviewField(ObjectFieldAlignment.Left, Height = 128), HideLabel,
          HorizontalGroup("Root/Preview", width: 138),
          TitleGroup("Root/Preview/Preview", Alignment = TitleAlignments.Centered)]
-        public Texture2D Preview { get { return _texturePacker.Create(128); } }
+        public Texture2D Preview { get { return _texturePacker.Create(128, 128); } }
 
-        [VerticalGroup("Root/Preview/Preview/Properties", order: 100), LabelWidth(70)]
-        [ValueDropdown("_textureSizes")]
-        public int Resolution = 2048;
-        private static int[] _textureSizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
+        [HorizontalGroup("Root/Preview/Preview/Properties", order: 100)]
+        [HideLabel]
+        public int ResolutionW = 0;
+        [HorizontalGroup("Root/Preview/Preview/Properties", order: 100)]
+        [FittedLabel("x")]
+        public int ResolutionH = 0;
 
         public void Initialize()
         {
@@ -41,7 +44,7 @@ namespace Rhinox.Utilities.Editor
 
             var format = Path.GetExtension(savePath).ToLower();
             
-            Texture2D output = _texturePacker.Create(Resolution);
+            Texture2D output = _texturePacker.Create(ResolutionW, ResolutionH);
 
             switch (format)
             {

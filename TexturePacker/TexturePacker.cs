@@ -110,7 +110,7 @@ namespace Rhinox.Utilities
             return m;
         }
 
-        public Texture2D Create(int resolution)
+        public Texture2D Create(int width, int height)
         {
             if (_material == null)
                 TryCreateOutputMaterial();
@@ -131,7 +131,7 @@ namespace Rhinox.Utilities
                 ++idx;
             }
 
-            var texture = GenerateTexture(resolution, resolution, _material, hasAlpha);
+            var texture = GenerateTexture(width, height, _material, hasAlpha);
 
             return texture;
         }
