@@ -22,14 +22,14 @@ namespace Rhinox.Utilities.Editor
         [ShowInInspector, PreviewField(ObjectFieldAlignment.Left, Height = 128), HideLabel,
          HorizontalGroup("Root/Preview", width: 138),
          TitleGroup("Root/Preview/Preview", Alignment = TitleAlignments.Centered)]
-        public Texture2D Preview { get { return _texturePacker.Create(128, 128); } }
+        public Texture2D Preview => CreatePreviewTexture(128);
 
         [HorizontalGroup("Root/Preview/Preview/Properties", order: 100)]
-        [HideLabel]
-        public int ResolutionW = 0;
+        [FittedLabel("W"), MinValue(1), Delayed]
+        public int ResolutionW = 128;
         [HorizontalGroup("Root/Preview/Preview/Properties", order: 100)]
-        [FittedLabel("x")]
-        public int ResolutionH = 0;
+        [FittedLabel("H"), MinValue(1), Delayed]
+        public int ResolutionH = 128;
 
         public void Initialize()
         {
@@ -67,6 +67,20 @@ namespace Rhinox.Utilities.Editor
             }
 
             AssetDatabase.Refresh();
+        }
+        
+        
+        private Texture2D CreatePreviewTexture(float max)
+        {
+            if (ResolutionH <= 0 || ResolutionW <= 0) return Texture2D.blackTexture;
+
+            int width = ResolutionW;
+            int height = ResolutionH;
+            float scale = Mathf.Max(ResolutionW / max, ResolutionH / max);
+            width = Mathf.CeilToInt(width / scale);
+            height = Mathf.CeilToInt(height / scale);
+            
+            return _texturePacker.Create(width, height);
         }
     }
     

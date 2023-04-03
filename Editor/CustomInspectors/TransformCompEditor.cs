@@ -107,7 +107,7 @@ namespace Rhinox.Utilities.Editor
 		public override void OnInspectorGUI()
 		{
 			// if cannot initialize, draw the base gui
-			if ((!_initialized && !Init()) || !UtilitiesEditorSettings.Instance.OverrideTransformInspector)
+			if ((!_initialized && !Init()) || !EditorUtilitiesSettings.Instance.OverrideTransformInspector)
 			{
 				base.OnInspectorGUI();
 				return;
@@ -553,7 +553,7 @@ namespace Rhinox.Utilities.Editor
 		/// </summary>
 		public bool HasFrameBounds()
 		{
-			if (!UtilitiesEditorSettings.Instance.OverrideFocusBehaviour)
+			if (!EditorUtilitiesSettings.Instance.OverrideFocusBehaviour)
 				return false;
 
 			foreach (var target in targets)
@@ -609,7 +609,7 @@ namespace Rhinox.Utilities.Editor
 			}
 			
 			// default small bounds
-			return new Bounds(smartTarget.position, Vector3.one * UtilitiesEditorSettings.Instance.DefaultBoundsSize);
+			return new Bounds(smartTarget.position, Vector3.one * EditorUtilitiesSettings.Instance.DefaultBoundsSize);
 		}
 		
 		
