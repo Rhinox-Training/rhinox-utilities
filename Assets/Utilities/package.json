@@ -1,7 +1,7 @@
 {
   "name": "com.rhinox.open.utilities",
   "displayName": "Rhinox.Utilities",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "unity": "2019.3",
   "description": "Utility code for Unity projects.",
   "keywords": [
