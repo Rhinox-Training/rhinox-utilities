@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
@@ -106,7 +107,7 @@ namespace Rhinox.Utilities.Editor
 		public override void OnInspectorGUI()
 		{
 			// if cannot initialize, draw the base gui
-			if ((!_initialized && !Init()) || _drawDefault)
+			if ((!_initialized && !Init()) || !EditorUtilitiesSettings.Instance.OverrideTransformInspector)
 			{
 				base.OnInspectorGUI();
 				return;
@@ -552,20 +553,23 @@ namespace Rhinox.Utilities.Editor
 		/// </summary>
 		public bool HasFrameBounds()
 		{
-			var t = ((Transform) target);
+			if (!EditorUtilitiesSettings.Instance.OverrideFocusBehaviour)
+				return false;
+
+			foreach (var target in targets)
+			{
+				var t = ((Transform) target);
+				
+				// If there are MeshRenderers or colliders in the children
+				// Let unity handle it => return false
+				if (t.gameObject.GetComponentInChildren<Renderer>()) return false;
+				if (t.gameObject.GetComponentInChildren<Collider>()) return false;
 			
-			// If there are MeshRenderers or colliders in the children
-			// Let unity handle it => return false
-			if (t.gameObject.GetComponentInChildren<MeshRenderer>()) return false;
-			if (t.gameObject.GetComponentInChildren<Collider>()) return false;
-			
-			// Override ParticleSystem behaviour
-			if (t.gameObject.GetComponent<ParticleSystemRenderer>()) return true;
-			
-			// If there are MeshRenderers or colliders in the parent
-			// We override it (see below) => return true
-			if (t.gameObject.GetComponentInParent<MeshRenderer>()) return true;
-			if (t.gameObject.GetComponentInParent<Collider>()) return true;
+				// If there are MeshRenderers or colliders in the parent
+				// We override it (see below) => return true
+				if (t.gameObject.GetComponentInParent<MeshRenderer>()) return true;
+				if (t.gameObject.GetComponentInParent<Collider>()) return true;
+			}
 
 			return true;
 		}
@@ -577,45 +581,71 @@ namespace Rhinox.Utilities.Editor
 		public Bounds OnGetFrameBounds()
 		{
 			// assuming it will not get here if there is a child mesh, hence not calculating that
+			// See HasFrameBounds why it wouldn't get in here then
+			Transform smartTarget = (Transform) target;
+			
+			if (Selection.transforms.Length > 1)
+			{
+				List<Bounds> bounds = new List<Bounds>();
+				foreach (var t in Selection.transforms)
+				{
+					if (TryGetBounds(t, out Bounds b))
+						bounds.Add(b);
+				}
 
-			var t = (Transform) target;
+				if (!bounds.IsNullOrEmpty())
+				{
+					var b = bounds[0];
+			
+					for (int i = 1; i < bounds.Count; ++i)
+						b.Encapsulate(bounds[i]);
+					return b;
+				}
+			}
+			else
+			{
+				if (TryGetBounds(smartTarget, out Bounds b))
+					return b;
+			}
+			
+			// default small bounds
+			return new Bounds(smartTarget.position, Vector3.one * EditorUtilitiesSettings.Instance.DefaultBoundsSize);
+		}
+		
+		
 
-			var system = t.gameObject.GetComponent<ParticleSystemRenderer>();
-			if (system)
-				return system.bounds;
+		private bool TryGetBounds(Transform t, out Bounds b)
+		{
+			b = t.gameObject.GetObjectBounds();
+			if (b != default)
+				return true;
 			
 			var parent = t.parent;
 			if (parent != null)
 			{
 				// Find it from parent down (aka in parent or siblings)
-				var b = parent.gameObject.GetObjectBounds();
+				b = parent.gameObject.GetObjectBounds();
 				if (!b.Equals(default))
-					return b;
+					return true;
 				
 				// If not found there, try to find it above the parent
-				var mesh = t.gameObject.GetComponentInParent<MeshRenderer>();
+				var renderers = t.gameObject.GetComponentsInParent<Renderer>();
 
-				if (mesh != null)
-					return mesh.bounds;
+				if (!renderers.IsNullOrEmpty())
+				{
+					b = renderers.GetCombinedBounds();
+					return true;
+				}
 			
-				var collider = t.gameObject.GetComponentInParent<Collider>();
-
-				if (collider != null)
-					return collider.bounds;
+				var colliders = t.gameObject.GetComponentsInParent<Collider>();
+				if (!colliders.IsNullOrEmpty())
+				{
+					b = colliders.GetCombinedBounds();
+					return true;
+				}
 			}
 			
-			// default small bounds
-			return new Bounds(t.position, Vector3.one);
+			return false;
 		}
-		
-		
-		private static bool _drawDefault;
-
-		[MenuItem("CONTEXT/Transform/Toggle Custom Editor", false)]
-		private static void ToggleCustomEditor(MenuCommand menuCommand)
-		{
-			_drawDefault = !_drawDefault;
-		}
-
 	}
 }

@@ -89,17 +89,17 @@ namespace Rhinox.Utilities
     {
         protected static string SettingsFileName => $"{typeof(T).Name}";
 
-        private static bool? _runtimeSupported;
-        public static bool IsEditorOnly
+        public static bool IsEditorOnly => SettingsAttribute.RuntimeSupported;
+
+        private static CustomProjectSettingsAttribute _settingsAttribute;
+        protected static CustomProjectSettingsAttribute SettingsAttribute
         {
             get
             {
-                if (!_runtimeSupported.HasValue)
-                {
-                    _runtimeSupported = typeof(T).GetCustomAttribute<RuntimeSupportAttribute>() != null;
-                }
+                if (_settingsAttribute == null)
+                    _settingsAttribute = typeof(T).GetCustomAttribute<CustomProjectSettingsAttribute>();
 
-                return !_runtimeSupported.Value;
+                return _settingsAttribute;
             }
         }
         
@@ -145,6 +145,7 @@ namespace Rhinox.Utilities
             T settings = null;
             if (settingsObjs != null)
                 settings = settingsObjs.OfType<T>().FirstOrDefault();
+            
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<T>();

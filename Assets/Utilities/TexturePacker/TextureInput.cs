@@ -13,13 +13,13 @@ namespace Rhinox.Utilities
     [HideReferenceObjectPicker]
     public class TextureInput
     {
-        [PreviewField(ObjectFieldAlignment.Left, Height = 100), HorizontalGroup("G", MaxWidth = 100), HideLabel]
+        [PreviewField(ObjectFieldAlignment.Left, Height = 100), HorizontalGroup("G"), HorizontalGroup("G/Tex", MaxWidth = 100), HideLabel]
         public Texture2D texture;
 
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Red    = new TextureChannelInput(TextureChannel.Red);
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Green  = new TextureChannelInput(TextureChannel.Green);
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Blue   = new TextureChannelInput(TextureChannel.Blue);
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Alpha  = new TextureChannelInput(TextureChannel.Alpha);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Red    = new TextureChannelInput(TextureChannel.Red);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Green  = new TextureChannelInput(TextureChannel.Green);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Blue   = new TextureChannelInput(TextureChannel.Blue);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Alpha  = new TextureChannelInput(TextureChannel.Alpha);
 
         public Dictionary<TextureChannel, TextureChannelInput> Inputs
         {
@@ -48,7 +48,8 @@ namespace Rhinox.Utilities
         
         private static TextureChannelInput Draw(TextureChannelInput value, GUIContent label)
         {
-#if UNITY_EDITOR && ODIN_INSPECTOR
+#if UNITY_EDITOR
+    #if ODIN_INSPECTOR
             SirenixEditorGUI.BeginToolbarBox();
             EditorGUILayout.BeginHorizontal();
 
@@ -57,6 +58,17 @@ namespace Rhinox.Utilities
             
             EditorGUILayout.EndHorizontal();
             SirenixEditorGUI.EndToolbarBox();
+    #else
+            // TODO: should we reference GUIUtils.editor?
+            //CustomEditorGUI.BeginHorizontalToolbar();
+            EditorGUILayout.BeginHorizontal();
+
+            value.Enabled = EditorGUILayout.ToggleLeft("", value.Enabled, GUILayout.Width(10));
+            value.Output = (TextureChannel) EditorGUILayout.EnumPopup(string.Format("{0} > ", label.text), value.Output);
+            
+            EditorGUILayout.EndHorizontal();
+            //CustomEditorGUI.EndHorizontalToolbar();
+    #endif
 #endif
 
             return value;

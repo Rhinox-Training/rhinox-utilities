@@ -1,7 +1,12 @@
+using System;
+using System.Linq;
+using System.Reflection;
 using Rhinox.Lightspeed;
 using Rhinox.GUIUtils;
+using Rhinox.GUIUtils.Editor;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
@@ -11,25 +16,38 @@ namespace Rhinox.Utilities.Editor
         private static bool _isDrawn;
 
         private static GUIStyle _localStyle => CustomGUIStyles.MiniLabelRight;
-        private static GUIStyle _globalStyle => CustomGUIStyles.MiniLabelLeft;
+        private static GUIStyle _globalStyle => CustomGUIStyles.MiniLabel;
 
         private static string _globalTooltip = "Amount selected | Children";
-
+        
         private static GameObject _currentObject;
-
+        
         static SelectionCounter()
         {
             EditorApplication.update += OnEditorUpdate;
             EditorApplication.hierarchyWindowItemOnGUI += DrawSelectionCounter;
+            Utility.SubscribeToSceneGui(OnSceneGUI);
         }
 
         private static void OnEditorUpdate()
         {
             _isDrawn = false;
         }
+        
+        private static void OnSceneGUI(SceneView obj)
+        {
+            if (!EditorUtilitiesSettings.Instance.ShowSelectionInfoInSceneOverlay)
+                return;
+            
+            if (Selection.transforms.Length > 0)
+                SceneOverlay.AddWindow("Selected", DrawGlobalHierarchyCounter);
+        }
 
         static void DrawSelectionCounter(int instanceID, Rect selectionRect)
         {
+            if (!EditorUtilitiesSettings.Instance.ShowSelectionInfoInHierarchy)
+                return;
+            
             if (!Selection.instanceIDs.Contains(instanceID)) return;
 
             _currentObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
@@ -37,28 +55,22 @@ namespace Rhinox.Utilities.Editor
             if (_currentObject == null) return;
 
             DrawItemHierarchyCounter(selectionRect);
-            DrawGlobalHierarchyCounter(selectionRect);
         }
 
-        private static void DrawGlobalHierarchyCounter(Rect selectionRect)
+        private static void DrawGlobalHierarchyCounter(Object o, SceneView view)
         {
-            if (_isDrawn) return;
-
-            if (Event.current.type != EventType.Repaint) return;
-
             var count = Selection.transforms.Length;
+            if (count == 0) return;
+            
+            GUILayout.Label($"{count} Object(s)", _globalStyle);
+            
             var childCount = Selection.GetFiltered<Transform>(SelectionMode.Deep).Length;
 
-            var content = GUIContentHelper.TempContent($"{count} | {childCount}", _globalTooltip);
-
-            var size = _globalStyle.CalcSize(content);
-
-            var rect = selectionRect.AlignLeft(size.x + 3).SetX(0);
-
-            EditorGUI.DrawRect(rect, CustomGUIStyles.DarkEditorBackground);
-            GUI.Label(rect, content, _globalStyle);
-
-            _isDrawn = true;
+            
+            if (count == childCount)
+                return;
+            
+            GUILayout.Label($"- {childCount - count} children", _globalStyle);
         }
 
         private static void DrawItemHierarchyCounter(Rect selectionRect)

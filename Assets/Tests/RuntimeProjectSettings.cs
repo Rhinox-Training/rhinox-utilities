@@ -3,7 +3,7 @@ using Rhinox.Utilities.Attributes;
 
 namespace Tests
 {
-    [RuntimeSupport]
+    [CustomProjectSettings(RuntimeSupported = true)]
     public class RuntimeProjectSettings : CustomProjectSettings<RuntimeProjectSettings>
     {
         public bool Enabled = false;

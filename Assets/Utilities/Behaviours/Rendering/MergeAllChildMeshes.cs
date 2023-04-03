@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using Rhinox.GUIUtils.Attributes;
+using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,10 +13,25 @@ using UnityEditor;
 namespace Rhinox.Utilities
 {
     [RequireComponent(typeof(MeshFilter))]
+    [SmartFallbackDrawn(false)]
     public class MergeAllChildMeshes : MonoBehaviour
     {
+        public enum TargetSpace
+        {
+            Local,
+            World,
+            Identity
+        }
         public bool DisableChildMeshes = true;
         public bool ExecuteAtStart = true;
+        public TargetSpace Space;
+
+        [SerializeField, HideInInspector]
+        private List<MeshFilter> _mergedMeshes;
+        [SerializeField, HideInInspector]
+        private List<SkinnedMeshRenderer> _mergedSkinnedMeshes;
+        [SerializeField, HideInInspector]
+        private Material[] _mergedMaterials;
 
         public Mesh MeshCopy
         {
@@ -37,31 +56,38 @@ namespace Rhinox.Utilities
             var prevRotation = transform.rotation;
             transform.rotation = Quaternion.identity;
 
-            var meshFilters = GetComponentsInChildren<MeshFilter>(true).ToList();
-            var skinnedMeshFilters = GetComponentsInChildren<SkinnedMeshRenderer>(true).ToList();
+            _mergedMeshes = GetComponentsInChildren<MeshFilter>(true).ToList();
+            _mergedSkinnedMeshes = GetComponentsInChildren<SkinnedMeshRenderer>(true).ToList();
             // remove this object's mesh (since it shouldn't be merged)
-            meshFilters.Remove(GetComponent<MeshFilter>());
-            var combine = new CombineInstance[meshFilters.Count + skinnedMeshFilters.Count];
-
-            for (int i = 0; i < meshFilters.Count; ++i)
+            _mergedMeshes.Remove(GetComponent<MeshFilter>());
+            var combine = new CombineInstance[_mergedMeshes.Count + _mergedSkinnedMeshes.Count];
+            var materials = new List<Material>();
+            for (int i = 0; i < _mergedMeshes.Count; ++i)
             {
                 // combine the meshes into a sharedmesh
-                combine[i].mesh = meshFilters[i].sharedMesh;
-                combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
+                combine[i].mesh = _mergedMeshes[i].sharedMesh;
+                combine[i].transform = GetTargetTransform(_mergedMeshes[i].transform);
+
+                var renderer = _mergedMeshes[i].GetComponent<MeshRenderer>();
+                var mats = renderer?.sharedMaterials ?? Array.Empty<Material>();
+                foreach (var mat in mats)
+                    if (!materials.Contains(mat))
+                        materials.Add(mat);
 
                 if (DisableChildMeshes)
-                    meshFilters[i].gameObject.SetActive(false);
+                    _mergedMeshes[i].gameObject.SetActive(false);
             }
-
-            for (int i = meshFilters.Count; i < meshFilters.Count + skinnedMeshFilters.Count; ++i)
+            
+            for (int i = _mergedMeshes.Count; i < _mergedMeshes.Count + _mergedSkinnedMeshes.Count; ++i)
             {
+                int skinnedMeshI = i - _mergedMeshes.Count;
                 // combine the meshes into a sharedmesh
                 combine[i].mesh = new Mesh();
-                skinnedMeshFilters[i - meshFilters.Count].BakeMesh(combine[i].mesh);
-                combine[i].transform = skinnedMeshFilters[i - meshFilters.Count].transform.localToWorldMatrix;
+                _mergedSkinnedMeshes[skinnedMeshI].BakeMesh(combine[i].mesh);
+                combine[i].transform = GetTargetTransform(_mergedSkinnedMeshes[skinnedMeshI].transform);
 
                 if (DisableChildMeshes)
-                    skinnedMeshFilters[i - meshFilters.Count].gameObject.SetActive(false);
+                    _mergedSkinnedMeshes[i - _mergedMeshes.Count].gameObject.SetActive(false);
             }
 
             // set the mesh
@@ -70,10 +96,27 @@ namespace Rhinox.Utilities
             transform.GetComponent<MeshFilter>().sharedMesh.name = "CombinedMesh";
             transform.gameObject.SetActive(true);
 
+            _mergedMaterials = materials.ToArray();
+            
             // move back to original
             transform.position = prevPosition;
             transform.rotation = prevRotation;
             //transform.localScale = new Vector3(1,1,1);
+        }
+
+        private Matrix4x4 GetTargetTransform(Transform source)
+        {
+            switch (Space)
+            {
+                case TargetSpace.Identity:
+                    return Matrix4x4.identity;
+                case TargetSpace.World:
+                    return source.localToWorldMatrix;
+                case TargetSpace.Local:
+                    return source.localToWorldMatrix * transform.worldToLocalMatrix;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         public void EnableChildMeshes()
@@ -89,10 +132,9 @@ namespace Rhinox.Utilities
 
 #if UNITY_EDITOR
 
-        private bool HasRenderer
-        {
-            get { return GetComponent<MeshRenderer>(); }
-        }
+        private bool HasRenderer => GetComponent<MeshRenderer>();
+
+        private bool HasData => !_mergedMaterials.IsNullOrEmpty();
 
         [Button, HideIf("HasRenderer")]
         private void AddMeshRenderer()
@@ -118,11 +160,22 @@ namespace Rhinox.Utilities
             }
         }
 
-        [Button]
-        private void HideAllChildren()
+        [Button, ShowIf("HasData")]
+        private void RestoreChildren()
         {
-            foreach (Transform child in transform)
-                child.gameObject.SetActive(false);
+            foreach (var merged in _mergedMeshes)
+                merged.gameObject.SetActive(true);
+            
+            foreach (var merged in _mergedSkinnedMeshes)
+                merged.gameObject.SetActive(true);
+        }
+        
+        [Button, ShowIf("HasData"), ShowIf("HasRenderer")]
+        private void SetMaterials()
+        {
+            var renderer = GetComponent<MeshRenderer>();
+            Undo.RegisterCompleteObjectUndo(renderer, "Set Materials");
+            renderer.materials = _mergedMaterials;
         }
 #endif
     }
