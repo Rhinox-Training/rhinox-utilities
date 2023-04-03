@@ -16,7 +16,7 @@ namespace Rhinox.Utilities.Editor
         private static bool _isDrawn;
 
         private static GUIStyle _localStyle => CustomGUIStyles.MiniLabelRight;
-        private static GUIStyle _globalStyle => CustomGUIStyles.MiniLabelLeft;
+        private static GUIStyle _globalStyle => CustomGUIStyles.MiniLabel;
 
         private static string _globalTooltip = "Amount selected | Children";
         
@@ -36,7 +36,7 @@ namespace Rhinox.Utilities.Editor
         
         private static void OnSceneGUI(SceneView obj)
         {
-            if (!UtilitiesEditorSettings.Instance.ShowSelectionInfoInSceneOverlay)
+            if (!EditorUtilitiesSettings.Instance.ShowSelectionInfoInSceneOverlay)
                 return;
             
             if (Selection.transforms.Length > 0)
@@ -45,7 +45,7 @@ namespace Rhinox.Utilities.Editor
 
         static void DrawSelectionCounter(int instanceID, Rect selectionRect)
         {
-            if (!UtilitiesEditorSettings.Instance.ShowSelectionInfoInHierarchy)
+            if (!EditorUtilitiesSettings.Instance.ShowSelectionInfoInHierarchy)
                 return;
             
             if (!Selection.instanceIDs.Contains(instanceID)) return;

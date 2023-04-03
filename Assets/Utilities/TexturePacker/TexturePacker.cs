@@ -15,13 +15,14 @@ namespace Rhinox.Utilities
         Alpha = 1 << 3
     }
     
-    [HideReferenceObjectPicker, Serializable]
+    [HideReferenceObjectPicker, Serializable, HideLabel]
     public class TextureChannelInput
     {
-        [HideLabel, HorizontalGroup("Row")]
+        [HideLabel, HorizontalGroup("Row", width: 20)]
         public bool Enabled;
         
-        [LabelWidth(50), HorizontalGroup("Row"), HideLabel]
+        [EnableIf("Enabled")]
+        [HorizontalGroup("Row"), LabelText("$property.Parent.NiceName")]
         public TextureChannel Output;
         
         public TextureChannelInput() {}
@@ -125,8 +126,12 @@ namespace Rhinox.Utilities
                 var inChannels = GetInputs(input);
                 _material.SetVector(GetPropertyName(idx, "In"), inChannels);
 
+                
                 var outMatrix = GetOutputs(input);
-                CheckForAlpha(ref hasAlpha, outMatrix, inChannels);
+                // CheckForAlpha(ref hasAlpha, outMatrix, inChannels);
+                if (input.Alpha.Enabled)
+                    hasAlpha = true;
+                
                 _material.SetMatrix(GetPropertyName(idx, "Out"), outMatrix);
                 ++idx;
             }

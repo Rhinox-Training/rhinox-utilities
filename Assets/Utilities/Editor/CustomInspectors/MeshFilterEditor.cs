@@ -43,7 +43,7 @@ namespace Rhinox.Utilities.Editor
         
         public override void OnInspectorGUI()
         {
-            if (!UtilitiesEditorSettings.Instance.OverrideMeshFilterInspector)
+            if (!EditorUtilitiesSettings.Instance.OverrideMeshFilterInspector)
             {
                 base.OnInspectorGUI();
                 return;
@@ -72,7 +72,7 @@ namespace Rhinox.Utilities.Editor
 
                 // Show mesh bounds after the button
                 EditorGUILayout.BeginHorizontal();
-                GUILayout.Label("Bounds:", CustomGUIStyles.MiniLabelLeft);
+                GUILayout.Label("Bounds:", CustomGUIStyles.MiniLabel);
                 GUILayout.FlexibleSpace();
                 GUILayout.Label(_mesh.bounds.ToString(), CustomGUIStyles.MiniLabelRight);
                 EditorGUILayout.EndHorizontal();

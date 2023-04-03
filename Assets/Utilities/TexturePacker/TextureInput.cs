@@ -13,13 +13,13 @@ namespace Rhinox.Utilities
     [HideReferenceObjectPicker]
     public class TextureInput
     {
-        [PreviewField(ObjectFieldAlignment.Left, Height = 100), HorizontalGroup("G", MaxWidth = 100), HideLabel]
+        [PreviewField(ObjectFieldAlignment.Left, Height = 100), HorizontalGroup("G"), HorizontalGroup("G/Tex", MaxWidth = 100), HideLabel]
         public Texture2D texture;
 
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Red    = new TextureChannelInput(TextureChannel.Red);
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Green  = new TextureChannelInput(TextureChannel.Green);
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Blue   = new TextureChannelInput(TextureChannel.Blue);
-        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw))] public TextureChannelInput Alpha  = new TextureChannelInput(TextureChannel.Alpha);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Red    = new TextureChannelInput(TextureChannel.Red);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Green  = new TextureChannelInput(TextureChannel.Green);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Blue   = new TextureChannelInput(TextureChannel.Blue);
+        [VerticalGroup("G/Channels"), CustomValueDrawer(nameof(Draw)), HideLabel] public TextureChannelInput Alpha  = new TextureChannelInput(TextureChannel.Alpha);
 
         public Dictionary<TextureChannel, TextureChannelInput> Inputs
         {
