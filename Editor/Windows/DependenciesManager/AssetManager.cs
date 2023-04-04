@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
 {
-    public class AssetManager : ScriptableObject
+    public class AssetManager
     {
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 25, IsReadOnly = true), ReadOnly]
         public string[] AllAssets = new string[0];

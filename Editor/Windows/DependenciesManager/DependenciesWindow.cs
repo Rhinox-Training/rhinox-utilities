@@ -61,8 +61,8 @@ namespace Rhinox.Utilities.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			Settings = ScriptableObject.CreateInstance<DependencySettings>();
-			AssetManager = ScriptableObject.CreateInstance<AssetManager>();
+			Settings = new DependencySettings();
+			AssetManager = new AssetManager();
 			HomePage = new DependencyHomePage();
 			HomePage.Initialize(this);
 		}
