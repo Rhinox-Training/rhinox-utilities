@@ -13,10 +13,10 @@ using UnityEngine;
 namespace Rhinox.Utilities.Editor
 {
     [TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
-    public class DependencySettings : ScriptableObject, ISerializationCallbackReceiver
+    public class DependencySettings : ISerializationCallbackReceiver
     {
-        [ListDrawerSettings(Expanded = true)] public List<string> FilesToIgnore;
-        [ListDrawerSettings(Expanded = true)] public List<string> DirectoriesToIgnore;
+        [ListDrawerSettings(Expanded = true)] public List<string> FilesToIgnore = new List<string>();
+        [ListDrawerSettings(Expanded = true)] public List<string> DirectoriesToIgnore = new List<string>();
 
         public Regex[] IgnoredFileRegexs
         {

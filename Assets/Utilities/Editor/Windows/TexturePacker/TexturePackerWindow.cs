@@ -110,6 +110,8 @@ namespace Rhinox.Utilities.Editor
             if (_propertyView == null)
                 _propertyView = new SmartPropertyView(_root);
             _propertyView.DrawLayout();
+            if (_propertyView.ShouldRepaint)
+                Repaint();
         }
     }
 }

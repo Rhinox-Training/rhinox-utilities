@@ -13,27 +13,17 @@ namespace Rhinox.Utilities.Editor
     [InitializeOnLoad]
     internal static class SelectionCounter
     {
-        private static bool _isDrawn;
-
         private static GUIStyle _localStyle => CustomGUIStyles.MiniLabelRight;
         private static GUIStyle _globalStyle => CustomGUIStyles.MiniLabel;
-
-        private static string _globalTooltip = "Amount selected | Children";
         
         private static GameObject _currentObject;
         
         static SelectionCounter()
         {
-            EditorApplication.update += OnEditorUpdate;
             EditorApplication.hierarchyWindowItemOnGUI += DrawSelectionCounter;
             Utility.SubscribeToSceneGui(OnSceneGUI);
         }
 
-        private static void OnEditorUpdate()
-        {
-            _isDrawn = false;
-        }
-        
         private static void OnSceneGUI(SceneView obj)
         {
             if (!EditorUtilitiesSettings.Instance.ShowSelectionInfoInSceneOverlay)
