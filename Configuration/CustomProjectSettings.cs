@@ -127,13 +127,14 @@ namespace Rhinox.Utilities
             {
                 if (_instance == null)
                     _instance = GetOrCreateSettings();
+#if UNITY_EDITOR
                 else if (_instance.HasBackingFileChanged())
                 {
                     var newDataInstance = GetOrCreateSettings();
                     _instance.CopyValuesFrom(newDataInstance);
                     _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
                 }
-
+#endif
                 return _instance;
             }
         }
