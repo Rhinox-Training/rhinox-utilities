@@ -11,7 +11,7 @@ public class GenericList : ToggleableList<GameObject>
 }
     
     
-[SmartFallbackDrawn(false)]
+// [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
     // Rotate a button 10 degrees clockwise when presed.

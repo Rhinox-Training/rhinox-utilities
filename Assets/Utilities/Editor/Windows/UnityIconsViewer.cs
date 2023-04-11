@@ -151,12 +151,9 @@ namespace Rhinox.Utilities.Editor
         }
 
 #if !ODIN_INSPECTOR
-        protected override void DrawEditor(int index)
+        protected override IEditor CreateEditorForTarget(object obj)
         {
-            var target = (UnityIcon)GetTargets().ElementAt(index);
-
-            var propertyDrawer = new DrawablePropertyView(target);
-            propertyDrawer.DrawLayout();
+            return new DrawablePropertyView(obj);
         }
 #endif
     }
