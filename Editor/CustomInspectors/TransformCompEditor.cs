@@ -222,7 +222,7 @@ namespace Rhinox.Utilities.Editor
 			if (addReset)
 			{
 				menu.AddItem("Reset", reset);
-				if (addCopy || addPaste)
+				if (addCopy && addPaste)
 					menu.AddSeparator(string.Empty);
 			}
 

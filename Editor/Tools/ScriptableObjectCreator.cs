@@ -98,7 +98,7 @@ namespace Rhinox.Utilities.Editor
         protected override CustomMenuTree BuildMenuTree()
         {
             this.MenuWidth = 270;
-            this.WindowPadding = Vector4.zero;
+            this.WindowPadding = new RectOffset();
 
             CustomMenuTree tree = new CustomMenuTree();
 #if ODIN_INSPECTOR
