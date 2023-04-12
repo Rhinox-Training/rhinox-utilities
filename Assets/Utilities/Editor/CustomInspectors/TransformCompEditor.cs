@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
@@ -15,7 +16,7 @@ namespace Rhinox.Utilities.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Transform), true)]
-	public class TransformCompEditor : UnityEditor.Editor
+	public class TransformCompEditor : DefaultEditorExtender<Transform>
 	{
 		private static class Properties
 		{
@@ -69,8 +70,9 @@ namespace Rhinox.Utilities.Editor
 		private static Quaternion? _rotationClipboard = null;
 		private static Vector3? _scaleClipboard = null;
 
-		protected void OnEnable()
+		protected override void OnEnable()
 		{ 
+			base.OnEnable();
 			Init();
 		}
 
@@ -184,10 +186,10 @@ namespace Rhinox.Utilities.Editor
 			}
 		}
 
-		private static void ShowPropertyContextMenu(SerializedProperty property, GenericMenu menu = null)
+		private static void FillPropertyContextMenu(SerializedProperty property, GenericMenu menu = null)
 		{
 			var t = typeof(EditorGUI);
-			var m = t.GetMethod("DoPropertyContextMenu", BindingFlags.NonPublic | BindingFlags.Static);
+			var m = t.GetMethod("FillPropertyContextMenu", BindingFlags.NonPublic | BindingFlags.Static);
 			m.Invoke(null, new object[] { property, null, menu });
 		}
 		
@@ -206,22 +208,40 @@ namespace Rhinox.Utilities.Editor
 			}
 				
 			var menu = new GenericMenu();
+			FillPropertyContextMenu(prop, menu);
+
+			var menuItems = menu.GetItems();
+
+			var addReset = !menuItems.Any(x => x.menuItem.EndsWith("Reset"));
+			var addCopy = !menuItems.Any(x => x.menuItem.EndsWith("Copy"));
+			var addPaste = !menuItems.Any(x => x.menuItem.EndsWith("Paste"));
+
+			if (menu.GetItemCount() > 0 && (addReset || addCopy || addPaste))
+				menu.AddSeparator(string.Empty);
+
+			if (addReset)
+			{
+				menu.AddItem("Reset", reset);
+				if (addCopy && addPaste)
+					menu.AddSeparator(string.Empty);
+			}
+
+			// Add copy and paste (can't really do one without the other)
+			if (addCopy && addPaste)
+			{
+				var content = new GUIContent("Copy");
+				if (canCopy) menu.AddItem(content, false, copy);
+				else menu.AddDisabledItem(content);
 				
-			var content = new GUIContent("Reset");
-			menu.AddItem(content, false, reset);
-			menu.AddSeparator(string.Empty);
-				
-			content = new GUIContent("Copy");
-			if (canCopy) menu.AddItem(content, false, copy);
-			else menu.AddDisabledItem(content);
-				
-			content = new GUIContent("Paste");
-			if (canPaste) menu.AddItem(content, false, paste);
-			else menu.AddDisabledItem(content);
-				
-			menu.AddSeparator(string.Empty);
-				
-			ShowPropertyContextMenu(prop, menu);
+				content = new GUIContent("Paste");
+				if (canPaste) menu.AddItem(content, false, paste);
+				else menu.AddDisabledItem(content);
+			}
+			
+			if (menu.GetItemCount() == 0)
+				return;
+			Event.current.Use();
+			menu.ShowAsContext();
 		}
 
 		private void DrawPosition()

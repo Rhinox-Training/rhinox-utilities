@@ -8,11 +8,11 @@ using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
-    public class DependencyAsset : ScriptableObject
+    public class DependencyAsset
     {
         public static DependencyAsset Create(string path)
         {
-            var dep = CreateInstance<DependencyAsset>();
+            var dep = new DependencyAsset();
             dep.Initialize(path);
             return dep;
         }
@@ -79,14 +79,14 @@ namespace Rhinox.Utilities.Editor
     {
         public new static Dependency Create(string path)
         {
-            var dep = CreateInstance<Dependency>();
+            var dep = new Dependency();
             dep.Initialize(path);
             return dep;
         }
 
         public static Dependency Create(Object reference, string path = null)
         {
-            var dep = CreateInstance<Dependency>();
+            var dep = new Dependency();
             dep.Initialize(reference, path);
             return dep;
         }
