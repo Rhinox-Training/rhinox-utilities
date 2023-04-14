@@ -26,3 +26,4 @@ Parts of the code come from external authors or are being reused from other open
 - ToolbarExtender (https://github.com/marijnz/unity-toolbar-extender) - (c) Marijn Zwemmer 2018 (MIT License)
 - BuildUtils.cs (https://github.com/JohannesMP/unity-scene-reference) - (c) JohannesMP 2017/(c) S. Tarık Çetin 2019 (MIT License)
 - ManagedCoroutine.cs (https://github.com/krockot/Unity-TaskManager) - (c) Ken Rockot 2011 (Non-exclusive license to reuse code)
+- AdvancedSceneSearch (https://github.com/KeaneGames/AdvancedSceneSearch) - (c) Jacob Keane 2019 (MIT License)
