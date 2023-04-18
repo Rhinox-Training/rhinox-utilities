@@ -111,7 +111,8 @@ namespace Rhinox.Utilities
 
         protected virtual bool FindGroupSetting(IConfigField configField, out DynamicConfigFieldEntry[] fields)
         {
-            
+            fields = Array.Empty<DynamicConfigFieldEntry>();
+            return false;
         }
 
         protected abstract bool FindSetting(IConfigField configField, out string value);
