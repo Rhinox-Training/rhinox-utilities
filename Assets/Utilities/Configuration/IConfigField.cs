@@ -12,5 +12,7 @@ namespace Rhinox.Utilities
         object GetValue(object instance);
 
         void SetValue(object instance, object value);
+
+        T GetCustomAttribute<T>() where T : Attribute;
     }
 }
