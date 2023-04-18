@@ -29,5 +29,12 @@ namespace Rhinox.Utilities
         {
             Field.SetValue(instance, value);
         }
+
+        public T GetCustomAttribute<T>() where T : Attribute
+        {
+            if (Field == null)
+                return null;
+            return Field.GetCustomAttribute<T>();
+        }
     }
 }
