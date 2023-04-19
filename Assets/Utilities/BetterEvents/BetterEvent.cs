@@ -1,7 +1,7 @@
-﻿#if ODIN_INSPECTOR
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Rhinox.Utilities
 {
@@ -88,7 +88,7 @@ namespace Rhinox.Utilities
 
         private void DrawInvokeButton()
         {
-            if (Sirenix.Utilities.Editor.SirenixEditorGUI.ToolbarButton("Invoke"))
+            if (GUILayout.Button("Invoke"))
             {
                 this.Invoke();
             }
@@ -98,4 +98,3 @@ namespace Rhinox.Utilities
 
     }
 }
-#endif
