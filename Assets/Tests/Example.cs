@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Remoting.Contexts;
 using Rhinox.GUIUtils.Attributes;
 using Rhinox.Lightspeed.Collections;
 using Sirenix.OdinInspector;
@@ -14,6 +16,19 @@ public class GenericList : ToggleableList<GameObject>
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
+    public readonly string[] Options = new[] { "One", "Two", "FortyTwo" };
+
+    [Serializable]
+    public class StringWithOptions
+    {
+        [HideLabel, ValueDropdown("$parent.Options")]
+        public string IGotOptions;
+        [ValueDropdown("$parent.Options")]
+        public string WithLabel;
+    }
+
+    public List<StringWithOptions> ListOfOptions;
+
     // Rotate a button 10 degrees clockwise when presed.
 
     float rotAngle = 0;
@@ -50,5 +65,14 @@ public class Example : MonoBehaviour
     void PrintStoof()
     {
         Debug.Log("Stoof");
+    }
+
+    [Button]
+    void DrawListOfOptions()
+    {
+        foreach (var item in ListOfOptions)
+        {
+            Debug.Log($"{item.IGotOptions} - {item.WithLabel}");
+        }
     }
 }

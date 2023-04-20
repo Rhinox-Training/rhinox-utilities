@@ -12,9 +12,9 @@ namespace Rhinox.Utilities.Odin.Editor
     [Serializable]
     public class LayerFilter : BaseAdvancedSearchSearchFilter
     {
-        [ShowInInspector, LabelText("Layers"), CustomValueDrawer(nameof(DrawLabelMask))]
+        [ShowInInspector, LabelText("Layers")]
         [OnValueChanged(nameof(TriggerChanged))]
-        private int _layerMask = ~0;
+        private LayerMask _layerMask = ~0;
 
         private List<string> _layers = new List<string>();
 

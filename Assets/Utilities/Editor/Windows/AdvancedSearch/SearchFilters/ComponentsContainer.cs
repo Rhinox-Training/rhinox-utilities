@@ -7,11 +7,8 @@ using System.Reflection;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
+using Rhinox.Lightspeed.Reflection;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
-using Sirenix.Utilities.Editor.Expressions;
 using UnityEditor;
 using UnityEngine;
 using Component = UnityEngine.Component;
@@ -60,20 +57,11 @@ namespace Rhinox.Utilities.Odin.Editor
                 public CompareMethod Comparer = CompareMethod.Equals;
                 public readonly CompareMethod[] Options;
 
-                public SerializedVariableData(InspectorProperty prop)
-                {
-                    Name = prop.Name;
-                    var type = prop.ValueEntry.TypeOfValue;
-
-                    if (type.InheritsFrom(typeof(IEnumerable))) Options = ListOptions;
-                    else if (type.InheritsFrom(typeof(IComparable))) Options = ComparableOptions;
-                    else Options = DefaultOptions;
-                }
-
                 public SerializedVariableData(SerializedProperty prop)
                 {
                     Name = prop.name;
-                    var type = prop.GuessContainedType();
+                    var info = prop.GetHostInfo();
+                    var type = info.GetReturnType();
                     if (type == null)
                     {
                         Options = DefaultOptions;
@@ -112,9 +100,7 @@ namespace Rhinox.Utilities.Odin.Editor
             private string _customExpressionError;
 
             public static GameObject _dummyObject;
-
-            private PropertyTree _tree;
-
+            
             public event Action Changed;
 
             public TypeSearchData(Type type, int amount = -1)
@@ -155,7 +141,7 @@ namespace Rhinox.Utilities.Odin.Editor
                     GUILayout.Label(label, GUILayout.ExpandWidth(false));
 
                     if (GUILayout.Button("Any", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
-                        return 1;
+                        value = 1;
                 }
 
                 return value;
@@ -163,7 +149,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             private bool DrawExpanded(bool value, GUIContent label)
             {
-                return GUILayout.Toggle(value, "?", CustomGUIStyles.CenteredLabel, GUILayout.ExpandWidth(false));
+                return GUILayout.Toggle(value, "?", CustomGUIStyles.MiniButton, GUILayout.ExpandWidth(false));
             }
 
             [OnInspectorGUI]
@@ -172,67 +158,11 @@ namespace Rhinox.Utilities.Odin.Editor
                 // if checking if none of the component, don't bother drawing the props
                 if (Amount == 0) return;
 
-                if (_tree == null)
-                {
-                    var comp = _dummyObject.GetComponent(Type);
-                    if (comp is MonoBehaviour)
-                        _tree = PropertyTree.Create(comp);
-                    else
-                        DrawComponent(comp);
-                }
-
-                if (_tree == null)
-                    return; // should never happen
-
-                InspectorUtilities.BeginDrawPropertyTree(_tree, true);
-                foreach (var prop in _tree.EnumerateTree(false))
-                {
-                    if (!prop.Info.IsEditable ||
-                        prop.Info.SerializationBackend == SerializationBackend.None)
-                        continue;
-
-                    var serializedVar = SerializedVars.FirstOrDefault(x => x.Name == prop.Name);
-
-                    if (Expanded)
-                    {
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            if (serializedVar != null)
-                            {
-                                if (!EditorGUILayout.ToggleLeft(prop.NiceName, true, GUILayoutOptions.ExpandWidth()))
-                                {
-                                    SerializedVars.Remove(serializedVar);
-                                    TriggerChanged();
-                                }
-
-                                DrawSerializedVariableCompareOptions(serializedVar);
-                            }
-                            else if (EditorGUILayout.ToggleLeft(prop.NiceName, false))
-                            {
-                                serializedVar = new SerializedVariableData(prop);
-                                SerializedVars.Add(serializedVar);
-                                TriggerChanged();
-                            }
-                        }
-                    }
-                    else if (serializedVar != null)
-                    {
-                        using (new eUtility.HorizontalGroup())
-                        {
-                            prop.Draw(prop.Label);
-
-                            if (GUILayout.Button("X", GUILayout.Height(14), GUILayout.Width(20)))
-                            {
-                                SerializedVars.Remove(serializedVar);
-                                TriggerChanged();
-                            }
-                        }
-                    }
-                }
-
-                InspectorUtilities.EndDrawPropertyTree(_tree);
-
+                var comp = _dummyObject.GetComponent(Type);
+                DrawComponent(comp);
+#if ODIN_INSPECTOR
                 DrawCustomCodeCheck();
+#endif
             }
 
             private void DrawComponent(Component component)
@@ -287,9 +217,11 @@ namespace Rhinox.Utilities.Odin.Editor
                 }
 
                 obj.ApplyModifiedProperties();
-
+#if ODIN_INSPECTOR
                 DrawCustomCodeCheck();
+#endif
             }
+#if ODIN_INSPECTOR
 
             private void DrawCustomCodeCheck()
             {
@@ -305,7 +237,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 else if (ShowCustomExpression)
                 {
                     if (ExpressionHasError)
-                        SirenixEditorGUI.ErrorMessageBox(_customExpressionError);
+                        EditorGUILayout.HelpBox(_customExpressionError, MessageType.Error);
 
                     using (new eUtility.HorizontalGroup())
                     {
@@ -341,6 +273,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
                 TriggerChanged();
             }
+#endif
 
             private static void DrawSerializedVariableCompareOptions(SerializedVariableData serializedVar)
             {

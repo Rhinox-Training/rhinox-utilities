@@ -2,11 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities.Editor;
-using Sirenix.Utilities.Editor.Expressions;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -18,11 +16,15 @@ namespace Rhinox.Utilities.Odin.Editor
     [Serializable]
     public class ComponentFilter : BaseAdvancedSearchSearchFilter
     {
-        [ShowInInspector, PropertyOrder(50), ShowIf("@_components.Any()")]
+        private bool _hasComponents => _components.Any();
+        
+        [ShowInInspector, PropertyOrder(50), ShowIf(nameof(_hasComponents))]
+        [HideLabel]
         private ComponentsContainer _components = new ComponentsContainer();
 
         private AddComponentWindowProxy _addComponentWindowProxy;
-        private GameObject dummyObj;
+        private GameObject _dummyObj;
+        private bool _addComponent;
 
         private const string FakeObjectName = "_advancedSceneSearchTempObjComponentSearch";
 
@@ -33,27 +35,27 @@ namespace Rhinox.Utilities.Odin.Editor
 
         public void InitFakeObj()
         {
-            if (dummyObj != null) return;
+            if (_dummyObj != null) return;
 
-            dummyObj = new GameObject(FakeObjectName);
+            _dummyObj = new GameObject(FakeObjectName);
 
             foreach (var typeSearchData in _components.Data)
             {
                 if (typeSearchData.Type == typeof(Transform)) continue; // just gives a info log otherwise, so just skip
-                dummyObj.AddComponent(typeSearchData.Type);
+                _dummyObj.AddComponent(typeSearchData.Type);
             }
 
             if (_components.Data.Count == 0)
                 _components.Add(typeof(Transform));
 
-            dummyObj.hideFlags = HideFlags.DontSave | HideFlags.HideInHierarchy;
-            _components.SetDummyObject(dummyObj);
+            _dummyObj.hideFlags = HideFlags.DontSave | HideFlags.HideInHierarchy;
+            _components.SetDummyObject(_dummyObj);
         }
 
         public void Terminate()
         {
-            if (dummyObj != null)
-                Object.DestroyImmediate(dummyObj);
+            if (_dummyObj != null)
+                Object.DestroyImmediate(_dummyObj);
         }
 
         public override void Reset()
@@ -62,12 +64,21 @@ namespace Rhinox.Utilities.Odin.Editor
             base.Reset();
         }
 
-        [Button(ButtonSizes.Medium)]
+        [OnInspectorGUI]
         public void AddComponent()
         {
-            if (_addComponentWindowProxy == null) _addComponentWindowProxy = new AddComponentWindowProxy();
-            var width = GUIHelper.CurrentWindow.position.width;
-            _addComponentWindowProxy.Show(AddComponents, new Rect(5, -15, width - 10, 76));
+            if (GUILayout.Button("Add Component"))
+                _addComponent = true;
+            if (_addComponent)
+            {
+                if (_addComponentWindowProxy == null) _addComponentWindowProxy = new AddComponentWindowProxy();
+                var rect = GUILayoutUtility.GetLastRect();
+                if (rect.IsValid())
+                {
+                    _addComponentWindowProxy.Show(AddComponents, rect);
+                    _addComponent = false;
+                }
+            }
         }
 
         public override void HandleDragged(Object draggedObject)
@@ -109,7 +120,7 @@ namespace Rhinox.Utilities.Odin.Editor
             InitFakeObj();
             if (type == typeof(Transform)) return; // just gives a info log otherwise, so just skip
 
-            dummyObj.AddComponent(type);
+            _dummyObj.AddComponent(type);
         }
 
         private void AddComponents(Component[] obj)
@@ -148,13 +159,7 @@ namespace Rhinox.Utilities.Odin.Editor
                     continue;
 
                 // if it's a monobehaviour, we can use the PropertyTree of Odin
-                if (comp is MonoBehaviour)
-                {
-                    if (OdinComponentMatch(comp, searchData))
-                        ++countMatching;
-                }
-                // otherwise, it is better not too due to implementations being in c++
-                else if (ComponentMatch(comp, searchData))
+                if (ComponentMatch(comp, searchData))
                     ++countMatching;
 
                 if (countMatching == 0) continue;
@@ -199,78 +204,12 @@ namespace Rhinox.Utilities.Odin.Editor
             foreach (var serializedVarData in searchData.SerializedVars)
             {
                 var property = serializedObject.FindProperty(serializedVarData.Name);
-                var dummyComponent = dummyObj.GetComponent(component.GetType());
+                var dummyComponent = _dummyObj.GetComponent(component.GetType());
                 var serializedDummyObject = new SerializedObject(dummyComponent);
                 var dummyProperty = serializedDummyObject.FindProperty(serializedVarData.Name);
 
                 if (!AreSerializedPropertiesEqualValue(property, dummyProperty, serializedVarData.Comparer))
                     return false;
-            }
-
-            return true;
-        }
-
-        private bool OdinComponentMatch(Component component, TypeSearchData searchData)
-        {
-            if (searchData.SerializedVars == null || searchData.SerializedVars.Count <= 0) return true;
-
-            var tree = PropertyTree.Create(component);
-
-            foreach (var serializedVarData in searchData.SerializedVars)
-            {
-                var property = tree.GetPropertyAtPath(serializedVarData.Name);
-                var dummyComponent = dummyObj.GetComponent(component.GetType());
-                var dummyTree = PropertyTree.Create(dummyComponent);
-                var dummyProperty = dummyTree.GetPropertyAtPath(serializedVarData.Name);
-
-                if (!AreInspectorPropertiesEqualValue(property.ValueEntry, dummyProperty.ValueEntry,
-                    serializedVarData.Comparer))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private bool AreInspectorPropertiesEqualValue(IPropertyValueEntry prop, IPropertyValueEntry dummyProp,
-            CompareMethod compareMethod)
-        {
-            // if not the same amount of -> false (Basically always false & count == 1?)
-            if (prop.WeakValues.Count != dummyProp.WeakValues.Count)
-                return false;
-
-            for (int i = 0; i < prop.WeakValues.Count; ++i)
-            {
-                var dummyValues = dummyProp.WeakValues;
-                var values = prop.WeakValues;
-
-                // try to get it as an enumerable (Lists, dictionaries, etc.)
-                var dummyValuesList = (dummyValues[i] as IEnumerable)?.Cast<object>();
-                if (dummyValuesList != null)
-                {
-                    // foreach value on the dummy (aka the search data), search if the scene prop contains it
-                    var valuesList = (values[i] as IEnumerable)?.Cast<object>();
-                    if (compareMethod.HasFlag(CompareMethod.Equals)
-                        && dummyValuesList.Count() != valuesList.Count())
-                        return false;
-
-                    foreach (var value in dummyValuesList)
-                    {
-                        if (!valuesList.Contains(value))
-                            return false;
-                    }
-                }
-                else
-                {
-                    if (compareMethod.HasFlag(CompareMethod.Equals) && values[i].Equals(dummyValues[i]))
-                        continue;
-
-                    // if above did not continue & compare method is only Equals -> false
-                    if (compareMethod == CompareMethod.Equals) return false;
-
-                    // assuming data is correct and value inherits from IComparable
-                    if (!CheckCompare(compareMethod, values[i], dummyValues[i]))
-                        return false;
-                }
             }
 
             return true;

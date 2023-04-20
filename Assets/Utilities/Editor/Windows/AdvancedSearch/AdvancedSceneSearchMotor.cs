@@ -17,19 +17,19 @@ namespace Rhinox.Utilities.Odin.Editor
             NameFilter, TagFilter, LayerFilter, ShaderFilter, ComponentFilter
         };
 
-        [LabelWidth(60), ShowIf("@IsActive(NameFilter)"), HideLabel]
+        [LabelWidth(60), ShowIf("$value.Enabled"), HideLabel]
         public NameFilter NameFilter;
 
-        [LabelWidth(60), ShowIf("@IsActive(TagFilter)"), HideLabel, HorizontalGroup("Masks")]
+        [LabelWidth(60), ShowIf("$value.Enabled"), HideLabel, HorizontalGroup("Masks")]
         public TagFilter TagFilter;
 
-        [LabelWidth(60), ShowIf("@IsActive(LayerFilter)"), HideLabel, HorizontalGroup("Masks")]
+        [LabelWidth(60), ShowIf("$value.Enabled"), HideLabel, HorizontalGroup("Masks")]
         public LayerFilter LayerFilter;
 
-        [LabelWidth(60), ShowIf("@IsActive(ShaderFilter)"), HideLabel]
+        [LabelWidth(60), ShowIf("$value.Enabled"), HideLabel]
         public ShaderFilter ShaderFilter;
-
-        [ShowIf("@IsActive(ComponentFilter)"), HideLabel]
+        
+        [ShowIf("$value.Enabled"), HideLabel]
         public ComponentFilter ComponentFilter;
 
         public ICollection<GameObject> Results;
@@ -98,35 +98,38 @@ namespace Rhinox.Utilities.Odin.Editor
 
         public void DrawInfo(bool includeDisabled, bool onlyInSelection)
         {
-            // only during layout can we change strings (without giving errors)
+            // only during layout can we change strings (and therefore layout), without giving errors
             if (Event.current.type == EventType.Layout)
-            {
-                // match info
-                if (Results != null)
-                    _matchesInfo = $"Matches found: {Results.Count}";
-
-                // search info
-                _searchInfo = $"You are searching for";
-                if (includeDisabled) _searchInfo += " enabled";
-                _searchInfo += " GameObjects";
-                if (onlyInSelection && Selection.gameObjects.Any()) _searchInfo += " within the currect selection";
-                _searchInfo += " with:";
-
-                // filter info
-                _filterInfo = string.Empty;
-                foreach (var filter in Filters)
-                {
-                    var info = filter.GetFilterInfo();
-                    if (string.IsNullOrWhiteSpace(info)) continue;
-
-                    if (!string.IsNullOrWhiteSpace(_filterInfo)) _filterInfo += Environment.NewLine;
-                    _filterInfo += info;
-                }
-            }
+                UpdateInfo(includeDisabled, onlyInSelection);
 
             GUILayout.Label(_matchesInfo, CustomGUIStyles.BoldLabelCentered);
             GUILayout.Label(_searchInfo, WrappedLabelStyle);
             GUILayout.Label(_filterInfo, WrappedLabelStyle);
+        }
+
+        private void UpdateInfo(bool includeDisabled, bool onlyInSelection)
+        {
+            // match info
+            if (Results != null)
+                _matchesInfo = $"Matches found: {Results.Count}";
+
+            // search info
+            _searchInfo = $"You are searching for";
+            if (!includeDisabled) _searchInfo += " enabled";
+            _searchInfo += " GameObjects";
+            if (onlyInSelection && Selection.gameObjects.Any()) _searchInfo += " within the currect selection";
+            _searchInfo += " with:";
+
+            // filter info
+            _filterInfo = string.Empty;
+            foreach (var filter in Filters)
+            {
+                var info = filter.GetFilterInfo();
+                if (string.IsNullOrWhiteSpace(info)) continue;
+
+                if (!string.IsNullOrWhiteSpace(_filterInfo)) _filterInfo += Environment.NewLine;
+                _filterInfo += info;
+            }
         }
 
         public void Update(ICollection<GameObject> objs)
