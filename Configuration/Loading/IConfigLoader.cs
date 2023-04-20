@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rhinox.Lightspeed;
 using Rhinox.Perceptor;
 
 namespace Rhinox.Utilities
@@ -51,7 +52,7 @@ namespace Rhinox.Utilities
             }
             catch (Exception e)
             {
-                PLog.Error($"Failed to load ini at: {path}. Reason = {e.ToString()}");
+                PLog.Error($"Failed to load ini at: {path}. Reason = {e}");
                 return false;
             }
 
@@ -74,7 +75,7 @@ namespace Rhinox.Utilities
                 var commandLineAttr = configField.GetCustomAttribute<ConfigCommandArgAttribute>();
                 if (commandLineAttr != null)
                 {
-                    if (Rhinox.Lightspeed.Utility.TryGetCommandLineArg(commandLineAttr.ArgumentKey, out string argValue))
+                    if (Utility.TryGetCommandLineArg(out string argValue, commandLineAttr.ArgumentKey))
                     {
                         TrySetValue(configFile, configField, argValue);
                         continue;
