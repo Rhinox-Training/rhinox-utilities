@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,12 +19,10 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         private AdvancedSceneSearchMotor _motor;
 
-        private float _menuTreeWidth;
         private float _overviewHeight;
 
         private bool _overviewToggle;
 
-        private readonly List<ResizableColumn> _columns;
         private CustomMenuTree _menuTree;
 
         private static readonly TimeSpan _maxTimeBetweenClicks = TimeSpan.FromSeconds(.5f);
@@ -37,19 +33,14 @@ namespace Rhinox.Utilities.Odin.Editor
         private readonly List<UnityEditor.Editor> _selectedObjectEditors = new List<UnityEditor.Editor>();
         private Vector2 _selectedObjectScrollPosition;
 
+        private const float OverViewHeight = 300;
+
         public AdvancedSceneSearchResults(AdvancedSceneSearchMotor motor)
         {
             _motor = motor;
 
             _overviewToggle = true;
-            _menuTreeWidth = 200;
-            _overviewHeight = 300;
-
-            _columns = new List<ResizableColumn>
-            {
-                ResizableColumn.FlexibleColumn(_menuTreeWidth, 80),
-                ResizableColumn.DynamicColumn(0, 200)
-            };
+            _overviewHeight = OverViewHeight;
 
             BuildTree();
 
@@ -58,13 +49,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private void BuildTree()
         {
-            _menuTree = new CustomMenuTree(new OdinMenuTree
-            {
-                Config =
-                {
-                    DrawSearchToolbar = true, AutoHandleKeyboardNavigation = true, UseCachedExpandedStates = false
-                }
-            });
+            _menuTree = new CustomMenuTree();
 
             foreach (var item in _motor.Results)
                 // can't have slashes as it will add depth to the tree
@@ -110,46 +95,32 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (Event.current.type == EventType.Repaint && Input.GetMouseButtonDown(0))
                 HandleMouseClick();
-
-            _menuTreeWidth = _columns[0].ColWidth;
-
+            
             // Bottom Slide Toggle Bits:
             var overviewSlideRect = new Rect();
             var toggleOverviewBtnRect = new Rect();
 
             // Menu editor
-            Rect topRect;
             using (new eUtility.HorizontalGroup(GUILayout.ExpandHeight(true)))
             {
-                topRect = GUIHelper.GetCurrentLayoutRect();
-                GUITableUtilities.ResizeColumns(topRect, this._columns);
-
                 // Bottom Slide Toggle Bits:
                 // The bottom slide-rect toggle needs to be drawn above, but is placed below.
-                overviewSlideRect = topRect.AddY(4).AlignBottom(4);
+                overviewSlideRect = new Rect(); // topRect.AddY(4).AlignBottom(4);
                 overviewSlideRect.width += 4;
                 toggleOverviewBtnRect = overviewSlideRect.AlignBottom(14).AlignCenter(100);
                 EditorGUIUtility.AddCursorRect(toggleOverviewBtnRect, MouseCursor.Arrow);
-                if (SirenixEditorGUI.IconButton(toggleOverviewBtnRect.AddY(-2),
-                    this._overviewToggle ? EditorIcons.TriangleDown : EditorIcons.TriangleUp))
+                if (CustomEditorGUI.IconButton(toggleOverviewBtnRect.AddY(-2),
+                    this._overviewToggle ? UnityIcon.InternalIcon("d_scrolldown@2x") : UnityIcon.InternalIcon("d_scrollup@2x")))
                 {
                     this._overviewToggle = !this._overviewToggle;
                 }
 
-                if (this._overviewToggle)
-                {
-                    this._overviewHeight -= SirenixEditorGUI
-                        .SlideRect(overviewSlideRect.SetXMax(toggleOverviewBtnRect.xMin), MouseCursor.SplitResizeUpDown)
-                        .y;
-                    this._overviewHeight -= SirenixEditorGUI
-                        .SlideRect(overviewSlideRect.SetXMin(toggleOverviewBtnRect.xMax), MouseCursor.SplitResizeUpDown)
-                        .y;
-                }
+                _overviewHeight = _overviewToggle ? OverViewHeight : 20;
 
                 // Left menu tree
-                GUILayout.BeginVertical(GUILayoutOptions.Width(this._columns[0].ColWidth).ExpandHeight());
+                GUILayout.BeginVertical(/*GUILayout.Width(this._columns[0].ColWidth), */GUILayout.ExpandHeight(true));
                 {
-                    EditorGUI.DrawRect(GUIHelper.GetCurrentLayoutRect(), SirenixGUIStyles.EditorWindowBackgroundColor);
+                    // EditorGUI.DrawRect(GUIHelper.GetCurrentLayoutRect(), CustomGUIStyles.BoxBackgroundColor);
                     _menuTree.Draw();
                 }
                 GUILayout.EndVertical();
@@ -161,7 +132,6 @@ namespace Rhinox.Utilities.Odin.Editor
                     DrawSelectedObject();
                 }
                 GUILayout.EndVertical();
-                GUITableUtilities.DrawColumnHeaderSeperators(topRect, this._columns, SirenixGUIStyles.BorderColor);
             }
 
             // Bottom Slide Toggle Bits:
@@ -170,10 +140,10 @@ namespace Rhinox.Utilities.Odin.Editor
                 GUILayoutUtility.GetRect(0, 4); // Slide Area.
             }
 
-            EditorGUI.DrawRect(overviewSlideRect, SirenixGUIStyles.BorderColor);
-            EditorGUI.DrawRect(RectExtensions.AddY(toggleOverviewBtnRect, -overviewSlideRect.height), SirenixGUIStyles.BorderColor);
-            SirenixEditorGUI.IconButton(RectExtensions.AddY(toggleOverviewBtnRect, -2),
-                this._overviewToggle ? EditorIcons.TriangleDown : EditorIcons.TriangleUp);
+            EditorGUI.DrawRect(overviewSlideRect, CustomGUIStyles.BorderColor);
+            EditorGUI.DrawRect(toggleOverviewBtnRect.AddY(-overviewSlideRect.height), CustomGUIStyles.BorderColor);
+            CustomEditorGUI.IconButton(toggleOverviewBtnRect.AddY(-2),
+                this._overviewToggle ? UnityIcon.InternalIcon("d_scrolldown@2x") : UnityIcon.InternalIcon("d_scrollup@2x"));
 
             // Overview
             DrawOverview(overviewSlideRect);
@@ -183,21 +153,21 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (!this._overviewToggle) return;
 
-            GUILayout.BeginVertical(GUILayout.Height(this._overviewHeight));
-            {
-                // this.overview.DrawOverview();
-            }
-            GUILayout.EndVertical();
+            // GUILayout.BeginVertical(GUILayout.Height(this._overviewHeight));
+            // {
+            //     // this.overview.DrawOverview();
+            // }
+            // GUILayout.EndVertical();
 
             if (Event.current.type != EventType.Repaint) return;
 
             this._overviewHeight = Mathf.Max(50f, this._overviewHeight);
-            var wnd = GUIHelper.CurrentWindow;
-            if (wnd)
-            {
-                var height = wnd.position.height - overviewSlideRect.yMax;
-                this._overviewHeight = Mathf.Min(this._overviewHeight, height);
-            }
+            // var wnd = GUIHelper.CurrentWindow;
+            // if (wnd)
+            // {
+            //     var height = wnd.position.height - overviewSlideRect.yMax;
+            //     this._overviewHeight = Mathf.Min(this._overviewHeight, height);
+            // }
         }
 
         private void DrawSelectedObject()
@@ -205,20 +175,20 @@ namespace Rhinox.Utilities.Odin.Editor
             _selectedObjectScrollPosition = GUILayout.BeginScrollView(_selectedObjectScrollPosition);
             foreach (var e in _selectedObjectEditors)
             {
-                SirenixEditorGUI.HorizontalLineSeparator(SirenixGUIStyles.BorderColor);
+                CustomEditorGUI.HorizontalLine(CustomGUIStyles.BorderColor);
                 using (var g = new eUtility.HorizontalGroup(false,
-                    new GUIStyle { padding = new RectOffset(5, 5, 0, 0) }, GUILayoutOptions.Height(18)))
+                    new GUIStyle { padding = new RectOffset(5, 5, 0, 0) }, GUILayout.Height(18)))
                 {
-                    SirenixEditorGUI.DrawSolidRect(g.Rect, SirenixGUIStyles.BoxBackgroundColor);
+                    EditorGUI.DrawRect(g.Rect, CustomGUIStyles.BoxBackgroundColor);
                     var type = e.target.GetType();
                     var img = EditorGUIUtility.ObjectContent(e.target, type).image;
 
-                    GUILayout.Box(img, GUIStyle.none, GUILayoutOptions.Height(18).ExpandWidth(false));
+                    GUILayout.Box(img, GUIStyle.none, GUILayout.Height(18), GUILayout.ExpandWidth(false));
 
-                    GUILayout.Label(type.GetNiceName(), SirenixGUIStyles.BoldLabelCentered);
+                    GUILayout.Label(type.Name.SplitCamelCase(), CustomGUIStyles.BoldLabelCentered);
                 }
 
-                SirenixEditorGUI.HorizontalLineSeparator(SirenixGUIStyles.BorderColor, 2);
+                CustomEditorGUI.HorizontalLine(CustomGUIStyles.BorderColor, 2);
 
                 GUILayout.Space(1);
                 e.OnInspectorGUI();
@@ -257,14 +227,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private void DrawTopBarButtons()
         {
-            var rect = RectExtensions.AlignRight(GUIHelper.GetCurrentLayoutRect(), 150);
-
-            rect.x -= 5;
-            rect.y -= 26;
-            rect.height = 18;
-
-
-            if (GUI.Button(rect, "Select All"))
+            if (GUILayout.Button("Select All", GUILayout.Width(150), GUILayout.Height(18)))
                 Selection.objects = _motor.Results.ToArray();
         }
 

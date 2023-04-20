@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -22,7 +22,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public));
 
 
-        [ShowInInspector, CustomValueDrawer(nameof(DrawShaderOptions)), InlineButton(nameof(Reset), "X")]
+        [ShowInInspector, ValueDropdown(nameof(GetShaderOptions)), InlineButton(nameof(Reset), "X")]
         [DisableContextMenu, OnValueChanged(nameof(TriggerChanged))]
         private string _shader = string.Empty;
 
@@ -35,16 +35,16 @@ namespace Rhinox.Utilities.Odin.Editor
         {
         }
 
-        private string DrawShaderOptions(string value, GUIContent label)
+        private IEnumerable<string> GetShaderOptions()
         {
-            var options = ShaderUtil.GetAllShaderInfo()
-                .Where(x => !x.name.ToLower().StartsWith("hidden"))
-                .Select(x => x.name)
-                .ToList();
-
-            options.Insert(0, MissingShader);
-
-            return SirenixEditorFields.Dropdown(label, _shader, options);
+            yield return MissingShader;
+            
+            foreach (var info in ShaderUtil.GetAllShaderInfo())
+            {
+                if (info.name.ToLower().StartsWith("hidden"))
+                    continue;
+                yield return info.name;
+            }
         }
 
         public override void Reset()

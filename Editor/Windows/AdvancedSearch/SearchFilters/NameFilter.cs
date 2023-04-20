@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Rhinox.GUIUtils;
+using Rhinox.GUIUtils.Editor;
 using Sirenix.OdinInspector;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,7 +14,7 @@ namespace Rhinox.Utilities.Odin.Editor
     [Serializable]
     public class NameFilter : BaseAdvancedSearchSearchFilter
     {
-        [ShowInInspector, CustomValueDrawer(nameof(DrawName)), HorizontalGroup] [OnValueChanged(nameof(TriggerChanged))]
+        [ShowInInspector, CustomValueDrawer(nameof(DrawName)), HorizontalGroup, OnValueChanged(nameof(TriggerChanged))]
         private string _name;
 
         private SettingData CaseSensitive;
@@ -25,6 +25,8 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private bool _reselectInput; // Do we need to reselect the search box?
 
+        private string _searchControlName;
+        
         public NameFilter() : base("Name")
         {
             CaseSensitive = new SettingData("Match Case", "case_sens", false, icon: "FontCase");
@@ -34,43 +36,38 @@ namespace Rhinox.Utilities.Odin.Editor
             CaseSensitive.Changed += TriggerChanged;
             MatchWholeWord.Changed += TriggerChanged;
             UseRegex.Changed += TriggerChanged;
-        }
 
-        [OnInspectorGUI, HorizontalGroup(width: 60)]
-        private void DrawSettings()
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                CaseSensitive.Draw();
-                MatchWholeWord.Draw();
-                UseRegex.Draw();
-            }
+            _searchControlName = new Guid().ToString();
         }
 
         private string DrawName(string value, GUIContent label)
         {
-            using (new EditorGUILayout.HorizontalScope())
+            EditorGUILayout.BeginHorizontal(CustomGUIStyles.Clean);
+            
+            GUI.SetNextControlName(_searchControlName);
+
+            value = EditorGUILayout.TextField(label, value, CustomGUIStyles.ToolbarSearchTextField);
+
+            if (_reselectInput)
             {
-                GUI.SetNextControlName("nameSearchy");
-
-                _name = EditorGUILayout.TextField(label, _name, SirenixGUIStyles.ToolbarSearchTextField);
-
-                if (_reselectInput)
-                {
-                    GUI.FocusControl("nameSearchy");
-                    _reselectInput = false;
-                }
-
-                if (GUILayout.Button("X", SirenixGUIStyles.ToolbarSearchCancelButton, GUILayout.Width(20f)))
-                {
-                    GUI.FocusControl("nameSearchy");
-                    _name = "";
-                    _reselectInput = true;
-                    GUIUtility.keyboardControl = 0;
-                }
+                GUI.FocusControl(_searchControlName);
+                _reselectInput = false;
             }
 
-            return _name;
+            if (CustomEditorGUI.IconButton(UnityIcon.AssetIcon("Fa_Times"), 20))
+            {
+                GUI.FocusControl(_searchControlName);
+                value = "";
+                _reselectInput = true;
+                GUIUtility.keyboardControl = 0;
+            }
+
+            CaseSensitive.Draw();
+            MatchWholeWord.Draw();
+            UseRegex.Draw();
+            
+            EditorGUILayout.EndHorizontal();
+            return value;
         }
 
         public override void HandleDragged(Object draggedObject)

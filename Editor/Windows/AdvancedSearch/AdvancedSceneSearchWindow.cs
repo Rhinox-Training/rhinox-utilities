@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using Rhinox.GUIUtils.Editor;
-using Rhinox.GUIUtils.Odin.Editor;
 using Rhinox.Utilities.Editor;
 
 namespace Rhinox.Utilities.Odin.Editor

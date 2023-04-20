@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rhinox.GUIUtils.Attributes;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
@@ -12,8 +13,8 @@ namespace Rhinox.Utilities.Odin.Editor
     [Serializable]
     public class TagFilter : BaseAdvancedSearchSearchFilter
     {
-        [ShowInInspector, LabelText("Tags"), CustomValueDrawer(nameof(DrawTagMask))]
-        [OnValueChanged(nameof(TriggerChanged))]
+        [ShowInInspector, LabelText("Tags"), TagSelector]
+        [CustomValueDrawer(nameof(DrawTagMask)), OnValueChanged(nameof(TriggerChanged))]
         private int _tagMask = ~0;
 
         private List<string> _tags = new List<string>();
