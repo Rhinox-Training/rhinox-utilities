@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
@@ -178,7 +179,9 @@ namespace Rhinox.Utilities.Editor
                     boundsByObj.Remove(obj);
             }
 
-            var targetValues = boundsByObj.Values.Select(x => GetBoundsTargetValue(x, target, axis));
+            var targetValues = boundsByObj.Values.Select(x => GetBoundsTargetValue(x, target, axis)).ToArray();
+            if (targetValues.Length == 0)
+                return;
             float targetValue = GetTargetValue(targetValues, target);
 
             foreach (var (obj, bounds) in boundsByObj)

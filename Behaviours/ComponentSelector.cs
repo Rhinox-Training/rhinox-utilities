@@ -21,6 +21,9 @@ namespace Rhinox.Utilities
             bool? result = null;
             foreach (var o in Objects)
             {
+                if (o == null)
+                    continue;
+                
                 if (result == null) // First item, just adapt to it
                     result = o.activeSelf;
                 else // Inconsistencies in the set
