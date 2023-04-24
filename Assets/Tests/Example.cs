@@ -11,8 +11,7 @@ public class GenericList : ToggleableList<GameObject>
 {
     
 }
-    
-    
+
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
@@ -21,9 +20,9 @@ public class Example : MonoBehaviour
     [Serializable]
     public class StringWithOptions
     {
-        [HideLabel, ValueDropdown("$parent.Options")]
+        [HideLabel, ValueDropdown("$parent.parent.Options")]
         public string IGotOptions;
-        [ValueDropdown("$parent.Options")]
+        [ValueDropdown("$parent.parent.Options")]
         public string WithLabel;
     }
 
