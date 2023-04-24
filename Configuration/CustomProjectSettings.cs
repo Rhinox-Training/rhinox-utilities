@@ -89,7 +89,7 @@ namespace Rhinox.Utilities
     {
         protected static string SettingsFileName => $"{typeof(T).Name}";
 
-        public static bool IsEditorOnly => SettingsAttribute.RuntimeSupported;
+        public static bool IsEditorOnly => SettingsAttribute == null || !SettingsAttribute.RuntimeSupported;
 
         private static CustomProjectSettingsAttribute _settingsAttribute;
         protected static CustomProjectSettingsAttribute SettingsAttribute
