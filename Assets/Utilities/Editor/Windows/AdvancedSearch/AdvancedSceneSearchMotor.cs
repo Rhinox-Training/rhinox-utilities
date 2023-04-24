@@ -32,7 +32,7 @@ namespace Rhinox.Utilities.Odin.Editor
         [ShowIf("$value.Enabled"), HideLabel]
         public ComponentFilter ComponentFilter;
 
-        public ICollection<GameObject> Results;
+        public ICollection<GameObject> Results { get; private set; }
         private string _matchesInfo;
         private string _searchInfo;
         private string _filterInfo;

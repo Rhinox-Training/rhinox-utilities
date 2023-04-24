@@ -83,10 +83,10 @@ namespace Rhinox.Utilities.Odin.Editor
             [HorizontalGroup, CustomValueDrawer(nameof(DrawType))]
             public readonly SerializableType Type;
 
-            [HorizontalGroup, CustomValueDrawer(nameof(DrawAmount)), OnValueChanged(nameof(TriggerChanged))]
+            [HorizontalGroup(width: 50), CustomValueDrawer(nameof(DrawAmount)), OnValueChanged(nameof(TriggerChanged))]
             public int Amount;
 
-            [HorizontalGroup, CustomValueDrawer(nameof(DrawExpanded)), HideLabel]
+            [HorizontalGroup(width: 22), CustomValueDrawer(nameof(DrawExpanded)), HideLabel]
             public bool Expanded;
 
             public List<SerializedVariableData> SerializedVars { get; }
