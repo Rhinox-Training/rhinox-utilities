@@ -1,9 +1,8 @@
-﻿#if ODIN_INSPECTOR
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Sirenix.Utilities;
+using Rhinox.Lightspeed.Reflection;
 using UnityEngine;
 
 namespace Rhinox.Utilities
@@ -36,15 +35,15 @@ namespace Rhinox.Utilities
             if (o == null) return;
 
             Debug.Log(o);
-            var fields = o.GetType().GetMembers(Flags.AllMembers);
+            var fields = o.GetType().GetMembers(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
             foreach (var member in fields)
             {
                 if (member is MethodBase) continue;
 
                 if (member.IsStatic())
-                    Debug.Log($"\t[STATIC] {member.Name} = {member.GetMemberValue(null)}");
+                    Debug.Log($"\t[STATIC] {member.Name} = {member.GetValue(null)}");
                 else
-                    Debug.Log($"\t{member.Name} = {member.GetMemberValue(o)}");
+                    Debug.Log($"\t{member.Name} = {member.GetValue(o)}");
             }
         }
 
@@ -53,14 +52,13 @@ namespace Rhinox.Utilities
             if (type == null) return;
 
             Debug.Log(type.AssemblyQualifiedName);
-            var fields = type.GetMembers(Flags.StaticAnyVisibility);
+            var fields = type.GetMembers(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var member in fields)
             {
                 if (member is MethodInfo) continue;
 
-                Debug.Log($"\t[STATIC] {member.Name} = {member.GetMemberValue(null)}");
+                Debug.Log($"\t[STATIC] {member.Name} = {member.GetValue(null)}");
             }
         }
     }
 }
-#endif

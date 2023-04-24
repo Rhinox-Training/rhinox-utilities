@@ -2,12 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.GUIUtils.Editor.Helpers;
 using Rhinox.Lightspeed;
-using Rhinox.GUIUtils.Odin.Editor;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,17 +20,16 @@ namespace Rhinox.Utilities.Odin.Editor
         public class MotorWrapper
         {
             public AdvancedSceneSearchMotor Motor;
+            private DrawablePropertyView _view;
 
             public Rect Rect { get; set; }
-
-            public PropertyTree _tree;
-
+            
             private readonly Func<ICollection<GameObject>> InitialObjectsFetcher;
 
             private static GUIStyle _dropZoneStyle;
 
             public static GUIStyle DropZoneStyle => _dropZoneStyle ?? (_dropZoneStyle =
-                new GUIStyle(SirenixGUIStyles.BoxContainer)
+                new GUIStyle(CustomGUIStyles.Box)
                 {
                     fontSize = 24,
                     alignment = TextAnchor.MiddleCenter
@@ -48,7 +45,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
                 InitialObjectsFetcher = objFetcher;
 
-                _tree = PropertyTree.Create(Motor);
+                _view = new DrawablePropertyView(Motor);
             }
 
             private void OnMotorChanged(AdvancedSceneSearchMotor obj)
@@ -58,9 +55,8 @@ namespace Rhinox.Utilities.Odin.Editor
 
             public void Draw()
             {
-                using (
-                    new eUtility.VerticalGroup()) // this group is so the entire tree is wrapped in a rect for GetLastRect
-                    _tree?.Draw(false);
+                using (new eUtility.VerticalGroup()) // this group is so the entire tree is wrapped in a rect for GetLastRect
+                    _view?.Draw();
 
                 var rect = GUILayoutUtility.GetLastRect();
                 var e = Event.current;
@@ -98,8 +94,8 @@ namespace Rhinox.Utilities.Odin.Editor
 
             public void HandleDraw(Action draw, Action onClick, Action<Rect> postDraw = null)
             {
-                if (Event.current.type == EventType.Layout)
-                    ShowInfo = GUIHelper.ContextWidth >= 400;
+                // if (Event.current.type == EventType.Layout)
+                //     ShowInfo = GUIHelper.ContextWidth >= 400;
 
                 eUtility.Card(draw, onClick,
                     (r) =>
@@ -170,7 +166,7 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 GUILayout.FlexibleSpace();
 
-                if (SirenixEditorGUI.IconButton(EditorIcons.Plus, SirenixGUIStyles.None))
+                if (CustomEditorGUI.IconButton(UnityIcon.AssetIcon("Fa_Plus"), CustomGUIStyles.Clean))
                     _motorWrappers.Add(new MotorWrapper(GetInitialGameObjects));
 
                 GUILayout.FlexibleSpace();
@@ -188,23 +184,15 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (_motorWrappers.Count <= 1) return; // no need to draw remove btn if only 1 filter
 
-            var rect = r.AlignRight(18).AlignTop(18);
+            var rect = r.AlignRight(18).AlignTop(16);
 
-            if (CustomEditorGUI.IconButton(rect, EditorIcons.X.Raw))
+            if (CustomEditorGUI.IconButton(rect, UnityIcon.AssetIcon("Fa_Times")))
                 _removedWrappers.Add(wrapper);
         }
 
         protected override int CalculateTopWidth()
         {
-            // not sure why but if type check is not present, sometimes errors
-            if (GUIHelper.ContextWidth <= 180)
-            {
-                if (Event.current.type == EventType.Repaint)
-                    return 0;
-                return _topWidth;
-            }
-
-            const int width = 18 + 4 + 18 + 5 + 18 + 5; // icons & padding / space
+            const int width = 20 + 8 + 20 + 5 + 20 + 5; // icons & padding / space
             return width;
         }
 
@@ -214,10 +202,10 @@ namespace Rhinox.Utilities.Odin.Editor
             _includeDisabled.Draw();
 
             GUILayout.Space(5);
-            SirenixEditorGUI.VerticalLineSeparator(Color.grey);
+            CustomEditorGUI.VerticalLine(Color.grey);
             GUILayout.Space(5);
 
-            if (CustomEditorGUI.IconButton(EditorIcons.Refresh.Raw, 16, 16, tooltip: "Reset"))
+            if (CustomEditorGUI.IconButton(UnityIcon.AssetIcon("Fa_Redo"), CustomGUIStyles.Label, 20, 16, tooltip: "Reset")) 
                 Reset();
         }
 

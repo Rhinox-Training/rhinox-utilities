@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rhinox.Lightspeed;
 using Rhinox.Perceptor;
 
 namespace Rhinox.Utilities
@@ -51,7 +52,7 @@ namespace Rhinox.Utilities
             }
             catch (Exception e)
             {
-                PLog.Error($"Failed to load ini at: {path}. Reason = {e.ToString()}");
+                PLog.Error($"Failed to load ini at: {path}. Reason = {e}");
                 return false;
             }
 
@@ -70,33 +71,49 @@ namespace Rhinox.Utilities
             var fields = configFile.FindFields();
             foreach (var configField in fields)
             {
-                // FieldInfo field = configField.Field;
+                // Handle command line args
+                var commandLineAttr = configField.GetCustomAttribute<ConfigCommandArgAttribute>();
+                if (commandLineAttr != null)
+                {
+                    if (Utility.TryGetCommandLineArg(out string argValue, commandLineAttr.ArgumentKey))
+                    {
+                        TrySetValue(configFile, configField, argValue);
+                        continue;
+                    }
+                }
+                
+                // If no command line arg found
                 if (FindSetting(configField, out string settingsVal))
                 {
-                    if (ValidateField(configField, settingsVal, out object value))
-                    {
-                        configField.SetValue(configFile, value);
-                        PLog.Debug<UtilityLogger>($"Setting {configField.Name} loaded: {settingsVal}");
-                    }
-                    else
-                        PLog.Error<UtilityLogger>($"No load INI support for {configField.Type.FullName} with value '{settingsVal}'");
+                    TrySetValue(configFile, configField, settingsVal);
                 }
-                else
+                else if (SupportsDynamicGroups && configField.Type == typeof(DynamicConfigFieldEntry[]))
                 {
-                    if (!SupportsDynamicGroups || configField.Type != typeof(DynamicConfigFieldEntry[]))
-                        continue;
                     if (!FindGroupSetting(configField, out var dynamicFields))
                         continue;
                     
                     configField.SetValue(configFile, dynamicFields.ToArray());
                     PLog.Debug<UtilityLogger>($"Dynamic Group Setting {configField.Name} loaded: group of size {dynamicFields.Length}");
                 }
+                
             }
+        }
+
+        private void TrySetValue(ILoadableConfigFile configFile, IConfigField configField, string settingsVal)
+        {
+            if (ValidateField(configField, settingsVal, out object value))
+            {
+                configField.SetValue(configFile, value);
+                PLog.Debug<UtilityLogger>($"Setting {configField.Name} loaded: {settingsVal}");
+            }
+            else
+                PLog.Error<UtilityLogger>($"No load support for {configField.Type.FullName} with value '{settingsVal}'");
         }
 
         protected virtual bool FindGroupSetting(IConfigField configField, out DynamicConfigFieldEntry[] fields)
         {
-            throw new NotImplementedException();
+            fields = Array.Empty<DynamicConfigFieldEntry>();
+            return false;
         }
 
         protected abstract bool FindSetting(IConfigField configField, out string value);
