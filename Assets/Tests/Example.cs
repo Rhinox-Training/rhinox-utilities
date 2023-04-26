@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Rhinox.GUIUtils.Attributes;
+using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Collections;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -14,6 +15,7 @@ public class GenericList : ToggleableList<GameObject>
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
+    public SerializableType Type;
     public readonly string[] Options = new[] { "One", "Two", "FortyTwo" };
 
     [Serializable]
@@ -27,7 +29,7 @@ public class Example : MonoBehaviour
 
     public List<StringWithOptions> ListOfOptions;
 
-    // Rotate a button 10 degrees clockwise when presed.
+    // Rotate a button 10 degrees clockwise when pressed.
 
     float rotAngle = 0;
     Vector2 pivotPoint;

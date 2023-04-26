@@ -5,10 +5,11 @@ using UnityEngine;
 
 namespace Rhinox.Utilities
 {
-    [Serializable]
+    [Serializable, HideLabel]
     public struct BetterEvent
     {
         [HideReferenceObjectPicker, ListDrawerSettings(CustomAddFunction = "GetDefaultBetterEvent", OnTitleBarGUI = "DrawInvokeButton")]
+        [LabelText("$property.Parent.NiceName")]
         public List<BetterEventEntry> Events;
 
         public BetterEvent(params BetterEventEntry[] entries)

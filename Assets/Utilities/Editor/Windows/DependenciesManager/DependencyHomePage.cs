@@ -68,11 +68,14 @@ namespace Rhinox.Utilities.Editor
                 Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
         }
 
-        [Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.8f, .4f, .6f)]
-        public void Clear()
+        [Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.4f, .8f, .6f)]
+        public void AddSelection()
         {
-            Objects.Clear();
-            _mainWindow.Clear();
+            foreach (var obj in Selection.objects)
+            {
+                var path = AssetDatabase.GetAssetPath(obj);
+                Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
+            }
         }
 
         [Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.4f, .8f, .6f)]
@@ -81,6 +84,13 @@ namespace Rhinox.Utilities.Editor
             var paths = _mainWindow.AssetManager.GetAssetsPaths("");
             foreach (var path in paths)
                 Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
+        }
+        
+        [Button(ButtonSizes.Small), GUIColor(.8f, .4f, .6f)]
+        public void Clear()
+        {
+            Objects.Clear();
+            _mainWindow.Clear();
         }
     }
 }

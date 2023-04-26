@@ -84,12 +84,12 @@ namespace Rhinox.Utilities.Editor
         }
     }
     
-    public class TexturePackerWindow : EditorWindow
+    public class TexturePackerWindow : EditorWindow, IRepaintRequest
     {
         private TexturePackerRoot _root = new TexturePackerRoot();
         
         private SmartPropertyView _propertyView;
-
+        
         /// ================================================================================================================
         /// METHODS
         [MenuItem(WindowHelper.ToolsPrefix + "Texture Packer", false, 202)]
@@ -108,10 +108,17 @@ namespace Rhinox.Utilities.Editor
         private void OnGUI()
         {
             if (_propertyView == null)
+            {
                 _propertyView = new SmartPropertyView(_root);
+                // _propertyView.RepaintRequested += RequestRepaint;
+            }
+            
             _propertyView.DrawLayout();
-            if (_propertyView.ShouldRepaint)
-                Repaint();
+        }
+
+        public void RequestRepaint()
+        {
+            Repaint();
         }
     }
 }
