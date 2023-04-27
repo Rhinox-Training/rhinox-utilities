@@ -6,7 +6,7 @@ using Rhinox.Lightspeed;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Unity.Helpers
+namespace Rhinox.Utilities
 {
     public class ApiHelper
     {
@@ -54,25 +54,10 @@ namespace Unity.Helpers
             {
                 // Request and wait for the desired page.
                 var op = request.SendWebRequest();
-                while (!op.isDone)
-                {
-                }
+                while (!op.isDone) { }
 
                 return FromJsonResult<T>(request);
             }
-        }
-
-        public async Task<TResult> Post<TResult>(string path, object o)
-        {
-            var json = JsonConvert.SerializeObject(o);
-            var result = await Post<TResult>(path, json);
-            return result;
-        }
-
-        public async Task Post(string path, object o, WebRequestAction handleRequest = null)
-        {
-            var json = JsonConvert.SerializeObject(o);
-            await Post(path, json, handleRequest);
         }
 
         public async Task Post(string path, string json, WebRequestAction handleRequest = null)
@@ -92,6 +77,10 @@ namespace Unity.Helpers
                     handleRequest?.Invoke(request);
             }
         }
+        
+        
+        public async Task Post(string path, object o, WebRequestAction handleRequest = null)
+            => await Post(path, ToJson(o), handleRequest);
 
         public async Task<T> Post<T>(string path, string json)
         {
@@ -110,11 +99,8 @@ namespace Unity.Helpers
             }
         }
 
-        public TResult PostSync<TResult>(string path, object o)
-        {
-            var json = JsonConvert.SerializeObject(o);
-            return PostSync<TResult>(path, json);
-        }
+        public async Task<TResult> Post<TResult>(string path, object o)
+            => await Post<TResult>(path, ToJson(o));
 
         public TResult PostSync<TResult>(string path, string json)
         {
@@ -133,9 +119,13 @@ namespace Unity.Helpers
                 return FromJsonResult<TResult>(request);
             }
         }
-
+        
+        public TResult PostSync<TResult>(string path, object o)
+            => PostSync<TResult>(path, ToJson(o));
+        
         private static bool HandleResult(UnityWebRequest request)
         {
+#if UNITY_2020_1_OR_NEWER
             switch (request.result)
             {
                 case UnityWebRequest.Result.ConnectionError:
@@ -149,8 +139,30 @@ namespace Unity.Helpers
                     // Debug.Log(uri + ":\nReceived: " + request.downloadHandler.text);
                     return true;
             }
-
             throw new NotImplementedException($"Unknown result type: {request.result}");
+#endif
+            if (request.isHttpError)
+            {
+                Debug.LogError(request.uri + ": HTTP Error: " + request.error);
+                return false;
+            }
+            else if (request.isNetworkError)
+            {
+                Debug.LogError(request.uri + ": Error: " + request.error);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        private string ToJson<T>(T o)
+        {
+            // Include Newtonsoft json to support anonymous objects
+#if NEWTONSOFT
+            return JsonConvert.SerializeObject(o);
+#else
+            return JsonUtility.ToJson(o);
+#endif
         }
 
         private static T FromJsonResult<T>(UnityWebRequest request)
