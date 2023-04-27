@@ -83,7 +83,7 @@ namespace Rhinox.Utilities.Odin.Editor
             [HorizontalGroup, CustomValueDrawer(nameof(DrawType))]
             public readonly SerializableType Type;
 
-            [HorizontalGroup(width: 50), CustomValueDrawer(nameof(DrawAmount)), OnValueChanged(nameof(TriggerChanged))]
+            [HorizontalGroup(width: 100), CustomValueDrawer(nameof(DrawAmount)), OnValueChanged(nameof(TriggerChanged))]
             public int Amount;
 
             [HorizontalGroup(width: 22), CustomValueDrawer(nameof(DrawExpanded)), HideLabel]
@@ -132,7 +132,7 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 if (value >= 0)
                 {
-                    EditorGUIUtility.labelWidth = 60;
+                    EditorGUIUtility.labelWidth = 55;
                     return EditorGUILayout.IntField(label, value, GUILayout.ExpandWidth(false));
                 }
 

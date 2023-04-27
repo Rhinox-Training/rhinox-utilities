@@ -156,6 +156,7 @@ namespace Rhinox.Utilities.Editor
             var target = (UnityIcon)GetTargets().ElementAt(index);
 
             var propertyDrawer = new DrawablePropertyView(target);
+            propertyDrawer.RepaintRequested += Repaint;
             propertyDrawer.DrawLayout();
         }
 #endif

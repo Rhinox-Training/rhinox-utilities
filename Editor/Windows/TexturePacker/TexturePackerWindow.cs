@@ -62,7 +62,7 @@ namespace Rhinox.Utilities.Editor
                     break;
                 
                 default:
-                    EditorUtility.DisplayDialog("Cannot compute...", string.Format("The fileformat '{0}'", format), "OK");
+                    EditorUtility.DisplayDialog("Cannot compute...", $"The fileformat '{format}'", "OK");
                     break;
             }
 
@@ -84,7 +84,7 @@ namespace Rhinox.Utilities.Editor
         }
     }
     
-    public class TexturePackerWindow : EditorWindow, IRepaintRequest
+    public class TexturePackerWindow : EditorWindow
     {
         private TexturePackerRoot _root = new TexturePackerRoot();
         
@@ -110,7 +110,7 @@ namespace Rhinox.Utilities.Editor
             if (_propertyView == null)
             {
                 _propertyView = new SmartPropertyView(_root);
-                // _propertyView.RepaintRequested += RequestRepaint;
+                _propertyView.RepaintRequested += RequestRepaint;
             }
             
             _propertyView.DrawLayout();

@@ -17,12 +17,13 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         #region wrapper
 
-        public class MotorWrapper
+        public class MotorWrapper : IRepaintRequestHandler
         {
             public AdvancedSceneSearchMotor Motor;
             private DrawablePropertyView _view;
 
             public Rect Rect { get; set; }
+
             
             private readonly Func<ICollection<GameObject>> InitialObjectsFetcher;
 
@@ -37,15 +38,19 @@ namespace Rhinox.Utilities.Odin.Editor
 
             public bool ShowInfo = true;
             public bool Highlighted = false;
+            
+            public IRepaintRequest Repainter;
 
-            public MotorWrapper(Func<ICollection<GameObject>> objFetcher)
+            public MotorWrapper(Func<ICollection<GameObject>> objFetcher, IRepaintRequest repainter)
             {
                 Motor = new AdvancedSceneSearchMotor();
                 Motor.Changed += OnMotorChanged;
 
+                Repainter = repainter;
                 InitialObjectsFetcher = objFetcher;
 
                 _view = new DrawablePropertyView(Motor);
+                _view.RepaintRequested += RequestRepaint;
             }
 
             private void OnMotorChanged(AdvancedSceneSearchMotor obj)
@@ -106,6 +111,16 @@ namespace Rhinox.Utilities.Odin.Editor
                     }
                 );
             }
+
+            public void RequestRepaint()
+            {
+                Repainter?.RequestRepaint();
+            }
+
+            public void UpdateRequestTarget(IRepaintRequest target)
+            {
+                Repainter = target;
+            }
         }
 
         #endregion
@@ -119,10 +134,9 @@ namespace Rhinox.Utilities.Odin.Editor
         public AdvancedSceneSearchOverview(SlidePagedWindowNavigationHelper<object> pager) : base(pager)
         {
             _pager = pager;
-
             _motorWrappers = new List<MotorWrapper>
             {
-                new MotorWrapper(GetInitialGameObjects)
+                new MotorWrapper(GetInitialGameObjects, this)
             };
             _removedWrappers = new List<MotorWrapper>();
 
@@ -167,7 +181,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 GUILayout.FlexibleSpace();
 
                 if (CustomEditorGUI.IconButton(UnityIcon.AssetIcon("Fa_Plus"), CustomGUIStyles.Clean))
-                    _motorWrappers.Add(new MotorWrapper(GetInitialGameObjects));
+                    _motorWrappers.Add(new MotorWrapper(GetInitialGameObjects, this));
 
                 GUILayout.FlexibleSpace();
             }
