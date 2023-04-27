@@ -143,7 +143,6 @@ namespace Rhinox.Utilities.Editor
             if (isBaseType && !string.IsNullOrWhiteSpace(t.Namespace) && MatchesIgnoredNamespace(t.Namespace))
                 return string.Empty;
 
-            var name = t.Name.Split('`').First().SplitCamelCase();
             var nameSpace = isBaseType ? string.Empty : t.Namespace;
             var basePath = GetMenuPathForType(t.BaseType, true);
             if (!string.IsNullOrWhiteSpace(basePath))
@@ -155,7 +154,7 @@ namespace Rhinox.Utilities.Editor
                 nameSpace += "/";
             }
 
-            return nameSpace + basePath + name;
+            return nameSpace + basePath + t.GetNiceName();
         }
 
         private static string Fixup(string nameSpace)

@@ -212,13 +212,13 @@ namespace Rhinox.Utilities.Editor
 
 			var menuItems = menu.GetItems();
 
-			var addReset = !menuItems.Any(x => x.menuItem.EndsWith("Reset"));
-			var addCopy = !menuItems.Any(x => x.menuItem.EndsWith("Copy"));
-			var addPaste = !menuItems.Any(x => x.menuItem.EndsWith("Paste"));
+			var addReset = !menuItems.Any(x => x.Path.EndsWith("Reset"));
+			var addCopy = !menuItems.Any(x => x.Path.EndsWith("Copy"));
+			var addPaste =  !menuItems.Any(x => x.Path.EndsWith("Paste"));
 
 			if (menu.GetItemCount() > 0 && (addReset || addCopy || addPaste))
 				menu.AddSeparator(string.Empty);
-
+			
 			if (addReset)
 			{
 				menu.AddItem("Reset", reset);
