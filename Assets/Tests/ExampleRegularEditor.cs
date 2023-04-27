@@ -6,4 +6,9 @@ public class ExampleRegularEditor : MonoBehaviour
 {
     [AssignableTypeFilter(typeof(MonoBehaviour))]
     public SerializableType Type;
+    
+    public SerializableGuid Guid;
+    
+    public SceneReferenceData Scene;
+
 }

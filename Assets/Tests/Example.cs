@@ -16,6 +16,8 @@ public class GenericList : ToggleableList<GameObject>
 public class Example : MonoBehaviour
 {
     public SerializableType Type;
+    public SerializableGuid Guid;
+    public SceneReferenceData SceneTest;
     public readonly string[] Options = new[] { "One", "Two", "FortyTwo" };
 
     [Serializable]
