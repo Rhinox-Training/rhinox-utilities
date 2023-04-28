@@ -92,6 +92,7 @@ namespace Rhinox.Utilities
             {
                 var unityObjs = new List<UnityEngine.Object>();
                 unityObjs.Add(Delegate.Target as UnityEngine.Object);
+                _parameters = new List<object>();
                 _targetType = new SerializableType(Delegate.Method.DeclaringType);
                 _methodName = Delegate.Method.Name;
                 foreach (var parameterValue in ParameterValues)
