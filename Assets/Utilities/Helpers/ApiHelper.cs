@@ -1,7 +1,9 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+#if NEWTONSOFT
 using Newtonsoft.Json;
+#endif
 using Rhinox.Lightspeed;
 using UnityEngine;
 using UnityEngine.Networking;
