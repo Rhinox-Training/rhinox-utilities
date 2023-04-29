@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Rhinox.Lightspeed;
 using UnityEngine;
 
 namespace Rhinox.Utilities
@@ -9,11 +10,6 @@ namespace Rhinox.Utilities
 
 		private ParticleSystem[] _systems;
 
-		public override void Init()
-		{
-			gameObject.SetActive(true);
-		}
-
 		public void Awake()
 		{
 			_systems = GetComponentsInChildren<ParticleSystem>();
@@ -22,10 +18,7 @@ namespace Rhinox.Utilities
 		public void Update()
 		{
 			if (Template && AddToPoolWhenDead && _systems.All(x => !x.IsAlive()))
-			{
-				gameObject.SetActive(false);
-				Pool.PushToPool(gameObject);
-			}
+				PushBackToPool();
 		}
 
 		[ContextMenu("Emit Once")]

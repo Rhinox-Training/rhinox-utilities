@@ -103,6 +103,7 @@ namespace Rhinox.Utilities
             }
         }
         
+
         private static string _settingsPath = null;
         public static string SettingsPath
         {
@@ -114,6 +115,10 @@ namespace Rhinox.Utilities
             }
         }
         
+        private static string _fullSettingsPath = null;
+        public static string FullSettingsPath => _fullSettingsPath ?? (_fullSettingsPath = Path.GetFullPath(SettingsPath));
+
+
         private static T _instance = null;
         
 #if UNITY_EDITOR
@@ -128,16 +133,17 @@ namespace Rhinox.Utilities
                 if (_instance == null)
                     _instance = GetOrCreateSettings();
 #if UNITY_EDITOR
-                else if (_instance.HasBackingFileChanged())
+                else if (!Application.isPlaying && _instance.HasBackingFileChanged())
                 {
                     var newDataInstance = GetOrCreateSettings();
                     _instance.CopyValuesFrom(newDataInstance);
-                    _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
+                    UpdateWriteTime();
                 }
 #endif
                 return _instance;
             }
         }
+
 
         private static T GetOrCreateSettings()
         {
@@ -153,11 +159,10 @@ namespace Rhinox.Utilities
                 settings.LoadDefaults();
                 
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] {settings}, SettingsPath, true);
-                _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
+                UpdateWriteTime();
             }
-            
-            if (_lastFileUpdateTime == DateTime.MinValue)
-                _lastFileUpdateTime = File.GetLastWriteTime(SettingsPath);
+            else if (_lastFileUpdateTime == DateTime.MinValue)
+                UpdateWriteTime();
 #else
             if (IsEditorOnly)
             {
@@ -176,6 +181,11 @@ namespace Rhinox.Utilities
             }
 #endif
             return settings;
+        }
+        
+        private static void UpdateWriteTime()
+        {
+            _lastFileUpdateTime = File.GetLastWriteTime(FullSettingsPath);
         }
         
 #if UNITY_EDITOR
