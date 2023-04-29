@@ -4,7 +4,7 @@ namespace Rhinox.Utilities
 {
 	public interface IPoolableObject
 	{
-		GameObject Prefab { get; set; }
+		GameObject Template { get; set; }
 		void Init();
 	}
 
@@ -15,7 +15,7 @@ namespace Rhinox.Utilities
 			get { return ObjectPool.Instance; }
 		}
 
-		public GameObject Prefab { get; set; }
+		public GameObject Template { get; set; }
 
 		public virtual void Init()
 		{
