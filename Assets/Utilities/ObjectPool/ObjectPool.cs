@@ -23,12 +23,12 @@ namespace Rhinox.Utilities
 
 		void PushToPool(GameObject obj, bool preserveParent = true);
 		void PushToPool(GameObject obj, Transform parent);
-		void PushToPool(GameObject obj, GameObject template);
+		void PushToPool(GameObject obj, GameObject template, bool preserveParent = true);
 		void PushToPool(GameObject obj, GameObject template, Transform parent);
 		
 		void PushToPool<T>(T obj, bool preserveParent = true) where T : Component;
 		void PushToPool<T>(T obj, Transform parent) where T : Component;
-		void PushToPool<T>(T obj, T template) where T : Component;
+		void PushToPool<T>(T obj, T template, bool preserveParent = true) where T : Component;
 		void PushToPool<T>(T obj, T template, Transform parent) where T : Component;
 
 		void PushToPoolDelayed(GameObject obj, float time);
@@ -142,7 +142,7 @@ namespace Rhinox.Utilities
 			GameObject obj = null;
 			if (forceCreate)
 			{
-				obj = CreateObject(template, null);
+				obj = CreateObject(template, parent);
 			}
 			else
 			{
@@ -160,10 +160,7 @@ namespace Rhinox.Utilities
 				obj = CreateObject(template, parent, position);
 
 			if (obj.TryGetComponent(out IPoolableObject o))
-			{
-				o.Template = template;
-				o.Init();
-			}
+				o.Init(this, template);
 			
 			return obj;
 		}
@@ -195,8 +192,8 @@ namespace Rhinox.Utilities
 		public void PushToPool<T>(T obj, Transform parent) where T : Component
 			=> PushToPool(obj.gameObject, parent);
 		
-		public void PushToPool<T>(T obj, T template) where T : Component
-			=> PushToPool(obj.gameObject, template.gameObject, transform);
+		public void PushToPool<T>(T obj, T template, bool preserveParent = true) where T : Component
+			=> PushToPool(obj.gameObject, template.gameObject, preserveParent);
 
 		public void PushToPool<T>(T obj, T template, Transform parent) where T : Component
 			=> PushToPool(obj.gameObject, template.gameObject, parent);
@@ -242,8 +239,8 @@ namespace Rhinox.Utilities
 			return false;
 		}
 
-		public void PushToPool(GameObject obj, GameObject template)
-			=> PushToPool(obj, template, transform);
+		public void PushToPool(GameObject obj, GameObject template, bool preserveParent = true)
+			=> PushToPool(obj, template, preserveParent ? obj.transform.parent : transform);
 
 		public void PushToPool(GameObject obj, GameObject template, Transform parent)
 		{
