@@ -78,6 +78,14 @@ namespace Rhinox.Utilities
 
 			public override bool keepWaiting => !_coroutine.Finished;
 		}
+
+		public static ManagedCoroutine Begin(IEnumerator c, bool autoStart = true)
+		{
+			var coroutine = new ManagedCoroutine(c);
+			if (autoStart)
+				coroutine.Start();
+			return coroutine;
+		}
 		
 		/// Paused tasks are considered to be running.
 		public bool Running => _coroutine.Running;
@@ -97,13 +105,18 @@ namespace Rhinox.Utilities
 		public event FailedHandler OnFailed;
 
 		/// If autoStart is true (default) the task is automatically started upon construction.
+		[Obsolete("Use ManagedCoroutine.Begin instead")]
 		public ManagedCoroutine(IEnumerator c, bool autoStart = true)
+			: this(c)
+		{
+			if (autoStart) Start();
+		}
+
+		private ManagedCoroutine(IEnumerator c)
 		{
 			_coroutine = CoroutineManager.Create(c);
 			_coroutine.OnFinished += CoroutineOnFinished;
 			_coroutine.OnFailed += CoroutineOnFailed;
-
-			if (autoStart) Start();
 		}
 
 		public void Start() => _coroutine.Start();

@@ -142,7 +142,7 @@ namespace Rhinox.Utilities
                     return true;
             }
             throw new NotImplementedException($"Unknown result type: {request.result}");
-#endif
+#else
             if (request.isHttpError)
             {
                 Debug.LogError(request.uri + ": HTTP Error: " + request.error);
@@ -155,6 +155,7 @@ namespace Rhinox.Utilities
             }
             
             return true;
+#endif
         }
         
         private string ToJson<T>(T o)
