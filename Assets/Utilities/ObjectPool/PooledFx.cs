@@ -21,7 +21,7 @@ namespace Rhinox.Utilities
 
 		public void Update()
 		{
-			if (Prefab && AddToPoolWhenDead && _systems.All(x => !x.IsAlive()))
+			if (Template && AddToPoolWhenDead && _systems.All(x => !x.IsAlive()))
 			{
 				gameObject.SetActive(false);
 				Pool.PushToPool(gameObject);
