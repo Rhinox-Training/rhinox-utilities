@@ -131,7 +131,7 @@ namespace Rhinox.Utilities.Odin.Editor
         private SettingData _includeDisabled;
         private SettingData _onlyInSelection;
 
-        public AdvancedSceneSearchOverview(SlidePagedWindowNavigationHelper<object> pager) : base(pager)
+        public AdvancedSceneSearchOverview(SlidePageNavigationHelper<object> pager) : base(pager)
         {
             _pager = pager;
             _motorWrappers = new List<MotorWrapper>
