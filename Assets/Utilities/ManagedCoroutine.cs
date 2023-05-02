@@ -87,6 +87,14 @@ namespace Rhinox.Utilities
 			return coroutine;
 		}
 		
+		public static ManagedCoroutine Begin(IEnumerator c, FinishedHandler callback)
+		{
+			var coroutine = new ManagedCoroutine(c);
+			coroutine.OnFinished += callback;
+			coroutine.Start();
+			return coroutine;
+		}
+		
 		/// Paused tasks are considered to be running.
 		public bool Running => _coroutine.Running;
 

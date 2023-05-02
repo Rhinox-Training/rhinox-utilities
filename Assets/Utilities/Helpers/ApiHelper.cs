@@ -1,12 +1,11 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
-#if NEWTONSOFT
-using Newtonsoft.Json;
-#endif
 using Rhinox.Lightspeed;
+using Rhinox.Perceptor;
 using UnityEngine;
 using UnityEngine.Networking;
+using Utility = Rhinox.Lightspeed.Utility;
 
 namespace Rhinox.Utilities
 {
@@ -29,8 +28,10 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await request.SendWebRequest();
                 
-                if (HandleResult(request))
+                if (request.IsRequestValid(out string error))
                     handleRequest?.Invoke(request);
+                else
+                    PLog.Error<UtilityLogger>(error);
             }
         }
 
@@ -41,9 +42,11 @@ namespace Rhinox.Utilities
             {
                 // Request and wait for the desired page.
                 await request.SendWebRequest();
-
-                if (HandleResult(request))
-                    return FromJsonResult<T>(request);
+                
+                if (request.IsRequestValid(out string error))
+                    return request.ParseJsonResult<T>();
+                else
+                    PLog.Error<UtilityLogger>(error);
                 
                 return default;
             }
@@ -58,7 +61,7 @@ namespace Rhinox.Utilities
                 var op = request.SendWebRequest();
                 while (!op.isDone) { }
 
-                return FromJsonResult<T>(request);
+                return request.ParseJsonResult<T>();
             }
         }
 
@@ -75,14 +78,16 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await request.SendWebRequest();
 
-                if (HandleResult(request))
+                if (request.IsRequestValid(out string error))
                     handleRequest?.Invoke(request);
+                else
+                    PLog.Error<UtilityLogger>(error);
             }
         }
         
         
         public async Task Post(string path, object o, WebRequestAction handleRequest = null)
-            => await Post(path, ToJson(o), handleRequest);
+            => await Post(path, Utility.ToJson(o, true), handleRequest);
 
         public async Task<T> Post<T>(string path, string json)
         {
@@ -97,12 +102,12 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await request.SendWebRequest();
 
-                return FromJsonResult<T>(request);
+                return request.ParseJsonResult<T>();
             }
         }
 
         public async Task<TResult> Post<TResult>(string path, object o)
-            => await Post<TResult>(path, ToJson(o));
+            => await Post<TResult>(path, Utility.ToJson(o, true));
 
         public TResult PostSync<TResult>(string path, string json)
         {
@@ -118,61 +123,12 @@ namespace Rhinox.Utilities
                 var op = request.SendWebRequest();
                 while (!op.isDone) { }
 
-                return FromJsonResult<TResult>(request);
+                return request.ParseJsonResult<TResult>();
             }
         }
         
         public TResult PostSync<TResult>(string path, object o)
-            => PostSync<TResult>(path, ToJson(o));
-        
-        private static bool HandleResult(UnityWebRequest request)
-        {
-#if UNITY_2020_1_OR_NEWER
-            switch (request.result)
-            {
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    Debug.LogError(request.uri + ": Error: " + request.error);
-                    return false;
-                case UnityWebRequest.Result.ProtocolError:
-                    Debug.LogError(request.uri + ": HTTP Error: " + request.error);
-                    return false;
-                case UnityWebRequest.Result.Success:
-                    // Debug.Log(uri + ":\nReceived: " + request.downloadHandler.text);
-                    return true;
-            }
-            throw new NotImplementedException($"Unknown result type: {request.result}");
-#else
-            if (request.isHttpError)
-            {
-                Debug.LogError(request.uri + ": HTTP Error: " + request.error);
-                return false;
-            }
-            else if (request.isNetworkError)
-            {
-                Debug.LogError(request.uri + ": Error: " + request.error);
-                return false;
-            }
-            
-            return true;
-#endif
-        }
-        
-        private string ToJson<T>(T o)
-        {
-            // Include Newtonsoft json to support anonymous objects
-#if NEWTONSOFT
-            return JsonConvert.SerializeObject(o);
-#else
-            return JsonUtility.ToJson(o);
-#endif
-        }
+            => PostSync<TResult>(path, Utility.ToJson(o, true));
 
-        private static T FromJsonResult<T>(UnityWebRequest request)
-        {
-            if (typeof(T) == typeof(string))
-                return (T)(object)request.downloadHandler.text;
-            return JsonUtility.FromJson<T>(request.downloadHandler.text);
-        }
     }
 }
