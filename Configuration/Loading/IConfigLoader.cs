@@ -42,13 +42,13 @@ namespace Rhinox.Utilities
             try
             {
                 PLog.Debug($"Initialize IniParser for {path}");
-                new ManagedCoroutine(loader(path)).OnFinished += (manual) =>
+                ManagedCoroutine.Begin(loader(path), (manual) =>
                 {
                     if (!manual)
                         ParseData(file);
                     CleanUp();
                     callback?.Invoke(file);
-                };
+                });
             }
             catch (Exception e)
             {

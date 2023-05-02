@@ -31,23 +31,13 @@ namespace Rhinox.Utilities
 		void PushToPool<T>(T obj, T template, bool preserveParent = true) where T : Component;
 		void PushToPool<T>(T obj, T template, Transform parent) where T : Component;
 
-		void PushToPoolDelayed(GameObject obj, float time);
-		void PushToPoolDelayed(GameObject obj, float time, Transform parent);
-		void PushToPoolDelayed(GameObject obj, GameObject template, float time);
-		void PushToPoolDelayed(GameObject obj, GameObject template, float time, Transform parent);
-		
-		void PushToPoolDelayed<T>(T obj, float time) where T : Component;
-		void PushToPoolDelayed<T>(T obj, float time, Transform parent) where T : Component;
-		void PushToPoolDelayed<T>(T obj, T template, float time) where T : Component;
-		void PushToPoolDelayed<T>(T obj, T template, float time, Transform parent) where T : Component;
-
 		void ReleaseItems(GameObject template, bool destroyObjects = false);
 		void ReleasePool();
 	}
 
 	public sealed class ObjectPool : MonoBehaviour, IObjectPool
 	{
-		private Dictionary<GameObject, Queue<GameObject>> _objectsByTemplate = new Dictionary<GameObject, Queue<GameObject>>();
+		private Dictionary<GameObject, Stack<GameObject>> _objectsByTemplate = new Dictionary<GameObject, Stack<GameObject>>();
 
 		private bool _destroyed;
 		
@@ -146,30 +136,30 @@ namespace Rhinox.Utilities
 			}
 			else
 			{
-				Queue<GameObject> queue = FindInContainer(template);
-				if (queue.Count > 0)
+				Stack<GameObject> stack = FindInContainer(template);
+				if (stack.Count > 0)
 				{
-					obj = queue.Dequeue();
+					obj = stack.Pop();
 					obj.transform.position = position;
 					obj.transform.SetParent(parent, false);
 					obj.SetActive(true);
 				}
+				else
+					obj = CreateObject(template, parent, position);
 			}
-
-			if (obj == null)
-				obj = CreateObject(template, parent, position);
-
+			
 			if (obj.TryGetComponent(out IPoolableObject o))
 				o.Init(this, template);
-			
+
+			obj.SetActive(true);
 			return obj;
 		}
 
-		private Queue<GameObject> FindInContainer(GameObject template)
+		private Stack<GameObject> FindInContainer(GameObject template)
 		{
 			if (_objectsByTemplate.ContainsKey(template) == false)
 			{
-				_objectsByTemplate.Add(template, new Queue<GameObject>());
+				_objectsByTemplate.Add(template, new Stack<GameObject>());
 			}
 
 			return _objectsByTemplate[template];
@@ -214,8 +204,8 @@ namespace Rhinox.Utilities
 
 			if (ValidateObjectAsPoolable(obj, out GameObject template))
 			{
-				Queue<GameObject> queue = FindInContainer(template);
-				queue.Enqueue(obj);
+				Stack<GameObject> stack = FindInContainer(template);
+				stack.Push(obj);
 			}
 		}
 
@@ -249,50 +239,10 @@ namespace Rhinox.Utilities
 			obj.SetActive(false);
 			obj.transform.SetParent(parent, false);
 
-			Queue<GameObject> queue = FindInContainer(template);
-			queue.Enqueue(obj);
+			Stack<GameObject> stack = FindInContainer(template);
+			stack.Push(obj);
 		}
-
-		public void PushToPoolDelayed(GameObject obj, float time)
-			=> PushToPoolDelayed(obj, time, transform);
-
-		public void PushToPoolDelayed(GameObject obj, float time, Transform parent)
-		{
-			if (obj == null)
-				return;
-			
-			if (ValidateObjectAsPoolable(obj, out GameObject template))
-				PushToPoolDelayed(obj, template, time, parent);
-		}
-
-		public void PushToPoolDelayed(GameObject obj, GameObject template, float time)
-			=> PushToPoolDelayed(obj, template, time, transform);
-
-		public void PushToPoolDelayed(GameObject obj, GameObject template, float time, Transform parent)
-			=> ManagedCoroutine.Begin(PushToPoolDelayedEnumerator(obj, template, time, parent));
-
-		public void PushToPoolDelayed<T>(T obj, float time)
-			where T : Component
-			=> PushToPoolDelayed(obj.gameObject, time, transform);
-
-		public void PushToPoolDelayed<T>(T obj, float time, Transform parent)
-			where T : Component
-			=> PushToPoolDelayed(obj.gameObject, time, parent);
 		
-		public void PushToPoolDelayed<T>(T obj, T template, float time)
-			where T : Component
-			=> PushToPoolDelayed(obj.gameObject, template.gameObject, time, transform);
-
-		public void PushToPoolDelayed<T>(T obj, T template, float time, Transform parent)
-			where T : Component
-			=> PushToPoolDelayed(obj.gameObject, template.gameObject, time, parent);
-
-		private IEnumerator PushToPoolDelayedEnumerator(GameObject obj, GameObject template, float secondsUntilPush, Transform parent)
-		{
-			yield return new WaitForSeconds(secondsUntilPush);
-			PushToPool(obj, template, parent: parent);
-		}
-
 		/// <summary>
 		/// Releases the pool from all items.
 		/// </summary>
@@ -303,14 +253,14 @@ namespace Rhinox.Utilities
 			if (template == null)
 				return;
 
-			Queue<GameObject> queue = FindInContainer(template);
+			Stack<GameObject> stack = FindInContainer(template);
 			
-			if (queue == null)
+			if (stack == null)
 				return;
 
-			while (queue.Count > 0)
+			while (stack.Count > 0)
 			{
-				GameObject obj = queue.Dequeue();
+				GameObject obj = stack.Pop();
 				if (destroyObjects)
 					Utility.DestroyObject(obj);
 			}
@@ -323,16 +273,16 @@ namespace Rhinox.Utilities
 		{
 			foreach (var kvp in _objectsByTemplate)
 			{
-				Queue<GameObject> queue = kvp.Value;
-				while (queue.Count > 0)
+				Stack<GameObject> stack = kvp.Value;
+				while (stack.Count > 0)
 				{
-					GameObject obj = queue.Dequeue();
+					GameObject obj = stack.Pop();
 					Utility.DestroyObject(obj);
 				}
 			}
 
 			_objectsByTemplate = null;
-			_objectsByTemplate = new Dictionary<GameObject, Queue<GameObject>>();
+			_objectsByTemplate = new Dictionary<GameObject, Stack<GameObject>>();
 		}
 	}
 }
