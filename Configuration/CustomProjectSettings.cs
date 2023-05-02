@@ -183,12 +183,12 @@ namespace Rhinox.Utilities
             return settings;
         }
         
+#if UNITY_EDITOR
         private static void UpdateWriteTime()
         {
             _lastFileUpdateTime = File.GetLastWriteTime(FullSettingsPath);
         }
         
-#if UNITY_EDITOR
         public override bool HasBackingFileChanged()
         {
             return File.GetLastWriteTime(SettingsPath) != _lastFileUpdateTime;
