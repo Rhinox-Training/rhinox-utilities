@@ -69,7 +69,7 @@ namespace Rhinox.Utilities.Editor
 
             var window = CreateInstance<ScriptableObjectCreator>();
             window.position = RectExtensions.AlignCenter(CustomEditorGUI.GetEditorWindowRect(), 800, 500);
-            window.titleContent = new GUIContent(path);
+            window.titleContent = new GUIContent($"Create new SO in folder {path}");
             window.targetFolder = path.Trim('/');
             window.ShowUtility();
         }
@@ -101,8 +101,8 @@ namespace Rhinox.Utilities.Editor
             this.WindowPadding = new RectOffset();
 
             CustomMenuTree tree = new CustomMenuTree();
-#if ODIN_INSPECTOR
             tree.DrawSearchToolbar = true;
+#if ODIN_INSPECTOR
             tree.DefaultMenuStyle = OdinMenuStyle.TreeViewStyle;
 #endif
             foreach (var entry in GetTypesForTree())

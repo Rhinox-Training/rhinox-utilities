@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils.Attributes;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using UnityEditor;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
@@ -13,7 +14,7 @@ namespace Rhinox.Utilities.Editor
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 12, DraggableItems = false)]
         [AssetsOnly, DrawAsUnityObject]
         public List<Object> Objects = new List<Object>();
-
+        
         private DependenciesWindow _mainWindow;
 
         public void Initialize(DependenciesWindow window)
