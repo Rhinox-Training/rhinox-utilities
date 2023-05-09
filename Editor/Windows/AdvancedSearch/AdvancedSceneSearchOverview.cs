@@ -7,6 +7,11 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.GUIUtils.Editor.Helpers;
 using Rhinox.Lightspeed;
 using UnityEditor;
+#if UNITY_2020_1_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
+using UnityEditor.Experimental.SceneManagement;
+#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -191,7 +196,7 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (!_pager.IsOnFirstPage) return;
 
-            _pager.PushPage(new AdvancedSceneSearchResults(wrapper.Motor), "Results");
+            _pager.PushPage(new AdvancedSceneSearchResults(_pager, wrapper.Motor), "Results");
         }
 
         private void DrawCardButtons(MotorWrapper wrapper, Rect r)
@@ -247,25 +252,26 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 foreach (var obj in Selection.gameObjects)
                     objs.AddRange(obj.GetAllChildren(_includeDisabled.State));
+                return objs;
             }
-            else if (_includeDisabled.State)
+            
+            var prefab = PrefabStageUtility.GetCurrentPrefabStage();
+            if (prefab != null)
             {
-                for (int sceneI = 0; sceneI < SceneManager.sceneCount; sceneI++)
-                {
-                    var s = SceneManager.GetSceneAt(sceneI);
-                    if (!s.isLoaded) continue;
-
-                    var rootGameObjects = s.GetRootGameObjects();
-                    foreach (var go in rootGameObjects)
-                        objs.AddRange(go.GetAllChildren(true));
-                }
-            }
-            else
-            {
-                objs = Object.FindObjectsOfType<Transform>().Select(x => x.gameObject).ToList();
+                return prefab.prefabContentsRoot.GetAllChildren(_includeDisabled.State);
             }
 
-            return objs;
+            if (_includeDisabled.State)
+            {
+                // Load the active editor scene (only when not in build, otherwise the loop below will contain it)
+                var currScene = SceneManager.GetActiveScene();
+                var rootGameObjects = currScene.GetRootGameObjects();
+                foreach (var go in rootGameObjects)
+                    objs.AddRange(go.GetAllChildren(true));
+                return objs;
+            }
+
+            return Object.FindObjectsOfType<Transform>().Select(x => x.gameObject).ToList();
         }
 
         public void AddItemsToMenu(GenericMenu menu)
