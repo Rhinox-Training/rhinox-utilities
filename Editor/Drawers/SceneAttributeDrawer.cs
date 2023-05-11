@@ -7,8 +7,8 @@ namespace Rhinox.Utilities.Editor
     using UnityEngine;
      
     [CustomPropertyDrawer (typeof (SceneAttribute))]
-    public class SceneAttributeDrawer : PropertyDrawer {
-     
+    public class SceneAttributeDrawer : PropertyDrawer
+    {
         public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
          
             if (property.propertyType == SerializedPropertyType.String) {
@@ -28,15 +28,15 @@ namespace Rhinox.Utilities.Editor
             else
                 EditorGUI.LabelField (position, label.text, "Use [Scene] with strings.");
         }
-        protected SceneAsset GetSceneObject(string sceneObjectName) {
-            if (string.IsNullOrEmpty(sceneObjectName)) {
+        protected SceneAsset GetSceneObject(string sceneObjectName)
+        {
+            if (string.IsNullOrEmpty(sceneObjectName))
                 return null;
-            }
      
-            foreach (var editorScene in EditorBuildSettings.scenes) {
-                if (editorScene.path.IndexOf(sceneObjectName) != -1) {
+            foreach (var editorScene in EditorBuildSettings.scenes)
+            {
+                if (editorScene.path.IndexOf(sceneObjectName) != -1)
                     return AssetDatabase.LoadAssetAtPath(editorScene.path, typeof(SceneAsset)) as SceneAsset;
-                }
             }
             Debug.LogWarning("Scene [" + sceneObjectName + "] cannot be used. Add this scene to the 'Scenes in the Build' in build settings.");
             return null;

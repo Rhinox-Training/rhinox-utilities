@@ -44,9 +44,9 @@ namespace Rhinox.Utilities.Odin.Editor
             public bool ShowInfo = true;
             public bool Highlighted = false;
             
-            public IRepaintRequest Repainter;
+            public IRepaintable Repainter;
 
-            public MotorWrapper(Func<ICollection<GameObject>> objFetcher, IRepaintRequest repainter)
+            public MotorWrapper(Func<ICollection<GameObject>> objFetcher, IRepaintable repainter)
             {
                 Motor = new AdvancedSceneSearchMotor();
                 Motor.Changed += OnMotorChanged;
@@ -122,7 +122,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 Repainter?.RequestRepaint();
             }
 
-            public void UpdateRequestTarget(IRepaintRequest target)
+            public void UpdateRequestTarget(IRepaintable target)
             {
                 Repainter = target;
             }
