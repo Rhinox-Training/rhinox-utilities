@@ -16,8 +16,8 @@ namespace Rhinox.Utilities.Editor
             // force kills all running coroutines if something goes wrong.
             EditorUtility.ClearProgressBar();
             uiCoroutineState = null;
-            coroutineStates.Clear();
-            finishedThisUpdate.Clear();
+            coroutineStates?.Clear();
+            finishedThisUpdate?.Clear();
         }
 
         private static List<EditorCoroutineState> coroutineStates;
