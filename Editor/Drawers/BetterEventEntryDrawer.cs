@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
+using Rhinox.Lightspeed.Reflection;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -24,15 +25,9 @@ namespace Rhinox.Utilities.Editor
         private class MethodInfoWrapper
         {
             public MethodInfo Info;
+            public object Target;
             public string FullName;
-            
-            public MethodInfoWrapper(MethodInfo info)
-            {
-                Info = info;
-                FullName = GetMethodInfoRepresentation(info);
-            }
-
-            public override string ToString() => FullName;
+            public string TargetName;
         }
         
         private PickerHandler _methodPicker;
@@ -49,12 +44,20 @@ namespace Rhinox.Utilities.Editor
         protected override DrawerData CreateData(GenericHostInfo info)
         {
             var value = info.GetSmartValue<BetterEventEntry>();
-            return new DrawerData()
+            var del = value.Delegate;
+            var data = new DrawerData
             {
                 Info = info,
-                ActiveContent = new GUIContent(GetMethodInfoRepresentation(value.Delegate.Method)),
-                LocalTarget = value.Delegate.Target as Object
+                ActiveContent = new GUIContent()
             };
+
+            if (del != null)
+            {
+                data.ActiveContent.text = GetMethodInfoRepresentation(del.Method);
+                data.LocalTarget = del.Target as Object;
+            }
+
+            return data;
         }
 
         protected override GenericHostInfo GetHostInfo(DrawerData data) => data.Info;
@@ -82,15 +85,24 @@ namespace Rhinox.Utilities.Editor
             if (_methodPicker != null)
                 GenericPicker.Show(position, _methodPicker);
             else
-                _methodPicker = GenericPicker.Show(position, null, GetMethodOptions(data), x => SetValue(x, data));
+            {
+                _methodPicker = GenericPicker.Show(
+                    position, 
+                    null, 
+                    GetMethodOptions(data), 
+                    x => SetValue(x, data),
+                    x => x.FullName,
+                    x => x.TargetName);
+            }
         }
 
         private void SetValue(MethodInfoWrapper wrapper, DrawerData data)
         {
             if (wrapper != null)
             {
+                data.LocalTarget = wrapper.Target as Object;
                 data.ActiveContent.text = wrapper.FullName;
-                SmartValue.CreateAndAssignNewDelegate(data, wrapper.Info);
+                SmartValue.CreateAndAssignNewDelegate(wrapper.Target, wrapper.Info);
             }
             else
                 SmartValue.Delegate = null;
@@ -98,33 +110,66 @@ namespace Rhinox.Utilities.Editor
 
         private ICollection<MethodInfoWrapper> GetMethodOptions(DrawerData data)
         {
-            var targets = new [] {data.LocalTarget};
+            if (data.LocalTarget == null)
+                return Array.Empty<MethodInfoWrapper>();
 
-            return targets.SelectMany(x => GetMethodOptions(x)).ToArray();
+            var list = new List<MethodInfoWrapper>();
+
+            GameObject targetObject = null;
+
+            if (data.LocalTarget is Component comp)
+                targetObject = comp.gameObject;
+
+            if (data.LocalTarget is GameObject go)
+                targetObject = go;
+            
+            if (targetObject != null)
+            {
+                list.AddRange(GetMethodOptions(targetObject));
+                foreach (var component in targetObject.GetComponents<Component>())
+                    list.AddRange(GetMethodOptions(component));
+            }
+            else
+                list.AddRange(GetMethodOptions(data.LocalTarget));
+            
+            return list;
         }
-
-
-        private IEnumerable<MethodInfoWrapper> GetMethodOptions<T>(T target)
-            => GetMethodOptions(target?.GetType());
         
-        private IEnumerable<MethodInfoWrapper> GetMethodOptions(Type type)
+        private IEnumerable<MethodInfoWrapper> GetMethodOptions(object target)
         {
+            var type = target.GetType();
+            
             if (type == null)
                 yield break;
             
             foreach (var mi in type.GetMethods(SmartValue.AllowedFlags))
             {
+                if (mi.ContainsGenericParameters) continue;
+
                 if (mi.CustomAttributes.Any(x => x.AttributeType == typeof(CompilerGeneratedAttribute)))
                     continue;
-                
-                if (mi.IsSpecialName) // This makes it ignore properties
+
+                if (mi.IsSpecialName) // This makes it ignore properties, events, etc
                 {
                     if (!mi.Name.StartsWith("set_")) // except for set_ methods
                         continue;
                 }
                 
-                yield return new MethodInfoWrapper(mi);
+                // TODO: ignore unity functions? (Start, Update, etc..)
+                
+                yield return new MethodInfoWrapper
+                {
+                    Info = mi,
+                    Target = target,
+                    FullName = GetMethodInfoRepresentation(mi),
+                    TargetName = GetTargetFromFunc(mi)
+                };
             }
+        }
+
+        private static string GetTargetFromFunc(MethodInfo info)
+        {
+            return info.DeclaringType.GetNiceName(false);
         }
 
         private static string GetMethodInfoRepresentation(MethodInfo info)
@@ -139,15 +184,25 @@ namespace Rhinox.Utilities.Editor
             }
             
             if (info.IsSpecialName)
-                return $"{types[0].Name} {name}";
+                return $"{GetTypeName(types[0])} {name}";
             
             if (types.Any())
             {
-                var typesStr = string.Join(", ", types.Select(x => x.ParameterType.Name));
-                return $"{info.ReturnType.Name} {name} ({typesStr})";
+                var typesStr = string.Join(", ", types.Select(GetTypeName));
+                return $"{GetTypeName(info.ReturnType)} {name} ({typesStr})";
             }
 
-            return $"{info.ReturnType.Name} {name} ()";
+            return $"{GetTypeName(info.ReturnType)} {name} ()";
+        }
+        
+        private static string GetTypeName(ParameterInfo info)
+        {
+            return GetTypeName(info.ParameterType);
+        }
+
+        private static string GetTypeName(Type type)
+        {
+            return type.GetNiceName(false);
         }
     }
 }

@@ -206,7 +206,7 @@ namespace Rhinox.Utilities
             else
             {
                 pTypes = pTypes.Append(info.ReturnType).ToArray();
-                if (args.Length == 0) delegateType = typeof(Func<>).MakeArrayType();
+                if (args.Length == 0) delegateType = typeof(Func<>).MakeGenericType(pTypes);
                 else if (args.Length == 1) delegateType = typeof(Func<,>).MakeGenericType(pTypes);
                 else if (args.Length == 2) delegateType = typeof(Func<,,>).MakeGenericType(pTypes);
                 else if (args.Length == 3) delegateType = typeof(Func<,,,>).MakeGenericType(pTypes);
@@ -221,7 +221,10 @@ namespace Rhinox.Utilities
                 Debug.LogError("Unsupported Method Type");
                 return;
             }
-
+            
+            if (info.IsStatic)
+                target = null;
+            
             var del = Delegate.CreateDelegate(delegateType, target, info);
             InitDelegate(del, Array.Empty<object>());
         }
