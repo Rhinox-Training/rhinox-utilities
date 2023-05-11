@@ -35,15 +35,17 @@ namespace Rhinox.Utilities.Odin.Editor
         {
         }
 
-        private IEnumerable<string> GetShaderOptions()
+        private IEnumerable<ValueDropdownItem<string>> GetShaderOptions()
         {
-            yield return MissingShader;
-            
+            yield return new ValueDropdownItem<string>("Any", string.Empty);
+            yield return new ValueDropdownItem<string>("Null", null);
+            yield return new ValueDropdownItem<string>(MissingShader, MissingShader);
+
             foreach (var info in ShaderUtil.GetAllShaderInfo())
             {
                 if (info.name.ToLower().StartsWith("hidden"))
                     continue;
-                yield return info.name;
+                yield return new ValueDropdownItem<string>(info.name, info.name);;
             }
         }
 
@@ -56,7 +58,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
         public override ICollection<GameObject> ApplyFilter(ICollection<GameObject> selectedObjs)
         {
-            if (string.IsNullOrWhiteSpace(_shader))
+            if (_shader == string.Empty)
                 return selectedObjs;
 
             selectedObjs.RemoveAll(obj => !HasMaterialUsingShader(obj));
@@ -66,14 +68,17 @@ namespace Rhinox.Utilities.Odin.Editor
         private bool HasMaterialUsingShader(GameObject obj)
         {
             var renderer = obj.GetComponent<Renderer>();
-            if (_shader == MissingShader)
-            {
-                //(!(x is null) && x == null) || (x != null && x.shader == null)
-                //renderer.sharedMaterials.Any(x => IsMissing(x))
-                return renderer != null && IsMissingMaterial(renderer);
-            }
 
-            return renderer != null && renderer.sharedMaterials.Any(x => x != null && x.shader.name == _shader);
+            if (renderer == null)
+                return false;
+            
+            if (_shader == MissingShader)
+                return IsMissingMaterial(renderer);
+            
+            if (_shader == null)
+                return renderer.sharedMaterials.Any(x => x == null);
+
+            return renderer.sharedMaterials.Any(x => x != null && x.shader.name == _shader);
 
         }
 
@@ -86,28 +91,34 @@ namespace Rhinox.Utilities.Odin.Editor
             if (spArr == null)
                 return false;
 
+            bool missing = false;
+
             for (int i = 0; i < spArr.arraySize; ++i)
             {
                 var sp = spArr.GetArrayElementAtIndex(i);
 
                 if (IsPropertyMissing(sp))
-                    return true;
+                {
+                    missing = true;
+                    break;
+                }
+                
+                if (sp.objectReferenceValue == null)
+                    continue;
 
                 var propSo = new SerializedObject(sp.objectReferenceValue);
                 sp = propSo.FindProperty("m_Shader");
 
-                if (IsPropertyMissing(sp))
-                {
-                    propSo.Dispose();
-                    return true;
-                }
-
+                missing = IsPropertyMissing(sp);
                 propSo.Dispose();
+
+                if (missing)
+                    break;
             }
 
             so.Dispose();
 
-            return false;
+            return missing;
         }
 
         private static bool IsPropertyMissing(SerializedProperty sp)

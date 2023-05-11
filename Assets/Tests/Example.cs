@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Rhinox.GUIUtils.Attributes;
+using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Collections;
+using Rhinox.Utilities;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Events;
 
 [Serializable]
 public class GenericList : ToggleableList<GameObject>
@@ -14,6 +17,12 @@ public class GenericList : ToggleableList<GameObject>
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
+    public UnityEvent EventUnity;
+    public BetterEvent StartEvent;
+    public SerializableType Type;
+    public SerializableType Type2;
+    public SerializableGuid Guid;
+    public SceneReferenceData SceneTest;
     public readonly string[] Options = new[] { "One", "Two", "FortyTwo" };
 
     [Serializable]
@@ -27,7 +36,7 @@ public class Example : MonoBehaviour
 
     public List<StringWithOptions> ListOfOptions;
 
-    // Rotate a button 10 degrees clockwise when presed.
+    // Rotate a button 10 degrees clockwise when pressed.
 
     float rotAngle = 0;
     Vector2 pivotPoint;
@@ -42,6 +51,13 @@ public class Example : MonoBehaviour
 
     [SerializeReference]
     public SimplePair<bool, bool> MyPair;
+
+    private void Start()
+    {
+        StartEvent.AddListener(() => Debug.Log($"{name} Triggered From script"));
+        StartEvent += () => Debug.Log($"{name} Triggered From script 2");
+        StartEvent.Invoke();
+    }
 
     void OnGUI()
     {

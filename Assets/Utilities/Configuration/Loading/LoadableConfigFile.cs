@@ -1,11 +1,13 @@
 using System.Collections.Generic;
+using System.IO;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Perceptor;
+using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace Rhinox.Utilities
 {
-    
-    public abstract class LoadableConfigFile<T, TLoader> : ConfigFile<T>, ILoadableConfigFile 
+    public abstract class LoadableConfigFile<T, TLoader> : ConfigFile<T>, ILoadableConfigFile
         where T : ConfigFile<T>
         where TLoader : IConfigLoader, new()
     {
@@ -22,6 +24,11 @@ namespace Rhinox.Utilities
         {
             _loader = new TLoader();
             base.Initialize();
+        }
+
+        private void OnValidate()
+        {
+            _isLoading = false;
         }
 
         public virtual bool Load(string path)
@@ -47,6 +54,8 @@ namespace Rhinox.Utilities
 
         public virtual bool Save(string path, bool overwrite = false)
         {
+            Initialize();
+            
             if (string.IsNullOrWhiteSpace(path) || 
                 (FileHelper.Exists(path) && !overwrite))
                 return false;
