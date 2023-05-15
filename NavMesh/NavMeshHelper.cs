@@ -179,7 +179,7 @@ namespace Rhinox.Utilities
             return borderMesh;
         }
         
-        private static Mesh GenerateBorderMesh(List<LinkedList<Edge>> borders, float borderWidth, string name = "NavMesh - Border", float textureScale = 1.0f, bool forceUpNormal = false)
+        public static Mesh GenerateBorderMesh(List<LinkedList<Edge>> borders, float borderWidth, string name = "NavMesh - Border", float textureScale = 1.0f, bool forceUpNormal = false)
         {
             List<Vector3> verticesList;
             List<int> indicesList;
@@ -248,7 +248,7 @@ namespace Rhinox.Utilities
             }
         }
         
-        internal static List<LinkedList<Edge>> GetOuterEdgeLoops(Mesh mesh, bool removeExtending)
+        public static List<LinkedList<Edge>> GetOuterEdgeLoops(Mesh mesh, bool removeExtending)
         {
             var edgeStack = GetOuterEdges(mesh, removeExtending);
 
@@ -356,7 +356,7 @@ namespace Rhinox.Utilities
             return edges;
         }
 
-        internal static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
+        private static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
         {
             var edges = GetEdges(mesh);
             
@@ -371,8 +371,6 @@ namespace Rhinox.Utilities
 
             var resultSet = FilterOverlappingEdges(edges);
 
-            
-            
             return resultSet;
         }
 
