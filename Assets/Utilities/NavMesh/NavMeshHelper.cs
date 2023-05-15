@@ -356,7 +356,7 @@ namespace Rhinox.Utilities
             return edges;
         }
 
-        private static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
+        public static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
         {
             var edges = GetEdges(mesh);
             
