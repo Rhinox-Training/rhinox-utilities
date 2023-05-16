@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Rhinox.GUIUtils.Editor;
-using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEditor;
@@ -13,7 +12,7 @@ using UnityEngine;
 namespace Rhinox.Utilities.Editor
 {
     [TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
-    public class DependencySettings : ISerializationCallbackReceiver
+    public class DependencySettings
     {
         [ListDrawerSettings(Expanded = true)] public List<string> FilesToIgnore = new List<string>();
         [ListDrawerSettings(Expanded = true)] public List<string> DirectoriesToIgnore = new List<string>();
@@ -93,52 +92,6 @@ namespace Rhinox.Utilities.Editor
                 "/Resonai.*/",
                 "Packages/"
             };
-        }
-
-
-        // =============================================================================================================
-        // Serialization
-        [Serializable]
-        private struct IconEntry
-        {
-            public SerializableType TypeKey;
-            public Texture Value;
-        }
-
-        [SerializeField] private List<IconEntry> _backingSerializationDict;
-        
-        public void OnBeforeSerialize()
-        {
-            if (_backingSerializationDict == null)
-                _backingSerializationDict = new List<IconEntry>();
-
-            if (IconMapper != null)
-            {
-                _backingSerializationDict.Clear();
-                foreach (var entry in IconMapper)
-                {
-                    _backingSerializationDict.Add(new IconEntry()
-                    {
-                        TypeKey = new SerializableType(entry.Key),
-                        Value = entry.Value
-                    });
-                }
-            }
-        }
-
-        public void OnAfterDeserialize()
-        {
-            if (_backingSerializationDict != null)
-            {
-                if (IconMapper == null)
-                    IconMapper = new Dictionary<Type, Texture>();
-                
-                IconMapper.Clear();
-                foreach (var entry in _backingSerializationDict)
-                {
-                    IconMapper.Add(entry.TypeKey, entry.Value);
-                }
-            }
         }
     }
 }
