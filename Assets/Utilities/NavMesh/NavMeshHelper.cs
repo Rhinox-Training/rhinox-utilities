@@ -348,6 +348,12 @@ namespace Rhinox.Utilities
                 var v2 = verts[indices[i + 1]];
                 var v3 = verts[indices[i + 2]];
 
+                // NOTE:
+                // Only need to check one cross product, since if one of the two is zero it will return null
+                // and if they are non-null and overlap the result is also zero
+                if (!HasTriangleArea(v2 - v1, v3 - v1))
+                    continue;
+
                 edges.Add(new Edge(v1, v2));
                 edges.Add(new Edge(v2, v3));
                 edges.Add(new Edge(v3, v1));
@@ -356,20 +362,30 @@ namespace Rhinox.Utilities
             return edges;
         }
 
+        private static bool HasTriangleArea(Vector3 edgeA, Vector3 edgeB)
+        {
+            // Note: Triangle Area = | V_12 x V_13 | / 2
+            // Simplified if (V_12 x V_13).sqrmagnitude = 0 -> The triangle area = 0 
+            float triangleArea = Vector3.Cross((edgeA), (edgeB)).sqrMagnitude;
+            return triangleArea > float.Epsilon;
+        }
+
         public static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
         {
             var edges = GetEdges(mesh);
+            
+            var resultSet = FilterOverlappingEdges(edges);
             
             // Try to group edges with the same direction
             // Sometimes edges may be split in the middle and only used once thus causing it to be seen as an edge
             // NOTE: Assumption is made that extending edge are not part of the edge, this can be incorrect!
             if (removeExtending)
             {
-                FilterExtendingEdges(ref edges, out _, out var mergedEdges);
-                edges.AddRange(mergedEdges);
+                FilterExtendingEdges(ref resultSet, out _, out var mergedEdges);
+                resultSet.AddRange(mergedEdges);
             }
 
-            var resultSet = FilterOverlappingEdges(edges);
+            resultSet = FilterOverlappingEdges(resultSet);
 
             return resultSet;
         }
