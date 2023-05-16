@@ -37,6 +37,8 @@ namespace Rhinox.Utilities
         {
             if (del != null)
                 InitDelegate(del);
+            
+            Initialize();
         }
 
         /// <summary>
@@ -50,6 +52,18 @@ namespace Rhinox.Utilities
                 ParameterValues = parameters;
                 InitDelegate(del);
             }
+            
+            Initialize();
+        }
+        
+        
+
+        private void Initialize()
+        {
+            if (_initialized) return;
+            
+            SetDefaultFlags();
+            _initialized = true;
         }
         
         private void InitDelegate(Delegate del)
@@ -96,6 +110,11 @@ namespace Rhinox.Utilities
             public int Index;
         }
 #endif
+
+        public void SetDefaultFlags()
+        {
+            _flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+        }
         
         public void OnBeforeSerialize()
         {
@@ -103,12 +122,8 @@ namespace Rhinox.Utilities
             var val = new OdinSerializedData() {Delegate = this.Delegate, ParameterValues = this.ParameterValues};
             this.bytes = SerializationUtility.SerializeValue(val, DataFormat.Binary, out this.unityReferences);
 #else
-            if (!_initialized)
-            {
-                _flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
-                
-                _initialized = true;
-            }
+            Initialize();
+
             if (Delegate == null)
             {
                 unityReferences = new List<Object>();
@@ -137,7 +152,7 @@ namespace Rhinox.Utilities
 
                 this.unityReferences = unityObjs;
             }
-#endif       
+#endif
         }
 
         public void OnAfterDeserialize()

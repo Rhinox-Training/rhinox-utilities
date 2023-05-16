@@ -16,15 +16,7 @@ namespace Rhinox.Utilities.Editor
     [CustomPropertyDrawer(typeof(BetterEventEntry))]
     public class BetterEventEntryDrawer : BasePropertyDrawer<BetterEventEntry, BetterEventEntryDrawer.DrawerData>
     {
-        public class DrawerData
-        {
-            public GenericHostInfo Info;
-            public Object LocalTarget;
-            public GUIContent ActiveContent;
-            public IOrderedDrawable ParameterDrawable;
-        }
-        
-        private class MethodInfoWrapper
+        public class MethodInfoWrapper
         {
             public MethodInfo Info;
             public object Target;
@@ -32,8 +24,16 @@ namespace Rhinox.Utilities.Editor
             public string TargetName;
         }
         
-        private SimplePicker<MethodInfoWrapper> _methodPicker;
-
+        public class DrawerData
+        {
+            public GenericHostInfo Info;
+            public Object LocalTarget;
+            public GUIContent ActiveContent;
+            public IOrderedDrawable ParameterDrawable;
+            public SimplePicker<MethodInfoWrapper> Picker;
+        }
+        
+        
         private GUIContent _noneContent;
 
         protected override void OnInitialize()
@@ -46,6 +46,12 @@ namespace Rhinox.Utilities.Editor
         protected override DrawerData CreateData(GenericHostInfo info)
         {
             var value = info.GetSmartValue<BetterEventEntry>();
+            if (value == null)
+            {
+                value = new BetterEventEntry(null);
+                info.TrySetValue(value);
+            }
+            
             var del = value.Delegate;
             var data = new DrawerData
             {
@@ -74,7 +80,7 @@ namespace Rhinox.Utilities.Editor
             if (!Equals(data.LocalTarget, newTarget))
             {
                 data.LocalTarget = newTarget;
-                _methodPicker = null;
+                data.Picker = null;
             }
             
             var methodPickerRect = headerRect.AlignRight(headerRect.width / 2 - 1f);
@@ -109,15 +115,15 @@ namespace Rhinox.Utilities.Editor
 
         private void DoMethodDropdown(Rect position, DrawerData data)
         {
-            if (_methodPicker == null)
+            if (data.Picker == null)
             {
-                _methodPicker = new SimplePicker<MethodInfoWrapper>(
+                data.Picker = new SimplePicker<MethodInfoWrapper>(
                     GetMethodOptions(data),
                     x => x.FullName,
                     x => x.TargetName);
-                _methodPicker.OptionSelected += x => SetValue(x, data);
+                data.Picker.OptionSelected += x => SetValue(x, data);
             }
-            _methodPicker.Show(position);
+            data.Picker.Show(position);
         }
 
         private static void SetValue(MethodInfoWrapper wrapper, DrawerData data)
