@@ -5,6 +5,7 @@ using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Collections;
 using Rhinox.Utilities;
 using Sirenix.OdinInspector;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -61,7 +62,7 @@ public class Example : MonoBehaviour
 
     void OnGUI()
     {
-        GUILayout.Label("Test Before");
+        GUILayout.Label("Test Before" /*+ EditorApplication.applicationPath*/);
         var mat = GUI.matrix;
         GUIUtility.RotateAroundPivot(rotAngle, pivotPoint);
         if (GUILayout.Button("Rotate"))
