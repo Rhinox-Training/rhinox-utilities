@@ -1,44 +1,45 @@
-﻿using UnityEditor.Build.Reporting;
-using UnityEditor.Compilation;
+﻿using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 
 namespace Assets.Utilities.Editor.Helpers
 {
-    internal interface ICustomPreProcessBuilder
+    public abstract class CustomPreProcessBuilderWithErrorReport : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
-        void OnPreprocessBuild(BuildReport report);
+        private static bool _BuildDone;
+        private static BuildReport _buildReport;
 
-        //void CompilationPipelineOnCompilationStarted(object compilationContext);
+        public int callbackOrder => int.MinValue;
 
-        //void CompilationPipelineOnAssemblyCompilationFinished(string path, CompilerMessage[] messages);
-
-        //void CompilationPipelineOnCompilationFinished(object compilationContext);
-    }
-
-    public abstract class CustomPreProcessBuilderWithErrorReport : ICustomPreProcessBuilder
-    {
         public void OnPreprocessBuild(BuildReport report)
         {
+            _BuildDone = false;
+            _buildReport = report;
+
+            EditorApplication.update += BuildCheck;
+
             PreprocessBuild(report);
         }
 
         public abstract void PreprocessBuild(BuildReport report);
+        public abstract void PostprocessBuild(BuildReport report);
 
+        private void BuildCheck()
+        {
+            if (!BuildPipeline.isBuildingPlayer)
+            {
+                EditorApplication.update -= BuildCheck;
+                OnPostprocessBuild(_buildReport);
+            }
+        }
 
-        //public void CompilationPipelineOnAssemblyCompilationFinished(string path, CompilerMessage[] messages)
-        //{
-        //    // throw new System.NotImplementedException();
-        //}
+        public void OnPostprocessBuild(BuildReport report)
+        {
+            if (_BuildDone)
+                return;
+            _BuildDone = true;
 
-        //public void CompilationPipelineOnCompilationFinished(object compilationContext)
-        //{
-        //    //throw new System.NotImplementedException();
-        //}
-
-        //public void CompilationPipelineOnCompilationStarted(object compilationContext)
-        //{
-        //    //throw new System.NotImplementedException();
-        //}
-
-
+            PostprocessBuild(report);
+        }
     }
 }
