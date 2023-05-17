@@ -62,7 +62,7 @@ namespace Rhinox.Utilities.Editor
                     break;
                 
                 default:
-                    EditorUtility.DisplayDialog("Cannot compute...", string.Format("The fileformat '{0}'", format), "OK");
+                    EditorUtility.DisplayDialog("Cannot compute...", $"The fileformat '{format}'", "OK");
                     break;
             }
 
@@ -89,7 +89,7 @@ namespace Rhinox.Utilities.Editor
         private TexturePackerRoot _root = new TexturePackerRoot();
         
         private SmartPropertyView _propertyView;
-
+        
         /// ================================================================================================================
         /// METHODS
         [MenuItem(WindowHelper.ToolsPrefix + "Texture Packer", false, 202)]
@@ -108,10 +108,17 @@ namespace Rhinox.Utilities.Editor
         private void OnGUI()
         {
             if (_propertyView == null)
+            {
                 _propertyView = new SmartPropertyView(_root);
+                _propertyView.RepaintRequested += RequestRepaint;
+            }
+            
             _propertyView.DrawLayout();
-            if (_propertyView.ShouldRepaint)
-                Repaint();
+        }
+
+        public void RequestRepaint()
+        {
+            Repaint();
         }
     }
 }

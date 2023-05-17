@@ -13,7 +13,8 @@ namespace Rhinox.Utilities.Odin.Editor
     /// </summary>
     public class AdvancedSceneSearchWindow : PagerEditorWindow<AdvancedSceneSearchWindow>, IHasCustomMenu
     {
-        protected override object RootPage => new AdvancedSceneSearchOverview(_pager);
+        private AdvancedSceneSearchOverview _root;
+        protected override object RootPage => _root ?? (_root = new AdvancedSceneSearchOverview(_pager));
         protected override string RootPageName => "Overview";
 
         [MenuItem(WindowHelper.FindToolsPrefix + "Advanced Scene Search", false, -98)]

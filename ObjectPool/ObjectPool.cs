@@ -1,36 +1,43 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Rhinox.Lightspeed;
+using Rhinox.Perceptor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities
 {
 	public interface IObjectPool
 	{
-		bool AddToPool(GameObject prefab, int count, Transform parent = null);
+		bool AddToPool(GameObject template, int count);
+		bool AddToPool(GameObject template, Transform parent, int count);
+		
+		bool AddToPool<T>(T template, int count) where T : Component;
+		bool AddToPool<T>(T template, Transform parent, int count) where T : Component;
 
-		GameObject PopFromPool(GameObject prefab, bool forceInstantiate = false, bool instantiateIfNone = true,
-			Transform container = null, Vector3 position = default(Vector3));
+		GameObject PopFromPool(GameObject template, bool forceCreate = false, Vector3 position = default);
+		GameObject PopFromPool(GameObject template, Transform parent, bool forceCreate = false, Vector3 position = default);
 
-		T PopFromPool<T>(T poolObject, bool forceInstantiate = false, bool instantiateIfNone = true,
-			Transform container = null, Vector3 position = default(Vector3))
-			where T : Component, IPoolableObject;
+		T PopFromPool<T>(T template, bool forceCreate = false, Vector3 position = default) where T : Component;
+		T PopFromPool<T>(T template, Transform parent, bool forceCreate = false, Vector3 position = default) where T : Component;
 
-		T PopFromPool<T>(GameObject poolObject, bool forceInstantiate = false, bool instantiateIfNone = true,
-			Transform container = null, Vector3 position = default(Vector3))
-			where T : Component, IPoolableObject;
+		void PushToPool(GameObject obj, bool preserveParent = true);
+		void PushToPool(GameObject obj, Transform parent);
+		void PushToPool(GameObject obj, GameObject template, bool preserveParent = true);
+		void PushToPool(GameObject obj, GameObject template, Transform parent);
+		
+		void PushToPool<T>(T obj, bool preserveParent = true) where T : Component;
+		void PushToPool<T>(T obj, Transform parent) where T : Component;
+		void PushToPool<T>(T obj, T template, bool preserveParent = true) where T : Component;
+		void PushToPool<T>(T obj, T template, Transform parent) where T : Component;
 
-		void PushToPool(GameObject obj, bool retainObject = true, Transform newParent = null);
-
-		void ReleaseItems(GameObject prefab, bool destroyObject = false);
-
+		void ReleaseItems(GameObject template, bool destroyObjects = false);
 		void ReleasePool();
 	}
 
 	public sealed class ObjectPool : MonoBehaviour, IObjectPool
 	{
-		private Dictionary<GameObject, Queue<GameObject>> _container = new Dictionary<GameObject, Queue<GameObject>>();
+		private Dictionary<GameObject, Stack<GameObject>> _objectsByTemplate = new Dictionary<GameObject, Stack<GameObject>>();
 
 		private bool _destroyed;
 		
@@ -64,216 +71,198 @@ namespace Rhinox.Utilities
 			_destroyed = true;
 		}
 
-		private ObjectPool()
-		{
-		}
+		private ObjectPool() { }
 
-		/// <summary>
-		/// Adds to pool.
-		/// </summary>
-		/// <returns><c>true</c>, if item was successfully created, <c>false</c> otherwise.</returns>
-		/// <param name="prefab">The prefab to instantiate new items.</param>
-		/// <param name="count">The amount of instances to be created.</param>
-		/// <param name="parent">The Transform container to store the items. If null, items are placed as parent</param>
-		public bool AddToPool(GameObject prefab, int count, Transform parent = null)
+		public bool AddToPool<T>(T template, int count) where T : Component
+			=> AddToPool(template.gameObject, transform, count);
+
+		public bool AddToPool<T>(T template, Transform parent, int count) where T : Component	
+			=> AddToPool(template.gameObject, parent, count);
+
+		public bool AddToPool(GameObject template, int count)
+			=> AddToPool(template, transform, count);
+
+		public bool AddToPool(GameObject template, Transform parent, int count)
 		{
-			if (prefab == null || count <= 0 || _destroyed)
+			if (template == null || count <= 0 || _destroyed)
 			{
 				return false;
 			}
 
 			for (int i = 0; i < count; i++)
 			{
-				GameObject obj = PopFromPool(prefab, true, false, parent);
-				PushToPool(obj, true, parent);
+				GameObject obj = CreateObject(template, parent);
+				PushToPool(obj, template, parent);
 			}
 
 			return true;
 		}
 
-		/// <summary>
-		/// Pops item from pool.
-		/// </summary>
-		/// <returns>The from pool.</returns>
-		/// <param name="prefab">Prefab to be used. Matches the prefab used to create the instance</param>
-		/// <param name="forceInstantiate">If set to <c>true</c> force instantiate regardless the pool already contains the same item.</param>
-		/// <param name="instantiateIfNone">If set to <c>true</c> instantiate if no item is found in the pool.</param>
-		/// <param name="container">The Transform container to store the popped item.</param>
-		/// <param name="position">Initial position of the popped item.</param>
-		public GameObject PopFromPool(GameObject prefab, bool forceInstantiate = false, bool instantiateIfNone = true, Transform container = null, Vector3 position = default(Vector3))
+		public T PopFromPool<T>(T template, bool forceCreate = false, Vector3 position = default) where T : Component
+			=> PopFromPool<T>(template.gameObject, forceCreate, transform, position);
+
+		public T PopFromPool<T>(T template, Transform parent, bool forceCreate = false, Vector3 position = default) where T : Component			
+			=> PopFromPool<T>(template.gameObject, forceCreate, parent, position);
+
+
+		public T PopFromPool<T>(T template, bool forceCreate = false, Transform parent = null, Vector3 position = default) where T : Component
+			=> PopFromPool<T>(template.gameObject, forceCreate, parent, position);
+
+		public T PopFromPool<T>(GameObject template, bool forceCreate = false, Transform parent = null, Vector3 position = default)
+			where T : Component
+		{
+			if (!template.TryGetComponent(out T component))
+			{
+				PLog.Error<UtilityLogger>("Cannot pop from pool: This template does not have the correct component");
+				return null;
+			}
+			
+			GameObject obj = PopFromPool(template, parent, forceCreate, position);
+
+			if (obj != null && obj.TryGetComponent(out component))
+				return component;
+			return null;
+		}
+
+		public GameObject PopFromPool(GameObject template, bool forceCreate = false, Vector3 position = default)
+			=> PopFromPool(template, transform, forceCreate, position);
+			
+		public GameObject PopFromPool(GameObject template, Transform parent, bool forceCreate = false, Vector3 position = default)
 		{
 			GameObject obj = null;
-			IPoolableObject poolObj = null;
-			if (forceInstantiate)
+			if (forceCreate)
 			{
-				poolObj = CreateObject<IPoolableObject>(prefab, null, out obj);
+				obj = CreateObject(template, parent);
 			}
 			else
 			{
-				Queue<GameObject> queue = FindInContainer(prefab);
-				if (queue.Count > 0)
+				Stack<GameObject> stack = FindInContainer(template);
+				if (stack.Count > 0)
 				{
-					obj = queue.Dequeue();
+					obj = stack.Pop();
 					obj.transform.position = position;
+					obj.transform.SetParent(parent, false);
 					obj.SetActive(true);
-					obj.transform.SetParent(container, false);
-
-					poolObj = obj.GetComponent<IPoolableObject>();
 				}
+				else
+					obj = CreateObject(template, parent, position);
 			}
+			
+			if (obj.TryGetComponent(out IPoolableObject o))
+				o.Init(this, template);
 
-			if (obj == null && instantiateIfNone)
-				poolObj = CreateObject<IPoolableObject>(prefab, container, position, out obj);
-
-			if (poolObj != null)
-				poolObj.Init();
+			obj.SetActive(true);
 			return obj;
 		}
 
-		public T PopFromPool<T>(T prefabPoolObject, bool forceInstantiate = false, bool instantiateIfNone = true,
-			Transform container = null, Vector3 position = default(Vector3))
-			where T : Component, IPoolableObject
+		private Stack<GameObject> FindInContainer(GameObject template)
 		{
-			return PopFromPool<T>(prefabPoolObject.gameObject, forceInstantiate, instantiateIfNone, container, position);
-		}
-
-		public T PopFromPool<T>(GameObject prefabPoolObject, bool forceInstantiate = false,
-			bool instantiateIfNone = true, Transform container = null, Vector3 position = default(Vector3)) where T : Component, IPoolableObject
-		{
-			GameObject obj = null;
-			T poolObject = null;
-			var prefab = prefabPoolObject;
-
-			if (forceInstantiate)
+			if (_objectsByTemplate.ContainsKey(template) == false)
 			{
-				poolObject = CreateObject<T>(prefab, null, out obj);
-			}
-			else
-			{
-				Queue<GameObject> queue = FindInContainer(prefab);
-				if (queue.Count > 0)
-				{
-					obj = queue.Dequeue();
-					obj.transform.position = position;
-					obj.SetActive(true);
-					obj.transform.SetParent(container, false);
-
-					poolObject = obj.GetComponent<T>();
-				}
+				_objectsByTemplate.Add(template, new Stack<GameObject>());
 			}
 
-			if (obj == null && instantiateIfNone)
-				poolObject = CreateObject<T>(prefab, container, position, out obj);
-
-			if (poolObject != null)
-				poolObject.Init();
-			return poolObject;
+			return _objectsByTemplate[template];
 		}
 
-		private Queue<GameObject> FindInContainer(GameObject prefab)
+		private GameObject CreateObject(GameObject template, Transform parent, Vector3 position = default)
+			=> CreateObject(template, parent, position, Quaternion.identity);
+		
+		private GameObject CreateObject(GameObject template, Transform parent, Vector3 position, Quaternion rotation)
 		{
-			if (_container.ContainsKey(prefab) == false)
-			{
-				_container.Add(prefab, new Queue<GameObject>());
-			}
-
-			return _container[prefab];
+			var newObj = Instantiate(template, position, rotation);
+			newObj.name = template.name;
+			newObj.transform.SetParent(parent, false);
+			return newObj;
 		}
 
-		private T CreateObject<T>(GameObject prefab, Transform container, out GameObject newObj)
-			where T : IPoolableObject
+		public void PushToPool<T>(T obj, bool preserveParent = true) where T : Component
+			=> PushToPool(obj.gameObject, preserveParent);
+
+		public void PushToPool<T>(T obj, Transform parent) where T : Component
+			=> PushToPool(obj.gameObject, parent);
+		
+		public void PushToPool<T>(T obj, T template, bool preserveParent = true) where T : Component
+			=> PushToPool(obj.gameObject, template.gameObject, preserveParent);
+
+		public void PushToPool<T>(T obj, T template, Transform parent) where T : Component
+			=> PushToPool(obj.gameObject, template.gameObject, parent);
+
+		public void PushToPool(GameObject obj, bool preserveParent = true)
 		{
-			return CreateObject<T>(prefab, container, Vector3.zero, Quaternion.identity, out newObj);
+			if (obj == null) return;
+
+			PushToPool(obj, preserveParent ? obj.transform.parent : transform);
 		}
 
-		private T CreateObject<T>(GameObject prefab, Transform container, Vector3 position, out GameObject newObj)
-			where T : IPoolableObject
-		{
-			return CreateObject<T>(prefab, container, position, Quaternion.identity, out newObj);
-		}
-
-		private T CreateObject<T>(GameObject prefab, Transform container, Vector3 position, Quaternion rotation,
-			out GameObject newObj)
-			where T : IPoolableObject
-		{
-			T poolObjectPrefab = prefab.GetComponent<T>();
-			if (poolObjectPrefab == null)
-			{
-				Debug.Log("Wrong type of object");
-				newObj = null;
-				return default(T);
-			}
-
-			newObj = Instantiate(prefab, position, rotation);
-			T poolObject = newObj.GetComponent<T>();
-			newObj.name = prefab.name;
-			poolObject.Prefab = prefab;
-			newObj.transform.SetParent(container, false);
-			return poolObject;
-		}
-
-		/// <summary>
-		/// Pushs back the item to the pool.
-		/// </summary>
-		/// <param name="obj">A reference to the item to be pushed back.</param>
-		/// <param name="retainObject">If set to <c>true</c> retain object.</param>
-		/// <param name="newParent">The Transform container to store the item.</param>
-		public void PushToPool(GameObject obj, bool retainObject = true, Transform newParent = null)
+		public void PushToPool(GameObject obj, Transform parent)
 		{
 			if (obj == null || _destroyed) return;
 
-			if (retainObject == false)
-			{
-				Destroy(obj);
-				return;
-			}
-
 			obj.SetActive(false);
-			obj.transform.SetParent(newParent ? newParent : transform, false);
+			obj.transform.SetParent(parent, false);
 
-			IPoolableObject poolObject = obj.GetComponent<IPoolableObject>();
-			if (poolObject != null)
+			if (ValidateObjectAsPoolable(obj, out GameObject template))
 			{
-				GameObject prefab = poolObject.Prefab;
-
-				if (prefab == null)
-				{
-					Debug.Log("Pushed obj to pool with uninitialized Prefab.");
-					return;
-				}
-
-				Queue<GameObject> queue = FindInContainer(prefab);
-				queue.Enqueue(obj);
+				Stack<GameObject> stack = FindInContainer(template);
+				stack.Push(obj);
 			}
-			else
-				Debug.Log("Pushed obj to pool with no IPoolObject behaviour.");
 		}
 
+		private bool ValidateObjectAsPoolable(GameObject obj, out GameObject template)
+		{
+			if (obj.TryGetComponent(out IPoolableObject poolObject))
+			{
+				template = poolObject.Template;
+
+				if (template != null)
+					return true;
+				
+				PLog.Error<UtilityLogger>("Pushed an object into pool with with an uninitialized IPoolObject. " +
+				                          "Use the function that provides a template context instead");
+				return false;
+			}
+			
+			template = null;
+			PLog.Error<UtilityLogger>("Pushed an object into pool with no IPoolObject behaviour. " +
+			                          "Use the function that provides a template context instead");
+			return false;
+		}
+
+		public void PushToPool(GameObject obj, GameObject template, bool preserveParent = true)
+			=> PushToPool(obj, template, preserveParent ? obj.transform.parent : transform);
+
+		public void PushToPool(GameObject obj, GameObject template, Transform parent)
+		{
+			if (obj == null || _destroyed) return;
+
+			obj.SetActive(false);
+			obj.transform.SetParent(parent, false);
+
+			Stack<GameObject> stack = FindInContainer(template);
+			stack.Push(obj);
+		}
+		
 		/// <summary>
 		/// Releases the pool from all items.
 		/// </summary>
-		/// <param name="prefab">The prefab to be used to find the items.</param>
-		/// <param name="destroyObject">If set to <c>true</c> destroy object, else object is removed from pool but kept in scene. </param>
-		public void ReleaseItems(GameObject prefab, bool destroyObject = false)
+		/// <param name="template">The template to be used to find the items.</param>
+		/// <param name="destroyObjects">If set to <c>true</c> destroy object, else object is removed from pool but kept in scene. </param>
+		public void ReleaseItems(GameObject template, bool destroyObjects = false)
 		{
-			if (prefab == null)
-			{
+			if (template == null)
 				return;
-			}
 
-			Queue<GameObject> queue = FindInContainer(prefab);
-			if (queue == null)
-			{
+			Stack<GameObject> stack = FindInContainer(template);
+			
+			if (stack == null)
 				return;
-			}
 
-			while (queue.Count > 0)
+			while (stack.Count > 0)
 			{
-				GameObject obj = queue.Dequeue();
-				if (destroyObject)
-				{
-					Destroy(obj);
-				}
+				GameObject obj = stack.Pop();
+				if (destroyObjects)
+					Utility.DestroyObject(obj);
 			}
 		}
 
@@ -282,18 +271,18 @@ namespace Rhinox.Utilities
 		/// </summary>
 		public void ReleasePool()
 		{
-			foreach (var kvp in _container)
+			foreach (var kvp in _objectsByTemplate)
 			{
-				Queue<GameObject> queue = kvp.Value;
-				while (queue.Count > 0)
+				Stack<GameObject> stack = kvp.Value;
+				while (stack.Count > 0)
 				{
-					GameObject obj = queue.Dequeue();
-					Object.Destroy(obj);
+					GameObject obj = stack.Pop();
+					Utility.DestroyObject(obj);
 				}
 			}
 
-			_container = null;
-			_container = new Dictionary<GameObject, Queue<GameObject>>();
+			_objectsByTemplate = null;
+			_objectsByTemplate = new Dictionary<GameObject, Stack<GameObject>>();
 		}
 	}
 }

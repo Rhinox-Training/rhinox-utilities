@@ -69,7 +69,7 @@ namespace Rhinox.Utilities.Editor
 
             var window = CreateInstance<ScriptableObjectCreator>();
             window.position = RectExtensions.AlignCenter(CustomEditorGUI.GetEditorWindowRect(), 800, 500);
-            window.titleContent = new GUIContent(path);
+            window.titleContent = new GUIContent($"Create new SO in folder {path}");
             window.targetFolder = path.Trim('/');
             window.ShowUtility();
         }
@@ -101,8 +101,8 @@ namespace Rhinox.Utilities.Editor
             this.WindowPadding = new RectOffset();
 
             CustomMenuTree tree = new CustomMenuTree();
-#if ODIN_INSPECTOR
             tree.DrawSearchToolbar = true;
+#if ODIN_INSPECTOR
             tree.DefaultMenuStyle = OdinMenuStyle.TreeViewStyle;
 #endif
             foreach (var entry in GetTypesForTree())
@@ -143,7 +143,6 @@ namespace Rhinox.Utilities.Editor
             if (isBaseType && !string.IsNullOrWhiteSpace(t.Namespace) && MatchesIgnoredNamespace(t.Namespace))
                 return string.Empty;
 
-            var name = t.Name.Split('`').First().SplitCamelCase();
             var nameSpace = isBaseType ? string.Empty : t.Namespace;
             var basePath = GetMenuPathForType(t.BaseType, true);
             if (!string.IsNullOrWhiteSpace(basePath))
@@ -155,7 +154,7 @@ namespace Rhinox.Utilities.Editor
                 nameSpace += "/";
             }
 
-            return nameSpace + basePath + name;
+            return nameSpace + basePath + t.GetNiceName();
         }
 
         private static string Fixup(string nameSpace)

@@ -4,21 +4,30 @@ namespace Rhinox.Utilities
 {
 	public interface IPoolableObject
 	{
-		GameObject Prefab { get; set; }
-		void Init();
+		GameObject Template { get; }
+		void Init(IObjectPool pool, GameObject template);
 	}
 
 	public class PoolObject : MonoBehaviour, IPoolableObject
 	{
-		protected IObjectPool Pool
+		protected IObjectPool Pool { get; private set; }
+
+		public GameObject Template { get; private set; }
+
+		public virtual void Init(IObjectPool pool, GameObject template)
 		{
-			get { return ObjectPool.Instance; }
+			Template = template;
+			Pool = pool;
+		}
+		
+		public void PushBackToPool(bool preserveParent = true)
+		{
+			Pool.PushToPool(gameObject, Template, preserveParent);
 		}
 
-		public GameObject Prefab { get; set; }
-
-		public virtual void Init()
+		public void PushBackToPool(Transform parent)
 		{
+			Pool.PushToPool(gameObject, Template, parent);
 		}
 	}
 }

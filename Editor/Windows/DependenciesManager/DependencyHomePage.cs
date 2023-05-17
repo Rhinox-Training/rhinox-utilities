@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils.Attributes;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using UnityEditor;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Rhinox.Utilities.Editor
 {
@@ -13,7 +14,7 @@ namespace Rhinox.Utilities.Editor
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 12, DraggableItems = false)]
         [AssetsOnly, DrawAsUnityObject]
         public List<Object> Objects = new List<Object>();
-
+        
         private DependenciesWindow _mainWindow;
 
         public void Initialize(DependenciesWindow window)
@@ -68,11 +69,14 @@ namespace Rhinox.Utilities.Editor
                 Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
         }
 
-        [Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.8f, .4f, .6f)]
-        public void Clear()
+        [Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.4f, .8f, .6f)]
+        public void AddSelection()
         {
-            Objects.Clear();
-            _mainWindow.Clear();
+            foreach (var obj in Selection.objects)
+            {
+                var path = AssetDatabase.GetAssetPath(obj);
+                Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
+            }
         }
 
         [Button(ButtonSizes.Small), ButtonGroup("Add2"), GUIColor(.4f, .8f, .6f)]
@@ -81,6 +85,13 @@ namespace Rhinox.Utilities.Editor
             var paths = _mainWindow.AssetManager.GetAssetsPaths("");
             foreach (var path in paths)
                 Objects.AddUnique(AssetDatabase.LoadAssetAtPath<Object>(path));
+        }
+        
+        [Button(ButtonSizes.Small), GUIColor(.8f, .4f, .6f)]
+        public void Clear()
+        {
+            Objects.Clear();
+            _mainWindow.Clear();
         }
     }
 }
