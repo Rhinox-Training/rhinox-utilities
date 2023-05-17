@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
 {
-    internal class CustomProjectSettingsBuilder : CustomPreProcessBuilderWithErrorReport
+    internal class CustomProjectSettingsBuilder : CustomProcessBuildWithReport
     {
         private static Dictionary<CustomProjectSettings, string> _clonePathsByInstance;
 
