@@ -57,6 +57,7 @@
 ///
 /// Task also provides an event that is triggered when the coroutine exits.
 
+using System;
 using UnityEngine;
 using System.Collections;
 
@@ -77,6 +78,22 @@ namespace Rhinox.Utilities
 
 			public override bool keepWaiting => !_coroutine.Finished;
 		}
+
+		public static ManagedCoroutine Begin(IEnumerator c, bool autoStart = true)
+		{
+			var coroutine = new ManagedCoroutine(c);
+			if (autoStart)
+				coroutine.Start();
+			return coroutine;
+		}
+		
+		public static ManagedCoroutine Begin(IEnumerator c, FinishedHandler callback)
+		{
+			var coroutine = new ManagedCoroutine(c);
+			coroutine.OnFinished += callback;
+			coroutine.Start();
+			return coroutine;
+		}
 		
 		/// Paused tasks are considered to be running.
 		public bool Running => _coroutine.Running;
@@ -88,16 +105,26 @@ namespace Rhinox.Utilities
 		/// Delegate for termination subscribers. Manual is true if
 		/// the coroutine was stopped with an explicit call to Stop().
 		public delegate void FinishedHandler(bool manual);
-
 		public event FinishedHandler OnFinished;
+		
+		/// Delegate for termination subscribers of failed state.
+		/// The exception which caused the coroutine to fail is passed as an argument
+		public delegate void FailedHandler(Exception e);
+		public event FailedHandler OnFailed;
 
 		/// If autoStart is true (default) the task is automatically started upon construction.
+		[Obsolete("Use ManagedCoroutine.Begin instead")]
 		public ManagedCoroutine(IEnumerator c, bool autoStart = true)
+			: this(c)
+		{
+			if (autoStart) Start();
+		}
+
+		private ManagedCoroutine(IEnumerator c)
 		{
 			_coroutine = CoroutineManager.Create(c);
 			_coroutine.OnFinished += CoroutineOnFinished;
-
-			if (autoStart) Start();
+			_coroutine.OnFailed += CoroutineOnFailed;
 		}
 
 		public void Start() => _coroutine.Start();
@@ -110,6 +137,11 @@ namespace Rhinox.Utilities
 		void CoroutineOnFinished(bool manual)
 		{
 			OnFinished?.Invoke(manual);
+		}
+		
+		void CoroutineOnFailed(Exception e)
+		{
+			OnFailed?.Invoke(e);
 		}
 
 		public CustomYieldInstruction WaitForComplete()
@@ -140,8 +172,10 @@ namespace Rhinox.Utilities
 			}
 
 			public delegate void FinishedHandler(bool manual);
-
 			public event FinishedHandler OnFinished;
+
+			public delegate void FailedHandler(Exception e);
+			public event FailedHandler OnFailed;
 
 			private IEnumerator _coroutine;
 			private bool _running;
@@ -168,7 +202,16 @@ namespace Rhinox.Utilities
 			IEnumerator CallWrapper()
 			{
 				yield return null;
-				IEnumerator e = _coroutine;
+				IEnumerator e = null;
+				try
+				{
+					e = _coroutine;
+				}
+				catch (Exception exception)
+				{
+					TriggerFailed(exception);
+					yield break;
+				}
 
 				while (_running)
 				{
@@ -178,7 +221,19 @@ namespace Rhinox.Utilities
 					}
 					else
 					{
-						if (e != null && e.MoveNext())
+						bool canYield = false;
+						try
+						{
+
+							canYield = e != null && e.MoveNext();
+						}
+						catch (Exception exception)
+						{
+							TriggerFailed(exception);
+							yield break;
+						}
+
+						if (canYield)
 						{
 							yield return e.Current;
 						}
@@ -193,6 +248,12 @@ namespace Rhinox.Utilities
 					OnFinished(_stopped);
 
 				_finished = true;
+			}
+
+			private void TriggerFailed(Exception exception)
+			{
+				if (OnFailed != null)
+					OnFailed(exception);
 			}
 		}
 

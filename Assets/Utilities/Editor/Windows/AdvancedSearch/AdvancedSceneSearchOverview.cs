@@ -7,6 +7,11 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.GUIUtils.Editor.Helpers;
 using Rhinox.Lightspeed;
 using UnityEditor;
+#if UNITY_2020_1_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
+using UnityEditor.Experimental.SceneManagement;
+#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -17,12 +22,13 @@ namespace Rhinox.Utilities.Odin.Editor
     {
         #region wrapper
 
-        public class MotorWrapper
+        public class MotorWrapper : IRepaintRequestHandler
         {
             public AdvancedSceneSearchMotor Motor;
             private DrawablePropertyView _view;
 
             public Rect Rect { get; set; }
+
             
             private readonly Func<ICollection<GameObject>> InitialObjectsFetcher;
 
@@ -37,15 +43,19 @@ namespace Rhinox.Utilities.Odin.Editor
 
             public bool ShowInfo = true;
             public bool Highlighted = false;
+            
+            public IRepaintable Repainter;
 
-            public MotorWrapper(Func<ICollection<GameObject>> objFetcher)
+            public MotorWrapper(Func<ICollection<GameObject>> objFetcher, IRepaintable repainter)
             {
                 Motor = new AdvancedSceneSearchMotor();
                 Motor.Changed += OnMotorChanged;
 
+                Repainter = repainter;
                 InitialObjectsFetcher = objFetcher;
 
                 _view = new DrawablePropertyView(Motor);
+                _view.RepaintRequested += RequestRepaint;
             }
 
             private void OnMotorChanged(AdvancedSceneSearchMotor obj)
@@ -106,6 +116,16 @@ namespace Rhinox.Utilities.Odin.Editor
                     }
                 );
             }
+
+            public void RequestRepaint()
+            {
+                Repainter?.RequestRepaint();
+            }
+
+            public void UpdateRequestTarget(IRepaintable target)
+            {
+                Repainter = target;
+            }
         }
 
         #endregion
@@ -116,13 +136,12 @@ namespace Rhinox.Utilities.Odin.Editor
         private SettingData _includeDisabled;
         private SettingData _onlyInSelection;
 
-        public AdvancedSceneSearchOverview(SlidePagedWindowNavigationHelper<object> pager) : base(pager)
+        public AdvancedSceneSearchOverview(SlidePageNavigationHelper<object> pager) : base(pager)
         {
             _pager = pager;
-
             _motorWrappers = new List<MotorWrapper>
             {
-                new MotorWrapper(GetInitialGameObjects)
+                new MotorWrapper(GetInitialGameObjects, this)
             };
             _removedWrappers = new List<MotorWrapper>();
 
@@ -167,7 +186,7 @@ namespace Rhinox.Utilities.Odin.Editor
                 GUILayout.FlexibleSpace();
 
                 if (CustomEditorGUI.IconButton(UnityIcon.AssetIcon("Fa_Plus"), CustomGUIStyles.Clean))
-                    _motorWrappers.Add(new MotorWrapper(GetInitialGameObjects));
+                    _motorWrappers.Add(new MotorWrapper(GetInitialGameObjects, this));
 
                 GUILayout.FlexibleSpace();
             }
@@ -177,7 +196,7 @@ namespace Rhinox.Utilities.Odin.Editor
         {
             if (!_pager.IsOnFirstPage) return;
 
-            _pager.PushPage(new AdvancedSceneSearchResults(wrapper.Motor), "Results");
+            _pager.PushPage(new AdvancedSceneSearchResults(_pager, wrapper.Motor), "Results");
         }
 
         private void DrawCardButtons(MotorWrapper wrapper, Rect r)
@@ -233,25 +252,26 @@ namespace Rhinox.Utilities.Odin.Editor
             {
                 foreach (var obj in Selection.gameObjects)
                     objs.AddRange(obj.GetAllChildren(_includeDisabled.State));
+                return objs;
             }
-            else if (_includeDisabled.State)
+            
+            var prefab = PrefabStageUtility.GetCurrentPrefabStage();
+            if (prefab != null)
             {
-                for (int sceneI = 0; sceneI < SceneManager.sceneCount; sceneI++)
-                {
-                    var s = SceneManager.GetSceneAt(sceneI);
-                    if (!s.isLoaded) continue;
-
-                    var rootGameObjects = s.GetRootGameObjects();
-                    foreach (var go in rootGameObjects)
-                        objs.AddRange(go.GetAllChildren(true));
-                }
-            }
-            else
-            {
-                objs = Object.FindObjectsOfType<Transform>().Select(x => x.gameObject).ToList();
+                return prefab.prefabContentsRoot.GetAllChildren(_includeDisabled.State);
             }
 
-            return objs;
+            if (_includeDisabled.State)
+            {
+                // Load the active editor scene (only when not in build, otherwise the loop below will contain it)
+                var currScene = SceneManager.GetActiveScene();
+                var rootGameObjects = currScene.GetRootGameObjects();
+                foreach (var go in rootGameObjects)
+                    objs.AddRange(go.GetAllChildren(true));
+                return objs;
+            }
+
+            return Object.FindObjectsOfType<Transform>().Select(x => x.gameObject).ToList();
         }
 
         public void AddItemsToMenu(GenericMenu menu)

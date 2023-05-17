@@ -91,9 +91,9 @@ namespace Rhinox.Utilities.Editor
             foreach (var go in Selection.gameObjects)
             {
                 if (IncludeChildren)
-                    renderers.AddRange(go.GetComponentsInChildren<MeshRenderer>());
+                    renderers.AddRange(go.GetComponentsInChildren<Renderer>());
                 else
-                    renderers.Add(go.GetComponent<MeshRenderer>());
+                    renderers.Add(go.GetComponent<Renderer>());
             }
 
             if (!IncludeLODs)
@@ -128,6 +128,10 @@ namespace Rhinox.Utilities.Editor
         private static void AddRenderer(Renderer renderer)
         {
             if (renderer == null) return;
+            
+            if (renderer is SkinnedMeshRenderer skinnedMeshRenderer)
+                _meshes.Add(skinnedMeshRenderer.sharedMesh);
+
             
             var filter = renderer.GetComponent<MeshFilter>();
             

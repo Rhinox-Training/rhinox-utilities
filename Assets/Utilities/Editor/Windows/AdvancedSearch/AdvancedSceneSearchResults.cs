@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
+using Rhinox.GUIUtils.Editor.Helpers;
 using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 using UnityEditor;
@@ -15,7 +16,7 @@ using SelectionChangedType = Rhinox.GUIUtils.Editor.SelectionChangedType;
 
 namespace Rhinox.Utilities.Odin.Editor
 {
-    public class AdvancedSceneSearchResults
+    public class AdvancedSceneSearchResults : PagerPage
     {
         private AdvancedSceneSearchMotor _motor;
 
@@ -35,7 +36,8 @@ namespace Rhinox.Utilities.Odin.Editor
 
         private const float OverViewHeight = 300;
 
-        public AdvancedSceneSearchResults(AdvancedSceneSearchMotor motor)
+        public AdvancedSceneSearchResults(SlidePageNavigationHelper<object> pager, AdvancedSceneSearchMotor motor)
+            : base(pager)
         {
             _motor = motor;
 
@@ -50,6 +52,7 @@ namespace Rhinox.Utilities.Odin.Editor
         private void BuildTree()
         {
             _menuTree = new CustomMenuTree();
+            _menuTree.DrawSearchToolbar = true;
 
             foreach (var item in _motor.Results)
                 // can't have slashes as it will add depth to the tree
@@ -90,8 +93,7 @@ namespace Rhinox.Utilities.Odin.Editor
             _selectedObjectEditors.Clear();
         }
 
-        [OnInspectorGUI]
-        public void Draw()
+        protected override void OnDraw()
         {
             if (Event.current.type == EventType.Repaint && Input.GetMouseButtonDown(0))
                 HandleMouseClick();
@@ -118,17 +120,22 @@ namespace Rhinox.Utilities.Odin.Editor
                 _overviewHeight = _overviewToggle ? OverViewHeight : 20;
 
                 // Left menu tree
-                GUILayout.BeginVertical(/*GUILayout.Width(this._columns[0].ColWidth), */GUILayout.ExpandHeight(true));
-                {
-                    // EditorGUI.DrawRect(GUIHelper.GetCurrentLayoutRect(), CustomGUIStyles.BoxBackgroundColor);
-                    _menuTree.Draw();
-                }
+                GUILayout.BeginVertical(CustomGUIStyles.Clean, GUILayout.Width(250));
+                Rect currentLayoutRect = CustomEditorGUI.GetTopLevelLayoutRect();
+                
+                _menuTree.HandleRefocus(currentLayoutRect);
+                
+                EditorGUI.DrawRect(currentLayoutRect, new Color(1f, 1f, 1f, 0.035f));
+                
+                _menuTree.Draw();
+                
                 GUILayout.EndVertical();
+                
+                _menuTree.Update();
 
                 // Draw selected
                 GUILayout.BeginVertical();
                 {
-                    DrawTopBarButtons();
                     DrawSelectedObject();
                 }
                 GUILayout.EndVertical();
@@ -225,8 +232,10 @@ namespace Rhinox.Utilities.Odin.Editor
             EditorGUIUtility.PingObject(obj);
         }
 
-        private void DrawTopBarButtons()
+        protected override void OnDrawTopOverlay()
         {
+            base.OnDrawTopOverlay();
+            
             if (GUILayout.Button("Select All", GUILayout.Width(150), GUILayout.Height(18)))
                 Selection.objects = _motor.Results.ToArray();
         }
