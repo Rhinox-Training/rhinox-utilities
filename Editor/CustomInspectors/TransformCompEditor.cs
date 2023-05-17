@@ -56,7 +56,6 @@ namespace Rhinox.Utilities.Editor
 			public const int ButtonHeight = 18;
 		}
 		
-		private Vector3 _worldPos;
 		private SerializedProperty _pos;
 		private SerializedProperty _rot;
 		private SerializedProperty _scale;
@@ -93,9 +92,7 @@ namespace Rhinox.Utilities.Editor
 			_scaleConstraint = serializedObject.FindProperty(Properties.ScaleConstraintName);
 			if (_scaleConstraint != null)
 				_isConstrained = _scaleConstraint.boolValue;
-
-			_worldPos = _target.position;
-
+			
 			return _initialized = true;
 		}
 
@@ -159,22 +156,59 @@ namespace Rhinox.Utilities.Editor
 
 		private void HandlePivotShift()
 		{
+			var center = new Vector3(.5f, .5f, .5f);
 			if (Event.current.button == 0)
 			{
-				ShiftPivot(t => t.gameObject.GetObjectBounds().center);
+				ShiftPivot(x => GetLocationOnBounds(x, center));
 				return;
 			}
 				
 			var menu = new GenericMenu();
-				
+			
 			var content = new GUIContent("Center on Bounds");
-			menu.AddItem(content, false, () => ShiftPivot(t => t.gameObject.GetObjectBounds().center));
+			menu.AddItem(content, false, () => ShiftPivot(x => GetLocationOnBounds(x, center)));
 			menu.AddSeparator(string.Empty);
 				
 			content = new GUIContent("Center on Origin");
 			menu.AddItem(content, false,  () => ShiftPivot(t => t.parent == null ? Vector3.zero : t.parent.position));
+			menu.AddSeparator(string.Empty);
+			
+			
+			content = new GUIContent("-X");
+			menu.AddItem(content, false, () => ShiftPivotOnBounds(0, Axis.X));
+			content = new GUIContent("+X");
+			menu.AddItem(content, false, () => ShiftPivotOnBounds(1, Axis.X));
+			content = new GUIContent("-Y");
+			menu.AddItem(content, false, () => ShiftPivotOnBounds(0, Axis.Y));
+			content = new GUIContent("+Y");
+			menu.AddItem(content, false, () => ShiftPivotOnBounds(1, Axis.Y));
+			content = new GUIContent("-Z");
+			menu.AddItem(content, false, () => ShiftPivotOnBounds(0, Axis.Z));
+			content = new GUIContent("+Z");
+			menu.AddItem(content, false, () => ShiftPivotOnBounds(1, Axis.Z));
 
 			menu.ShowAsContext();
+		}
+
+		private Vector3 GetLocationOnBounds(Transform t, Vector3 relativeLocation)
+		{
+			var bounds = t.gameObject.GetObjectBounds();
+			return new Vector3(
+				Mathf.Lerp(bounds.min.x, bounds.max.x, relativeLocation.x),
+				Mathf.Lerp(bounds.min.y, bounds.max.y, relativeLocation.y),
+				Mathf.Lerp(bounds.min.z, bounds.max.z, relativeLocation.z)
+			);
+			
+		}
+		
+		private void ShiftPivotOnBounds(float value, Axis axis)
+		{
+			foreach (Transform t in targets)
+			{
+				var bounds = t.gameObject.GetObjectBounds();
+				var location = Vector3.Lerp(bounds.min, bounds.max, value);
+				t.ShiftPivotTo(t.position.With(location, axis), true);
+			}
 		}
 
 		private void ShiftPivot(Func<Transform, Vector3> targetGetter)
@@ -199,26 +233,30 @@ namespace Rhinox.Utilities.Editor
 			GenericMenu.MenuFunction reset,
 			float width = 20f)
 		{
-			if (!GUILayout.Button(label, GUILayout.Width(width))) return;
+			if (!GUILayout.Button(label, GUILayout.Width(width)))
+				return;
 			
 			if (Event.current.button == 0)
-			{
 				reset.Invoke();
-				return;
-			}
-				
+			else
+				ShowContextMenu(prop, copy, canCopy, paste, canPaste, reset);
+		}
+
+		private static void ShowContextMenu(SerializedProperty prop, GenericMenu.MenuFunction copy, bool canCopy, GenericMenu.MenuFunction paste, bool canPaste, GenericMenu.MenuFunction reset)
+		{
 			var menu = new GenericMenu();
-			FillPropertyContextMenu(prop, menu);
+			if (prop != null)
+				FillPropertyContextMenu(prop, menu);
 
 			var menuItems = menu.GetItems();
 
 			var addReset = !menuItems.Any(x => x.Path.EndsWith("Reset"));
 			var addCopy = !menuItems.Any(x => x.Path.EndsWith("Copy"));
-			var addPaste =  !menuItems.Any(x => x.Path.EndsWith("Paste"));
+			var addPaste = !menuItems.Any(x => x.Path.EndsWith("Paste"));
 
 			if (menu.GetItemCount() > 0 && (addReset || addCopy || addPaste))
 				menu.AddSeparator(string.Empty);
-			
+
 			if (addReset)
 			{
 				menu.AddItem("Reset", reset);
@@ -232,12 +270,12 @@ namespace Rhinox.Utilities.Editor
 				var content = new GUIContent("Copy");
 				if (canCopy) menu.AddItem(content, false, copy);
 				else menu.AddDisabledItem(content);
-				
+
 				content = new GUIContent("Paste");
 				if (canPaste) menu.AddItem(content, false, paste);
 				else menu.AddDisabledItem(content);
 			}
-			
+
 			if (menu.GetItemCount() == 0)
 				return;
 			Event.current.Use();
@@ -363,17 +401,34 @@ namespace Rhinox.Utilities.Editor
 
 		private void DrawWorldPosition()
 		{
+			const float labelWidth = 20;
 			using (new eUtility.HorizontalGroup())
 			{
 				using (new eUtility.DisabledGroup(true))
 				{
-					EditorGUILayout.LabelField(Properties.WorldPositionLabel, GUILayout.Width(20));
-					EditorGUILayout.FloatField("X", _worldPos.x);
-					EditorGUILayout.FloatField("Y", _worldPos.y);
-					EditorGUILayout.FloatField("Z", _worldPos.z);
-
+					var worldPos = Target.position;
+					EditorGUILayout.LabelField(Properties.WorldPositionLabel, GUILayout.Width(labelWidth));
+					EditorGUILayout.FloatField("X", worldPos.x);
+					EditorGUILayout.FloatField("Y", worldPos.y);
+					EditorGUILayout.FloatField("Z", worldPos.z);
 				}
 			}
+			
+			var rect = GUILayoutUtility.GetLastRect().SetWidth(labelWidth);
+
+			if (Event.current.button == 1 && eUtility.IsMouseOver(rect))
+			{
+				ShowContextMenu(null,
+					() => SaveToClipboard(scale: false, rot: false), targets.Length == 1,
+					null, false,
+					() =>
+					{
+						Undo.RegisterCompleteObjectUndo(Target, "Reset Worldposition");
+						Target.position = Vector3.zero;
+						_pos.serializedObject.Update();
+					});
+			}
+
 		}
 
 		private void DrawCopyPaste()
