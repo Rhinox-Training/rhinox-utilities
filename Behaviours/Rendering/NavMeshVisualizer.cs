@@ -203,7 +203,7 @@ namespace Rhinox.Utilities
 
                 case DebugState.ShowExtendingEdges:
                 {
-                    var edges = NavMeshHelper.GetEdges(mesh);
+                    var edges = NavMeshHelper.GetEdges(mesh.vertices, mesh.triangles);
                     NavMeshHelper.FilterExtendingEdges(ref edges, out var extending, out _);
                     DrawEdges(extending);
 
