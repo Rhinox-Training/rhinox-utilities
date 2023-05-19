@@ -10,7 +10,7 @@ namespace Rhinox.Utilities.Editor
 {
     public class SizeVisualizer : CustomSceneOverlayWindow<SizeVisualizer>
     {
-        protected override string Name => "Size Visualizer Options";
+        protected override string Name => "Size Visualizer";
         private const string _menuItemPath = WindowHelper.ToolsPrefix + "Show Unit Size #s";
 
         private PersistentValue<float> MeterCutoff;
@@ -33,7 +33,7 @@ namespace Rhinox.Utilities.Editor
         protected override void OnSceneGUI(SceneView sceneView)
         {
             base.OnSceneGUI(sceneView);
-
+            
             foreach (var go in Selection.gameObjects)
             {
                 if (!go.activeInHierarchy) continue;
@@ -75,9 +75,17 @@ namespace Rhinox.Utilities.Editor
 
         protected override void OnGUI()
         {
+            GUIContentHelper.PushLabelWidth(100);
+            
+            GUILayout.BeginHorizontal();
+
             MeterCutoff.ShowField("Meter Cutoff");
             if (MeterCutoff < 0) MeterCutoff.Set(0);
-            ShowAxisAligned.ShowField("Axis Aligned");
+            ShowAxisAligned.ShowInternalIcon("Transform Icon", ShowAxisAligned ? "The global axis is used" : "The object's local axis is used");
+            
+            GUILayout.EndHorizontal();
+            
+            GUIContentHelper.PopLabelWidth();
         }
 
         private static HandlesLine[] GetRelevantLines(Bounds bounds)

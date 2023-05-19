@@ -8,7 +8,7 @@ namespace Rhinox.Utilities
     [Serializable, HideLabel]
     public struct BetterEvent
     {
-        [HideReferenceObjectPicker, ListDrawerSettings(CustomAddFunction = "GetDefaultBetterEvent", OnTitleBarGUI = "DrawInvokeButton")]
+        [HideReferenceObjectPicker, ListDrawerSettings(OnTitleBarGUI = "DrawInvokeButton")]
         [LabelText("$property.Parent.NiceName")]
         public List<BetterEventEntry> Events;
 
@@ -81,21 +81,11 @@ namespace Rhinox.Utilities
         }
 
 #if UNITY_EDITOR
-
-        private BetterEventEntry GetDefaultBetterEvent()
-        {
-            return new BetterEventEntry(null);
-        }
-
         private void DrawInvokeButton()
         {
             if (GUILayout.Button("Invoke"))
-            {
                 this.Invoke();
-            }
         }
-
 #endif
-
     }
 }

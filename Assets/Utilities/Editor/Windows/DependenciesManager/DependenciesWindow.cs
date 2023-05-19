@@ -31,7 +31,7 @@ namespace Rhinox.Utilities.Editor
 #if ODIN_INSPECTOR
 			EditorIcons.MagnifyingGlass.Raw
 #else
-			UnityIcon.AssetIcon("Fa_Search").Pad(5)
+			UnityIcon.InternalIcon("Search On Icon")
 #endif
 			);
 		
@@ -64,14 +64,15 @@ namespace Rhinox.Utilities.Editor
 			Settings = new DependencySettings();
 			AssetManager = new AssetManager();
 			HomePage = new DependencyHomePage();
+			
 			HomePage.Initialize(this);
+			Settings.Load();
 		}
 
 		internal void ClearSelections()
 		{
 			_currentSelections = null;
 		}
-
 
 		// =================================================================================================================
 		// Selection Management
@@ -227,8 +228,6 @@ namespace Rhinox.Utilities.Editor
 			var w = GetWindow<DependenciesWindow>();
 			w.titleContent = TitleContent;
 			w.position = CustomEditorGUI.GetEditorWindowRect().AlignCenter(800, 600);
-
-			w.Settings.Load();
 		}
 
 		protected override CustomMenuTree BuildMenuTree()

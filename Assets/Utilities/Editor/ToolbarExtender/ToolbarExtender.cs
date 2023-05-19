@@ -102,49 +102,36 @@ namespace Rhinox.Utilities.Editor
 			rightRect.y = 5;
 			rightRect.height = 24;
 #endif
+			
 
-			if (leftRect.width > 0 && !ToolbarExtenderConfig.Instance.LeftButtons.IsNullOrEmpty())
+			DrawButtons(leftRect, ToolbarExtenderConfig.Instance.LeftButtons, ToolbarExtenderConfig.Instance.LeftPosition);
+			DrawButtons(rightRect, ToolbarExtenderConfig.Instance.RightButtons, ToolbarExtenderConfig.Instance.RightPosition);
+		}
+
+
+		private static void DrawButtons(Rect rect, ICollection<BaseToolbarButton> buttons, ToolbarExtenderConfig.ButtonPositions position)
+		{
+			if (!ToolbarExtenderConfig.Instance.IsActive)
+				return;
+			
+			if (rect.width > 0 && !buttons.IsNullOrEmpty())
 			{
-				GUILayout.BeginArea(leftRect);
-				GUILayout.BeginHorizontal();
-				
-				if (ToolbarExtenderConfig.Instance.LeftPosition != ToolbarExtenderConfig.ButtonPositions.Left)
-					GUILayout.FlexibleSpace();
-				
-				foreach (var handler in ToolbarExtenderConfig.Instance.LeftButtons)
+				var width = buttons.Sum(x => x.GetWidth());
+
+				if (position == ToolbarExtenderConfig.ButtonPositions.Right)
+					rect = rect.AlignRight(width);
+				else if (position == ToolbarExtenderConfig.ButtonPositions.Center)
+					rect = rect.AlignCenter(width);
+
+				foreach (var handler in buttons)
 				{
-					handler.Draw();
+					var buttonRect = rect.AlignLeft(handler.GetWidth());
+					rect.x += buttonRect.width;
+
+					handler.Draw(buttonRect);
 				}
-				
-				if (ToolbarExtenderConfig.Instance.LeftPosition != ToolbarExtenderConfig.ButtonPositions.Right)
-					GUILayout.FlexibleSpace();
-				
-				GUILayout.EndHorizontal();
-				GUILayout.EndArea();
-				
+
 				// EditorGUI.DrawRect(leftRect, Color.cyan);
-			}
-
-			if (rightRect.width > 0 && !ToolbarExtenderConfig.Instance.RightButtons.IsNullOrEmpty())
-			{
-				GUILayout.BeginArea(rightRect);
-				GUILayout.BeginHorizontal();
-				
-				if (ToolbarExtenderConfig.Instance.RightPosition != ToolbarExtenderConfig.ButtonPositions.Left)
-					GUILayout.FlexibleSpace();
-				
-				foreach (var handler in ToolbarExtenderConfig.Instance.RightButtons)
-				{
-					handler.Draw();
-				}
-				
-				if (ToolbarExtenderConfig.Instance.RightPosition != ToolbarExtenderConfig.ButtonPositions.Right)
-					GUILayout.FlexibleSpace();
-				
-				GUILayout.EndHorizontal();
-				GUILayout.EndArea();
-				
-				// EditorGUI.DrawRect(rightRect, Color.cyan);
 			}
 		}
     }

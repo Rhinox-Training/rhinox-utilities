@@ -15,6 +15,24 @@ public class GenericList : ToggleableList<GameObject>
     
 }
 
+public interface ITest {}
+
+public class Test1 : ITest
+{
+    public string Test;
+}
+
+public class Test2 : ITest
+{
+    public string Also;
+    public bool Test;
+}
+
+public class Test3 : ITest
+{
+    public float Test;
+}
+
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
@@ -34,6 +52,9 @@ public class Example : MonoBehaviour
         [ValueDropdown("$parent.parent.Options")]
         public string WithLabel;
     }
+
+    [SerializeReference]
+    public List<ITest> GenericList;
 
     public List<StringWithOptions> ListOfOptions;
 

@@ -14,7 +14,7 @@ namespace Rhinox.Utilities
     {
         [Title("General Settings")]
         public bool AutoGenerate = false;
-        
+
         [NavMeshArea(true)]
         public int AreaMask = NavMesh.AllAreas;
 
@@ -29,18 +29,19 @@ namespace Rhinox.Utilities
         public float BorderTextureScale = 2f;
         public bool ForceUpNormal = true;
         public float OffsetY = 0.0f;
+        public float BorderOffsetY = 0.001f;
 
         private NavMeshTriangulation _triangulation;
         private static EdgeComparer EdgeComparer = new EdgeComparer();
 
         private bool _renderersEnabled = true;
-        
+
         [SerializeField, HideInInspector] private MeshObject _navMeshGraphicsObj;
         [SerializeField, HideInInspector] private MeshObject _borderMeshObj;
 
         private const string BORDER_MESH_NAME = "BorderMesh";
         private const string NAV_MESH_NAME = "Mesh";
-        
+
         protected virtual void Awake()
         {
             _renderersEnabled = true;
@@ -70,7 +71,7 @@ namespace Rhinox.Utilities
                 Utility.Destroy(_borderMeshObj.gameObject);
                 _borderMeshObj = null;
             }
-            
+
             // SceneReadyHandler.RevertToggleControl(this);
         }
 
@@ -83,24 +84,24 @@ namespace Rhinox.Utilities
             var oldBorderMesh = _borderMeshObj;
             if (oldBorderMesh != null)
                 oldBorderMesh.name = "TO BE DELETED";
-            
+
             var navMesh = NavMeshHelper.GenerateNavMesh(textureScale: NavmeshTextureScale, forceUpNormal: ForceUpNormal, areaMask: AreaMask);
             _navMeshGraphicsObj = MeshObject.GetOrCreateChild(transform, NAV_MESH_NAME, navMesh, NavMeshMaterials);
             _navMeshGraphicsObj.transform.SetPosition(y: OffsetY);
             _navMeshGraphicsObj.SetVisible(_renderersEnabled);
-            
-            var borderMesh = NavMeshHelper.GenerateBorderMesh(navMesh, BorderWidth, textureScale: BorderTextureScale, forceUpNormal: ForceUpNormal, 
+
+            var borderMesh = NavMeshHelper.GenerateBorderMesh(navMesh, BorderWidth, textureScale: BorderTextureScale, forceUpNormal: ForceUpNormal,
                 removeExtendingEdges: RemoveExtendingEdges);
             _borderMeshObj = MeshObject.GetOrCreateChild(transform, BORDER_MESH_NAME, borderMesh, BorderMaterial);
-            _borderMeshObj.transform.SetPosition(y: OffsetY);
+            _borderMeshObj.transform.SetPosition(y: OffsetY + BorderOffsetY);
             _borderMeshObj.SetVisible(_renderersEnabled);
-            
+
             if (oldNavMeshGraphic != null)
                 Utility.Destroy(oldNavMeshGraphic.gameObject);
 
             if (oldBorderMesh != null)
                 Utility.Destroy(oldBorderMesh.gameObject);
-            
+
             // Border test
             // foreach (var loop in outerEdgeLoops)
             // {
@@ -114,7 +115,7 @@ namespace Rhinox.Utilities
         {
             if (_renderersEnabled == state)
                 return;
-            
+
             if (state)
                 EnableRenderers();
             else
@@ -127,12 +128,12 @@ namespace Rhinox.Utilities
             _renderersEnabled = true;
             if (_navMeshGraphicsObj == null || _borderMeshObj == null)
                 return;
-            
+
             // Ensure global position is correct
             _navMeshGraphicsObj.transform.SetPosition(x: 0.0f, z: 0.0f);
             _navMeshGraphicsObj.transform.rotation = Quaternion.identity;
             _navMeshGraphicsObj.SetVisible(true);
-            
+
             // Ensure global position is correct
             _borderMeshObj.transform.SetPosition(x: 0.0f, z: 0.0f);
             _borderMeshObj.transform.rotation = Quaternion.identity;
@@ -145,7 +146,7 @@ namespace Rhinox.Utilities
             _renderersEnabled = false;
             if (_navMeshGraphicsObj == null || _borderMeshObj == null)
                 return;
-            
+
             _navMeshGraphicsObj.SetVisible(false);
             _borderMeshObj.SetVisible(false);
         }
@@ -166,19 +167,19 @@ namespace Rhinox.Utilities
         [SerializeField] private DebugState _debugState;
 
         private bool _requiresDebugLocation => _debugState.EqualsOneOf(DebugState.EdgesInRange, DebugState.PointsInRange);
-        
+
         [FoldoutContainer("Debug")]
         [ShowIf(nameof(_requiresDebugLocation))]
         [SerializeField] private Transform _debugLocation;
-        
+
         [FoldoutContainer("Debug")]
         [ShowIf(nameof(_requiresDebugLocation))]
         [SerializeField] private float _debugRange;
-        
+
         private void OnDrawGizmosSelected()
         {
             if (_debugState == DebugState.None) return;
-            var mesh = NavMeshHelper.GenerateNavMesh();
+            var mesh = NavMeshHelper.GenerateNavMesh(areaMask: this.AreaMask);
             switch (_debugState)
             {
                 case DebugState.OuterEdgeLoops:
@@ -202,23 +203,23 @@ namespace Rhinox.Utilities
 
                 case DebugState.ShowExtendingEdges:
                 {
-                    var edges = NavMeshHelper.GetEdges(mesh);
+                    var edges = NavMeshHelper.GetEdges(mesh.vertices, mesh.triangles);
                     NavMeshHelper.FilterExtendingEdges(ref edges, out var extending, out _);
                     DrawEdges(extending);
-                    
+
                     break;
                 }
-                
+
                 case DebugState.PointsInRange:
                 {
                     if (_debugLocation == null) return;
-                    
+
                     var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges);
                     var refPoint = _debugLocation.position;
-                    
+
                     Gizmos.DrawWireSphere(refPoint, _debugRange);
 
-                    var edgesWithinRange = edges.Where(x => 
+                    var edgesWithinRange = edges.Where(x =>
                         x.V1.LossyEquals(refPoint, _debugRange) ||
                         x.V2.LossyEquals(refPoint, _debugRange)
                     ).ToArray();
@@ -226,18 +227,18 @@ namespace Rhinox.Utilities
 
                     break;
                 }
-                
+
                 case DebugState.EdgesInRange:
                 {
                     if (_debugLocation == null) return;
-                    
-                    
+
+
                     var edges = NavMeshHelper.GetOuterEdges(mesh, RemoveExtendingEdges);
                     var refPoint = _debugLocation.position;
-                    
+
                     Gizmos.DrawWireSphere(refPoint, _debugRange);
 
-                    var edgesWithinRange = edges.Where(x => 
+                    var edgesWithinRange = edges.Where(x =>
                         x.V1.LossyEquals(refPoint, _debugRange) &&
                         x.V2.LossyEquals(refPoint, _debugRange)
                         ).ToArray();

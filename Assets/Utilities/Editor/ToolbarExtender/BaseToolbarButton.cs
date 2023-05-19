@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Attributes;
 using Rhinox.GUIUtils.Editor;
@@ -11,6 +12,7 @@ using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 #endif
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
@@ -25,19 +27,19 @@ namespace Rhinox.Utilities.Editor
 
         protected virtual GUIStyle Style => CustomGUIStyles.Button;
         
-        protected virtual GUILayoutOption[] LayoutOptions => new [] { GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true) };
-		
         protected abstract string Label { get; }
         protected virtual string Tooltip => String.Empty;
         
-        public virtual void Draw()
+        public virtual void Draw(Rect rect)
         {
             var content = GUIContentHelper.TempContent(Label, Tooltip);
-            if (GUILayout.Button(content, Style, LayoutOptions))
-                Execute();
+            if (GUI.Button(rect, content, Style))
+                Execute(rect);
         }
 
-        protected abstract void Execute();
+        public virtual float GetWidth() => Style.CalcMaxWidth(Label);
+
+        protected abstract void Execute(Rect rect);
     }
 
     [Serializable]
@@ -47,26 +49,26 @@ namespace Rhinox.Utilities.Editor
         
         protected abstract Texture Icon { get; }
         
-        public override void Draw()
+        public override void Draw(Rect rect)
         {
             if (Icon == null) return;
 
-            if (CustomEditorGUI.IconButton(Icon, Style, ToolbarHeight, ToolbarHeight, Tooltip))
-                Execute();
+            if (CustomEditorGUI.IconButton(rect, Icon, Tooltip))
+                Execute(rect);
         }
+
+        public override float GetWidth() => ToolbarHeight;
     }
     
     public abstract class BaseToolbarDropdown<T> : BaseToolbarButton
     {
-        protected int _selected;
-
         protected abstract T[] _options { get; }
 
 #if ODIN_INSPECTOR
         protected bool _supportMultiselect;
 #endif
 
-        protected override void Execute()
+        protected override void Execute(Rect rect)
         {
 #if ODIN_INSPECTOR
             OdinSelector<T> selector = new GenericSelector<T>(string.Empty, _options, _supportMultiselect, GetName);
@@ -74,15 +76,9 @@ namespace Rhinox.Utilities.Editor
             ConfigureSelector(selector);
             selector.ShowInPopup();
 #else
-            var menu = new GenericMenu();
-            foreach (var option in _options)
-            {
-                menu.AddItem(new GUIContent(option.ToString()), false, () =>
-                {
-                    SelectionMade(new[] {option});
-                });
-            }
-            menu.ShowAsContext();
+            SimplePicker<T> picker = new SimplePicker<T>(_options, GetName);
+            picker.OptionSelected += SelectionMade;
+            picker.Show(rect); // ShowAsContext
 #endif
         }
         
@@ -99,21 +95,36 @@ namespace Rhinox.Utilities.Editor
             return data?.ToString() ?? "<null>";
         }
 
-        protected abstract void SelectionMade(IEnumerable<T> selection);
+        protected virtual void SelectionMade(IEnumerable<T> selection)
+        {
+            SelectionMade(selection.FirstOrDefault());
+        }
+        
+        protected abstract void SelectionMade(T selection);
+
     }
     
     public abstract class BaseToolbarIconDropdown<T> : BaseToolbarDropdown<T>
     {
         protected override string Label => string.Empty;
+
+        private HoverTexture _icon;
         
-        protected abstract Texture Icon { get; }
+        protected abstract Texture2D Icon { get; }
         
-        public override void Draw()
+        public override void Draw(Rect rect)
         {
-            if (Icon == null) return;
+            if (_icon == null)
+            {
+                var icon = Icon;
+                if (icon == null) return;
+                _icon = new HoverTexture(icon);
+            }
             
-            if (CustomEditorGUI.IconButton(Icon, Style, ToolbarHeight, ToolbarHeight, Tooltip))
-                Execute();
+            if (CustomEditorGUI.IconButton(rect, _icon, Tooltip))
+                Execute(rect);
         }
+
+        public override float GetWidth() => ToolbarHeight;
     }
 }

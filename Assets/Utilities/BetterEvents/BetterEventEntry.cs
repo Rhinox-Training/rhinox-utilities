@@ -20,6 +20,10 @@ namespace Rhinox.Utilities
             get => _flags;
             set => _flags = value;
         }
+
+        // Keep original target so we have a backup in case of static methods
+        private Object _originalTarget;
+        public Object Target => Delegate?.Target == null ? _originalTarget : Delegate.Target as Object;
         
         // Delegate so we can support both lambda/actions and bound MethodInfos
         [NonSerialized, HideInInspector] public Delegate Delegate;
@@ -32,7 +36,9 @@ namespace Rhinox.Utilities
         public BetterEventEntry(Delegate del)
         {
             if (del != null)
-                InitDelegate(del, Array.Empty<object>());
+                InitDelegate(del);
+            
+            Initialize();
         }
 
         /// <summary>
@@ -42,14 +48,32 @@ namespace Rhinox.Utilities
         public BetterEventEntry(Delegate del, params object[] parameters)
         {
             if (del != null)
-                InitDelegate(del, parameters);
+            {
+                ParameterValues = parameters;
+                InitDelegate(del);
+            }
+            
+            Initialize();
         }
         
-        private void InitDelegate(Delegate del, object[] parameters)
+        
+
+        private void Initialize()
         {
-            this.Delegate = del;
-            Array.Resize(ref parameters, del.Method.GetParameters().Length);
-            this.ParameterValues = parameters;
+            if (_initialized) return;
+            
+            SetDefaultFlags();
+            _initialized = true;
+        }
+        
+        private void InitDelegate(Delegate del)
+        {
+            Delegate = del;
+            var argumentsLength = del.Method.GetParameters().Length;
+            if (ParameterValues == null)
+                ParameterValues = new object[argumentsLength];
+            else
+                Array.Resize(ref ParameterValues, argumentsLength);
         }
         
         public void Invoke()
@@ -86,6 +110,11 @@ namespace Rhinox.Utilities
             public int Index;
         }
 #endif
+
+        public void SetDefaultFlags()
+        {
+            _flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+        }
         
         public void OnBeforeSerialize()
         {
@@ -93,12 +122,8 @@ namespace Rhinox.Utilities
             var val = new OdinSerializedData() {Delegate = this.Delegate, ParameterValues = this.ParameterValues};
             this.bytes = SerializationUtility.SerializeValue(val, DataFormat.Binary, out this.unityReferences);
 #else
-            if (!_initialized)
-            {
-                _flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
-                
-                _initialized = true;
-            }
+            Initialize();
+
             if (Delegate == null)
             {
                 unityReferences = new List<Object>();
@@ -109,7 +134,7 @@ namespace Rhinox.Utilities
             else
             {
                 var unityObjs = new List<UnityEngine.Object>();
-                unityObjs.Add(Delegate.Target as UnityEngine.Object);
+                unityObjs.Add(Target); 
                 _parameters = new List<object>();
                 _targetType = new SerializableType(Delegate.Method.DeclaringType);
                 _methodName = Delegate.Method.Name;
@@ -127,7 +152,7 @@ namespace Rhinox.Utilities
 
                 this.unityReferences = unityObjs;
             }
-#endif       
+#endif
         }
 
         public void OnAfterDeserialize()
@@ -152,11 +177,11 @@ namespace Rhinox.Utilities
                     ParameterValues[i] = parameterValue;
             }
 
-            var targetRef = unityReferences.FirstOrDefault();
+            _originalTarget = unityReferences.FirstOrDefault();
             
             MethodInfo[] possibleInfos = _targetType.Type.GetMethods(_flags);
             var info = possibleInfos.FirstOrDefault(MatchParameter);
-            CreateAndAssignNewDelegate(targetRef, info);
+            CreateAndAssignNewDelegate(_originalTarget, info);
 #endif
         }
 
@@ -226,7 +251,7 @@ namespace Rhinox.Utilities
                 target = null;
             
             var del = Delegate.CreateDelegate(delegateType, target, info);
-            InitDelegate(del, Array.Empty<object>());
+            InitDelegate(del);
         }
 
         #endregion

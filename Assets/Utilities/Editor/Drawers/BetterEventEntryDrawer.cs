@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.Reflection;
@@ -15,14 +16,7 @@ namespace Rhinox.Utilities.Editor
     [CustomPropertyDrawer(typeof(BetterEventEntry))]
     public class BetterEventEntryDrawer : BasePropertyDrawer<BetterEventEntry, BetterEventEntryDrawer.DrawerData>
     {
-        public class DrawerData
-        {
-            public GenericHostInfo Info;
-            public Object LocalTarget;
-            public GUIContent ActiveContent;
-        }
-        
-        private class MethodInfoWrapper
+        public class MethodInfoWrapper
         {
             public MethodInfo Info;
             public object Target;
@@ -30,8 +24,16 @@ namespace Rhinox.Utilities.Editor
             public string TargetName;
         }
         
-        private PickerHandler _methodPicker;
-
+        public class DrawerData
+        {
+            public GenericHostInfo Info;
+            public Object LocalTarget;
+            public GUIContent ActiveContent;
+            public IOrderedDrawable ParameterDrawable;
+            public SimplePicker<MethodInfoWrapper> Picker;
+        }
+        
+        
         private GUIContent _noneContent;
 
         protected override void OnInitialize()
@@ -44,6 +46,12 @@ namespace Rhinox.Utilities.Editor
         protected override DrawerData CreateData(GenericHostInfo info)
         {
             var value = info.GetSmartValue<BetterEventEntry>();
+            if (value == null)
+            {
+                value = new BetterEventEntry(null);
+                info.TrySetValue(value);
+            }
+            
             var del = value.Delegate;
             var data = new DrawerData
             {
@@ -54,7 +62,8 @@ namespace Rhinox.Utilities.Editor
             if (del != null)
             {
                 data.ActiveContent.text = GetMethodInfoRepresentation(del.Method);
-                data.LocalTarget = del.Target as Object;
+                data.LocalTarget = value.Target;
+                data.ParameterDrawable = SetupDrawableForParameters(del.Method, data);
             }
 
             return data;
@@ -64,48 +73,93 @@ namespace Rhinox.Utilities.Editor
         
         protected override void DrawProperty(Rect position, ref DrawerData data, GUIContent label)
         {
-            var objectPickerRect = position.AlignLeft(position.width / 2 - 1f);
+            var headerRect = position.AlignTop(EditorGUIUtility.singleLineHeight);
+            
+            var objectPickerRect = headerRect.AlignLeft(headerRect.width / 2 - 1f);
             var newTarget = EditorGUI.ObjectField(objectPickerRect, data.LocalTarget, typeof(Object), true);
             if (!Equals(data.LocalTarget, newTarget))
             {
                 data.LocalTarget = newTarget;
-                _methodPicker = null;
+                data.Picker = null;
             }
             
-            var methodPickerRect = position.AlignRight(position.width / 2 - 1f);
+            var methodPickerRect = headerRect.AlignRight(headerRect.width / 2 - 1f);
 
             var content = SmartValue?.Delegate == null ? _noneContent : data.ActiveContent;
             
             if (EditorGUI.DropdownButton(methodPickerRect, content, FocusType.Keyboard))
-                DoMethodDropdown(position, data);
+                DoMethodDropdown(headerRect, data);
+
+
+            if (data.ParameterDrawable != null)
+            {
+                var parametersRect = position.AlignBottom(position.height - EditorGUIUtility.singleLineHeight - CustomGUIUtility.Padding);
+                try
+                {
+                    data.ParameterDrawable.Draw(parametersRect, GUIContent.none);
+                }
+                catch (Exception e)
+                {
+                    EditorGUI.HelpBox(parametersRect, e.Message, MessageType.Error);
+                }
+            }
+        }
+
+        protected override float GetPropertyHeight(GUIContent label, in DrawerData data)
+        {
+            var height = base.GetPropertyHeight(label, in data);
+            if (data.ParameterDrawable != null)
+                height += data.ParameterDrawable.ElementHeight;
+            return height;
         }
 
         private void DoMethodDropdown(Rect position, DrawerData data)
         {
-            if (_methodPicker != null)
-                GenericPicker.Show(position, _methodPicker);
-            else
+            if (data.Picker == null)
             {
-                _methodPicker = GenericPicker.Show(
-                    position, 
-                    null, 
-                    GetMethodOptions(data), 
-                    x => SetValue(x, data),
+                data.Picker = new SimplePicker<MethodInfoWrapper>(
+                    GetMethodOptions(data),
                     x => x.FullName,
                     x => x.TargetName);
+                data.Picker.OptionSelected += x => SetValue(x, data);
             }
+            data.Picker.Show(position);
         }
 
-        private void SetValue(MethodInfoWrapper wrapper, DrawerData data)
+        private static void SetValue(MethodInfoWrapper wrapper, DrawerData data)
         {
+            var value = data.Info.GetSmartValue<BetterEventEntry>();
             if (wrapper != null)
             {
                 data.LocalTarget = wrapper.Target as Object;
                 data.ActiveContent.text = wrapper.FullName;
-                SmartValue.CreateAndAssignNewDelegate(wrapper.Target, wrapper.Info);
+                value.CreateAndAssignNewDelegate(wrapper.Target, wrapper.Info);
+                data.ParameterDrawable = SetupDrawableForParameters(wrapper.Info, data);
             }
             else
-                SmartValue.Delegate = null;
+            {
+                value.Delegate = null;
+                data.ParameterDrawable = null;
+            }
+        }
+
+        private static IOrderedDrawable SetupDrawableForParameters(MethodInfo info, DrawerData data)
+        {
+            var value = data.Info.GetSmartValue<BetterEventEntry>();
+            
+            var wantedParameters = info.GetParameters();
+            var parameters = value.ParameterValues;
+            Array.Resize(ref parameters, wantedParameters.Length);
+            
+            for (int i = 0; i < wantedParameters.Length; ++i)
+            {
+                var type = wantedParameters[i].ParameterType;
+                if (parameters[i] == null || !parameters[i].GetType().InheritsFrom(type))
+                    parameters[i] = type.GetDefault();
+            }
+
+            value.ParameterValues = parameters;
+            return DrawableFactory.CreateDrawableForParametersOf(info.GetParameters(), parameters);
         }
 
         private ICollection<MethodInfoWrapper> GetMethodOptions(DrawerData data)

@@ -11,7 +11,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Rhinox.GUIUtils;
 using Rhinox.GUIUtils.Editor;
+using Rhinox.Lightspeed;
 using Sirenix.OdinInspector;
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector.Editor;
@@ -39,7 +41,7 @@ namespace Rhinox.Utilities.Editor
 
         public static GUIContent TitleContent
         {
-            get { return new GUIContent("Icon List", UnityIcon.AssetIcon("Fa_Search")); }
+            get { return new GUIContent("Icon List", UnityIcon.InternalIcon("Search On Icon")); }
         }
 
         protected override void OnEnable()
@@ -57,7 +59,7 @@ namespace Rhinox.Utilities.Editor
             {
                 GUILayout.Label(_Icons.Count + " Icons found");
 
-                if (CustomEditorGUI.ToolbarButton(new GUIContent("Refresh", UnityIcon.AssetIcon("Fa_Redo"))))
+                if (CustomEditorGUI.ToolbarButton(new GUIContent("Refresh", UnityIcon.InternalIcon("Refresh@2x"))))
                     FindIcons();
             }
             CustomEditorGUI.EndHorizontalToolbar();
@@ -69,38 +71,87 @@ namespace Rhinox.Utilities.Editor
             _Icons.Clear();
 
             // Internal icons
-            var textures = UnityIcon.GetAllInternalIcons();
+            var textures = InternalUnityIcon.GetAll();
+            foreach (var group in textures.GroupBy(x => InternalUnityIcon.TrimmedName(x)))
+            {
+                if (group.Count() == 1)
+                {
+                    var tex = group.First();
+                    _Icons.Add(new InternalUnityIcon
+                    {
+                        Icon = tex,
+                        Name = tex.name,
+                        Origin = "Internal",
+                    });
+                }
+                else
+                {
+                    Texture2D darkTex = null, lightTex = null, highresDarkTex = null, highresLightTex = null;
+                    foreach (var texture in group)
+                    {
+                        if (texture.name.EndsWith("@2x"))
+                        {
+                            if (texture.name.StartsWith("d_"))
+                                highresDarkTex = texture;
+                            else
+                                highresLightTex = texture;
+                        }
+                        else
+                        {
+                            if (texture.name.StartsWith("d_"))
+                                darkTex = texture;
+                            else
+                                lightTex = texture;
+                        }
+                    }
+
+                    Texture2D tex;
+
+                    if (EditorGUIUtility.isProSkin)
+                        tex = highresDarkTex ?? darkTex ?? highresLightTex ?? lightTex;
+                    else
+                        tex = highresLightTex ?? lightTex ?? highresDarkTex ?? darkTex;
+
+                    bool hasDarkLightVariants = darkTex && lightTex;
+                    bool hasHighResVariants = highresDarkTex || highresLightTex;
+
+                    _Icons.Add(new InternalUnityIcon
+                    {
+                        Icon = tex,
+                        Name = hasDarkLightVariants ? lightTex.name : tex.name,
+                        HasLightDarkVariants = hasDarkLightVariants,
+                        HasHighResVariants = hasHighResVariants,
+                        Origin = "Internal",
+                    });
+                }
+            }
+            
+            // Class icons
+            textures = ScriptUnityIcon.GetAll();
             foreach (var tex in textures)
             {
-                // TODO: why do this? to get the resource is memory? but it has no path...
-                Resources.Load<Texture>("");
-
-                _Icons.Add(new UnityIcon
+                _Icons.Add(new ScriptUnityIcon
                 {
                     Icon = tex,
                     Name = tex.name,
-                    Origin = "Internal",
-                    // TextureUseage = "EditorGUIUtility.IconContent(\"" + tex.name + "\").image"
-                    TextureUsage = "UnityIcon.InternalIcon(\"" + tex.name + "\")"
+                    Origin = "Script"
                 });
             }
-
+            
             // Odin icons
-#if ODIN_INSPECTOR
-            var odinIcons = UnityIcon.GetAllOdinIcons();
+            var odinIcons = OdinUnityIcon.GetAll();
             foreach (var pair in odinIcons)
             {
-                _Icons.Add(new UnityIcon
+                _Icons.Add(new OdinUnityIcon
                 {
                     Icon = pair.Value,
                     Name = pair.Key,
                     Origin = "Odin",
-                    TextureUsage = "EditorIcons." + pair.Key + ".Active"
                 });
             }
-#endif
+            
             // resources icons
-            _Icons.AddRange(GetAssetIcons(UnityIcon.GetAllAssetIcons()));
+            _Icons.AddRange(GetAssetIcons(AssetUnityIcon.GetAll()));
 
             _Icons.Sort();
             Resources.UnloadUnusedAssets();
@@ -114,19 +165,18 @@ namespace Rhinox.Utilities.Editor
             var icons = new List<UnityIcon>();
             foreach (var path in iconPaths)
             {
-                var tex = (Texture) AssetDatabase.LoadAssetAtPath(path, typeof(Texture));
+                var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
                 if (tex == null) continue;
 
                 var name = Path.GetFileNameWithoutExtension(path);
                 var ext = Path.GetExtension(path);
                 
-                icons.Add(new UnityIcon
+                icons.Add(new AssetUnityIcon
                 {
                     Name = name,
+                    Extension = ext,
                     Icon = tex,
                     Origin = "Asset Texture",
-                    // TextureUsage = "AssetDatabase.LoadAssetAtPath<Texture>(\"" + path + "\")"
-                    TextureUsage = "UnityIcon.AssetIcon(\"" + name + (ext == ".png" ? "" : ", \"" + ext + "\"") + "\")"
                 });
             }
 

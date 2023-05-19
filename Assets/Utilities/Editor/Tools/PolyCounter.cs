@@ -65,19 +65,35 @@ namespace Rhinox.Utilities.Editor
 
         protected override void OnGUI()
         {
-            if (IncludeChildren.ShowField("Include Children"))
+            GUILayout.BeginHorizontal();
+            
+            GUILayout.FlexibleSpace();
+
+            if (IncludeChildren.ShowInternalIcon("FilterByType@2x", IncludeChildren ? "Children are Included" : "Children are Excluded"))
                 _requiresRefresh = true;
-            if (IncludeDisabled.ShowField("Include Disabled"))
+            
+            GUILayout.Space(5);
+            
+            if (IncludeDisabled.ShowInternalIcon("toggle_on@2x", IncludeDisabled ? "Disabled objects are Included" : "Disabled objects are Excluded"))
                 _requiresRefresh = true;
-            if (IncludeLODs.ShowField("Include LODs"))
+            
+            GUILayout.Space(5);
+
+            if (IncludeLODs.ShowInternalIcon("LODGroup Icon", IncludeLODs ? "All LODs are Included" : "Only the top mesh of LODs is Included" ))
                 _requiresRefresh = true;
+            
+            GUILayout.FlexibleSpace();
+
+            GUILayout.EndHorizontal();
             
             if (_meshes.Any())
             {
+                GUILayout.Space(CustomGUIUtility.Padding);
+                
                 CustomEditorGUI.HorizontalLine(CustomGUIStyles.BorderColor);
             
                 GUILayout.Label(_meshInfo, CustomGUIStyles.BoldLabelCentered);
-                GUILayout.Label(_secondaryMeshInfo, CustomGUIStyles.MiniLabel);
+                GUILayout.Label(_secondaryMeshInfo, CustomGUIStyles.MiniLabelCentered);
             }
         }
 
