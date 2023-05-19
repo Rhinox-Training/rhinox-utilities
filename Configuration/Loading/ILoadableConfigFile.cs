@@ -21,8 +21,9 @@ namespace Rhinox.Utilities
         string RelativeFilePath { get; }
         
         bool Loaded { get; }
-        
-        bool Load(string path);
+        bool Handled { get; }
+
+        bool Load();
 
         bool Save(string path, bool overwrite = false);
     }
