@@ -139,19 +139,17 @@ namespace Rhinox.Utilities.Editor
             }
             
             // Odin icons
-#if ODIN_INSPECTOR
-            var odinIcons = UnityIcon.GetAllOdinIcons();
+            var odinIcons = OdinUnityIcon.GetAll();
             foreach (var pair in odinIcons)
             {
-                _Icons.Add(new UnityIcon
+                _Icons.Add(new OdinUnityIcon
                 {
                     Icon = pair.Value,
                     Name = pair.Key,
                     Origin = "Odin",
-                    TextureUsage = "EditorIcons." + pair.Key + ".Active"
                 });
             }
-#endif
+            
             // resources icons
             _Icons.AddRange(GetAssetIcons(AssetUnityIcon.GetAll()));
 
