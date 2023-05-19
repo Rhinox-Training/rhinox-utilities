@@ -82,3 +82,4 @@ Assets/LOCAL/*
 Assets/Packages/com.rhinox.odininspector
 Assets/Packages/com.rhinox.odininspector.meta
 Assets/Packages.meta
+*.vsconfig
