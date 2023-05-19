@@ -102,47 +102,39 @@ namespace Rhinox.Utilities.Editor
 			rightRect.y = 5;
 			rightRect.height = 24;
 #endif
-
+			
 			if (leftRect.width > 0 && !ToolbarExtenderConfig.Instance.LeftButtons.IsNullOrEmpty())
 			{
-				GUILayout.BeginArea(leftRect);
-				GUILayout.BeginHorizontal();
-				
+				var width = ToolbarExtenderConfig.Instance.LeftButtons.Sum(x => x.GetWidth());
+
 				if (ToolbarExtenderConfig.Instance.LeftPosition != ToolbarExtenderConfig.ButtonPositions.Left)
-					GUILayout.FlexibleSpace();
+					leftRect = leftRect.AlignRight(width);
 				
 				foreach (var handler in ToolbarExtenderConfig.Instance.LeftButtons)
 				{
-					handler.Draw();
+					var buttonRect = leftRect.AlignLeft(handler.GetWidth());
+					leftRect.width += buttonRect.x;
+					
+					handler.Draw(buttonRect);
 				}
-				
-				if (ToolbarExtenderConfig.Instance.LeftPosition != ToolbarExtenderConfig.ButtonPositions.Right)
-					GUILayout.FlexibleSpace();
-				
-				GUILayout.EndHorizontal();
-				GUILayout.EndArea();
 				
 				// EditorGUI.DrawRect(leftRect, Color.cyan);
 			}
 
 			if (rightRect.width > 0 && !ToolbarExtenderConfig.Instance.RightButtons.IsNullOrEmpty())
 			{
-				GUILayout.BeginArea(rightRect);
-				GUILayout.BeginHorizontal();
-				
+				var width = ToolbarExtenderConfig.Instance.RightButtons.Sum(x => x.GetWidth());
+
 				if (ToolbarExtenderConfig.Instance.RightPosition != ToolbarExtenderConfig.ButtonPositions.Left)
-					GUILayout.FlexibleSpace();
+					rightRect = rightRect.AlignRight(width);
 				
 				foreach (var handler in ToolbarExtenderConfig.Instance.RightButtons)
 				{
-					handler.Draw();
+					var buttonRect = rightRect.AlignLeft(handler.GetWidth());
+					rightRect.width += buttonRect.x;
+					
+					handler.Draw(buttonRect);
 				}
-				
-				if (ToolbarExtenderConfig.Instance.RightPosition != ToolbarExtenderConfig.ButtonPositions.Right)
-					GUILayout.FlexibleSpace();
-				
-				GUILayout.EndHorizontal();
-				GUILayout.EndArea();
 				
 				// EditorGUI.DrawRect(rightRect, Color.cyan);
 			}
