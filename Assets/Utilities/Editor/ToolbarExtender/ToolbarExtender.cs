@@ -103,40 +103,35 @@ namespace Rhinox.Utilities.Editor
 			rightRect.height = 24;
 #endif
 			
-			if (leftRect.width > 0 && !ToolbarExtenderConfig.Instance.LeftButtons.IsNullOrEmpty())
-			{
-				var width = ToolbarExtenderConfig.Instance.LeftButtons.Sum(x => x.GetWidth());
 
-				if (ToolbarExtenderConfig.Instance.LeftPosition != ToolbarExtenderConfig.ButtonPositions.Left)
-					leftRect = leftRect.AlignRight(width);
-				
-				foreach (var handler in ToolbarExtenderConfig.Instance.LeftButtons)
+			DrawButtons(leftRect, ToolbarExtenderConfig.Instance.LeftButtons, ToolbarExtenderConfig.Instance.LeftPosition);
+			DrawButtons(rightRect, ToolbarExtenderConfig.Instance.RightButtons, ToolbarExtenderConfig.Instance.RightPosition);
+		}
+
+
+		private static void DrawButtons(Rect rect, ICollection<BaseToolbarButton> buttons, ToolbarExtenderConfig.ButtonPositions position)
+		{
+			if (!ToolbarExtenderConfig.Instance.IsActive)
+				return;
+			
+			if (rect.width > 0 && !buttons.IsNullOrEmpty())
+			{
+				var width = buttons.Sum(x => x.GetWidth());
+
+				if (position == ToolbarExtenderConfig.ButtonPositions.Right)
+					rect = rect.AlignRight(width);
+				else if (position == ToolbarExtenderConfig.ButtonPositions.Center)
+					rect = rect.AlignCenter(width);
+
+				foreach (var handler in buttons)
 				{
-					var buttonRect = leftRect.AlignLeft(handler.GetWidth());
-					leftRect.width += buttonRect.x;
-					
+					var buttonRect = rect.AlignLeft(handler.GetWidth());
+					rect.x += buttonRect.width;
+
 					handler.Draw(buttonRect);
 				}
-				
+
 				// EditorGUI.DrawRect(leftRect, Color.cyan);
-			}
-
-			if (rightRect.width > 0 && !ToolbarExtenderConfig.Instance.RightButtons.IsNullOrEmpty())
-			{
-				var width = ToolbarExtenderConfig.Instance.RightButtons.Sum(x => x.GetWidth());
-
-				if (ToolbarExtenderConfig.Instance.RightPosition != ToolbarExtenderConfig.ButtonPositions.Left)
-					rightRect = rightRect.AlignRight(width);
-				
-				foreach (var handler in ToolbarExtenderConfig.Instance.RightButtons)
-				{
-					var buttonRect = rightRect.AlignLeft(handler.GetWidth());
-					rightRect.width += buttonRect.x;
-					
-					handler.Draw(buttonRect);
-				}
-				
-				// EditorGUI.DrawRect(rightRect, Color.cyan);
 			}
 		}
     }
