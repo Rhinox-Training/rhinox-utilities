@@ -9,6 +9,10 @@ Library containing unity utilities:
 - Extensions and enhancements for UnityEditor
 - Custom useful MonoBehaviours
 
+## Dependencies
+
+- Lightspeed (https://github.com/Rhinox-Training/rhinox-lightspeed)
+- GuiUtils (https://github.com/Rhinox-Training/rhinox-guiutils)
 
 ## Optional dependencies
 
