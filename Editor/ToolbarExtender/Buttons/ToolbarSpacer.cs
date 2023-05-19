@@ -11,11 +11,11 @@ namespace Rhinox.Utilities.Editor
 		
         protected override string Label => string.Empty;
 
-        public override void Draw()
-        {
-            GUILayout.Space(Amount);
-        }
+        public override float GetWidth() => Amount;
 
-        protected override void Execute() { }
+        public override void Draw(Rect rect)
+        { }
+
+        protected override void Execute(Rect rect) { }
     }
 }
