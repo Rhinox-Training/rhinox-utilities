@@ -174,17 +174,17 @@ namespace Rhinox.Utilities.Editor
 			menu.AddSeparator(string.Empty);
 			
 			
-			content = new GUIContent("-X");
+			content = new GUIContent("Shift X to Bounds -X");
 			menu.AddItem(content, false, () => ShiftPivotOnBounds(0, Axis.X));
-			content = new GUIContent("+X");
+			content = new GUIContent("Shift X to Bounds +X");
 			menu.AddItem(content, false, () => ShiftPivotOnBounds(1, Axis.X));
-			content = new GUIContent("-Y");
+			content = new GUIContent("Shift Y to Bounds -Y");
 			menu.AddItem(content, false, () => ShiftPivotOnBounds(0, Axis.Y));
-			content = new GUIContent("+Y");
+			content = new GUIContent("Shift Y to Bounds +Y");
 			menu.AddItem(content, false, () => ShiftPivotOnBounds(1, Axis.Y));
-			content = new GUIContent("-Z");
+			content = new GUIContent("Shift Z to Bounds -Z");
 			menu.AddItem(content, false, () => ShiftPivotOnBounds(0, Axis.Z));
-			content = new GUIContent("+Z");
+			content = new GUIContent("Shift Z to Bounds +Z");
 			menu.AddItem(content, false, () => ShiftPivotOnBounds(1, Axis.Z));
 
 			menu.ShowAsContext();
