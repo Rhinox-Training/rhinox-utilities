@@ -23,11 +23,9 @@ namespace Rhinox.Utilities.Editor
         [Title("Gap Align", titleAlignment: TitleAlignments.Centered)]
         public static GapAligner GapAligner = new GapAligner();
         
-        private static Texture AlignTopTexture;
-        private static Texture AlignBottomTexture;
-        private static Texture AlignMiddleTexture;
-
-        private const int IconSize = 19;
+        private static Texture2D AlignTopTexture;
+        private static Texture2D AlignBottomTexture;
+        private static Texture2D AlignMiddleTexture;
         
         [MenuItem(_menuItemPath, false, -200)]
         public static void SetupWindow() => Window.Setup();
@@ -62,34 +60,37 @@ namespace Rhinox.Utilities.Editor
                 using (new eUtility.VerticalGroup())
                 {
                     GUILayout.Label("Gap", CustomGUIStyles.CenteredLabel);
-                    GapAligner.Gap = EditorGUILayout.FloatField("", GapAligner.Gap, GUILayout.Width(38));
+                    GapAligner.Gap = EditorGUILayout.FloatField(GUIContent.none, GapAligner.Gap, GUILayout.Width(60));
                     using (new eUtility.HorizontalGroup())
                     {
-                        DrawGapButton(Axis.X);
-                        DrawGapButton(Axis.Y);
-                        DrawGapButton(Axis.Z);
+                        DrawGapButton(Axis.X, CustomGUIStyles.ButtonLeft);
+                        DrawGapButton(Axis.Y, CustomGUIStyles.ButtonMid);
+                        DrawGapButton(Axis.Z, CustomGUIStyles.ButtonRight);
                     }
                 }
             }
         }
 
-        private static void DrawGapButton(Axis axis)
+        private static void DrawGapButton(Axis axis, GUIStyle style)
         {
-            if (GUILayout.Button(axis.ToString(), CustomGUIStyles.CenteredLabel))
+            var content = GUIContentHelper.TempContent(axis.ToString(), "Space selected objects on this axis with the given gap");
+            if (GUILayout.Button(content, style))
                 GapAligner.AddGap(axis);
         }
 
         private static void DrawAxisAlignOptions(Axis axis)
         {
-            using (var g = new eUtility.HorizontalGroup())
+            using (var g = new eUtility.HorizontalGroup(CustomGUIStyles.Clean))
             {
+                const int iconHeight = 18, iconWidth = 22;
                 // Keep a rect to keep track where an icon will appear, this will be used to calculate the pivot for GUI rotations
-                var iconRect = g.Rect.AlignLeft(IconSize);
-                iconRect.height = IconSize; // limit height
+                var iconRect = g.Rect.AlignLeft(iconWidth);
+                iconRect.height = iconHeight; // limit height
 
                 // Draw axis label
-                GUILayout.Label(axis.ToString(), CustomGUIStyles.CenteredLabel, GUILayout.Width(15));
-                iconRect.x += GUILayoutUtility.GetLastRect().width;
+                const float axisWidth = 15;
+                GUILayout.Label(axis.ToString(), CustomGUIStyles.CenteredLabel, GUILayout.Width(axisWidth));
+                iconRect.x += axisWidth + CustomGUIUtility.Padding * 2;
 
                 CustomEditorGUI.VerticalLine(Color.grey);
                 GUILayout.Space(5);
@@ -100,36 +101,35 @@ namespace Rhinox.Utilities.Editor
                 float angle = 0;
                 if (axis == Axis.X) angle = 90;
                 else if (axis == Axis.Y) angle = 180;
-                // else if (axis == Axis.Z) angle = 180;
 
                 // Draw MAX option
                 using (new eUtility.Rotation(angle, iconRect.center))
                 {
-                    if (CustomEditorGUI.IconButton(AlignBottomTexture, IconSize, IconSize, tooltip: $"Align by MAX {axis}"))
+                    if (CustomEditorGUI.IconButton(AlignBottomTexture, CustomGUIStyles.Clean, tooltip: $"Align by MAX {axis}"))
                         BoundsAligner.AlignBy(axis, false);
                 }
 
-                iconRect.x += IconSize;
+                iconRect.x += iconWidth;
 
                 // Draw MIN option
                 using (new eUtility.Rotation(angle, iconRect.center))
                 {
-                    if (CustomEditorGUI.IconButton(AlignTopTexture, IconSize, IconSize, tooltip: $"Align by MIN {axis}"))
+                    if (CustomEditorGUI.IconButton(AlignTopTexture, CustomGUIStyles.Clean, tooltip: $"Align by MIN {axis}"))
                         BoundsAligner.AlignBy(axis, true);
                 }
 
-                iconRect.x += IconSize;
+                iconRect.x += iconWidth;
 
                 if (axis == Axis.Z) angle = 90;
 
                 // Draw MIDDLE option
                 using (new eUtility.Rotation(angle, iconRect.center))
                 {
-                    if (CustomEditorGUI.IconButton(AlignMiddleTexture, IconSize, IconSize, tooltip: $"Align by MIDDLE {axis}"))
+                    if (CustomEditorGUI.IconButton(AlignMiddleTexture, CustomGUIStyles.Clean, tooltip: $"Align by MIDDLE {axis}"))
                         BoundsAligner.AlignCenter(axis);
                 }
 
-                iconRect.x += IconSize;
+                iconRect.x += iconWidth;
 
                 // using (new eUtility.Rotation(90, iconRect.center))
                 // {

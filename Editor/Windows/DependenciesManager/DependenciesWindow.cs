@@ -31,7 +31,7 @@ namespace Rhinox.Utilities.Editor
 #if ODIN_INSPECTOR
 			EditorIcons.MagnifyingGlass.Raw
 #else
-			UnityIcon.AssetIcon("Fa_Search").Pad(5)
+			UnityIcon.InternalIcon("Search On Icon")
 #endif
 			);
 		
