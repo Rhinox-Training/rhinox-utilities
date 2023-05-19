@@ -20,6 +20,31 @@ namespace Rhinox.Utilities
     {
         private static EdgeComparer _edgeComparer = new EdgeComparer();
         
+        //creates sample points inside the bounds (with a certain offset from the borders)
+        //amount of sample points is increments²
+        //checks if ALL these sample points fall on the navmesh, if not then return false.
+        public static bool IsOnNavMesh(Bounds bounds, int mask = NavMesh.AllAreas, int increments = 4)
+        {
+            foreach (var pt in bounds.Sample2D(increments))
+            {
+                //lift sample point 0.5f above navmesh
+                var liftedPoint = pt.With(y: pt.y + 0.5f);
+            
+                //use sample ray length of 1f
+                if (NavMesh.SamplePosition(liftedPoint, out var hitResult, 1f, mask))
+                {
+                    // If the ray is longer than 0.5, then the sample point is not directly underneath
+                    // This means the position is not on the navmesh but next to it
+                    if (hitResult.distance > 0.5f)
+                        return false;
+                }
+                else
+                    return false;
+            }
+
+            return true;
+        }
+
         // NOTE: this is only run-time
         public static bool BakeNavMesh(NavMeshSearchSettings searchSettings, int agentTypeID = 0, int includedLayerMask = ~0, NavMeshCollectGeometry collectMode = NavMeshCollectGeometry.RenderMeshes)
         {
@@ -197,6 +222,61 @@ namespace Rhinox.Utilities
             };
         }
 
+        public struct BoundsInformation
+        {
+            public int Area;
+            public List<Bounds> ConvexDecomposedBounds;
+        }
+
+        public static List<BoundsInformation> GetNavMeshBounds(float height, int areaMask = NavMesh.AllAreas, float overlapMargin = 0.01f)
+        {
+            var triangulation = CalculateTriangulation(areaMask);
+            return GetNavMeshBounds(triangulation, height, areaMask, overlapMargin);
+        }
+
+        public static List<BoundsInformation> GetNavMeshBounds(NavMeshTriangulation triangulation, float height, int areaMask = NavMesh.AllAreas, float overlapMargin = 0.01f)
+        {
+            var listOfBoundList = new List<BoundsInformation>();
+
+            var edgeLoopsList = NavMeshHelper.GetOuterEdgeLoops(triangulation, true);
+            foreach (var edgeLoop in edgeLoopsList)
+            {
+                if (edgeLoop.HasEdges)
+                    continue;
+                var rootBounds = new Bounds(edgeLoop.Edges.First.Value.V1, Vector3.zero);
+                var slicingPlanes = new List<OrthogonalPlane>();
+                foreach (var edge in edgeLoop.Edges)
+                {
+                    rootBounds.Encapsulate(edge.V1);
+                    rootBounds.Encapsulate(edge.V2);
+                    
+                    var edgeDir = edge.V2 - edge.V1;
+                    Vector3 nrml = Vector3.Cross(edgeDir.normalized, Vector3.up);
+
+                    if (!nrml.TryGetCardinalAxis(out Axis cardinalAxis))
+                        continue;
+
+                    slicingPlanes.Add(new OrthogonalPlane(cardinalAxis, edge.V1));
+                }
+
+                rootBounds = rootBounds.Resize(Axis.Y, height, BoundsExtensions.Side.Negative);
+                
+                var boundsList = BoundsSubdivisionUtility.DivideAndMergeConcave(rootBounds, slicingPlanes,
+                    x => !IsOnNavMesh(x, areaMask), overlapMargin);
+                if (boundsList.Count == 0)
+                    continue;
+
+                var boundsInfo = new BoundsInformation()
+                {
+                    ConvexDecomposedBounds = boundsList,
+                    Area = edgeLoop.Area
+                };
+                listOfBoundList.Add(boundsInfo);
+            }
+
+            return listOfBoundList;
+        }
+
         private static void GenerateBorderMeshData(List<LinkedList<Edge>> borderLoop, float borderWidth, out List<Vector3> vertices, out List<int> indices)
         {
             var quads = new List<Quad>();
@@ -247,7 +327,72 @@ namespace Rhinox.Utilities
                 indices.Add(i + 3); // V4
             }
         }
+
+        public class NavMeshEdgeLoop
+        {
+            public LinkedList<Edge> Edges;
+            public int Area;
+
+            public bool HasEdges => Edges != null && Edges.Count > 0;
+        }
         
+        public static List<NavMeshEdgeLoop> GetOuterEdgeLoops(NavMeshTriangulation triangulation, bool removeExtending)
+        {
+            var edgeLookup = GetOuterEdges(triangulation, removeExtending);
+
+            var loops = new List<NavMeshEdgeLoop>();
+
+            foreach (var area in edgeLookup.Keys)
+            {
+                var edgeStack = edgeLookup[area];
+                var currEdge = edgeStack.FirstOrDefault();
+                var currLoop = new LinkedList<Edge>();
+
+                while (edgeStack.Count > 0)
+                {
+                    edgeStack.Remove(currEdge);
+
+                    FetchNextEdge(edgeStack, currEdge, out Edge nextEdge);
+
+                    if (nextEdge != null)
+                    {
+                        nextEdge = AlignEdge(currEdge, nextEdge);
+                    }
+                    else
+                    {
+                        // No more edges found, looking for a new loop
+                        FetchNextEdge(currLoop, currEdge, out Edge startOfLoop);
+
+                        if (startOfLoop != null)
+                            currLoop.AddLast(currEdge);
+
+                        if (currLoop.Count > 0)
+                        {
+                            var entry = new NavMeshEdgeLoop()
+                            {
+                                Edges = currLoop,
+                                Area = area
+                            };
+                            loops.Add(entry);
+                        }
+
+                        if (edgeStack.Count > 0)
+                        {
+                            currLoop = new LinkedList<Edge>();
+                            currEdge = edgeStack.FirstOrDefault();
+                        }
+
+                        continue;
+                    }
+
+                    currLoop.AddLast(currEdge);
+                    currEdge = nextEdge;
+                }
+            }
+
+            return loops;
+        }
+
         public static List<LinkedList<Edge>> GetOuterEdgeLoops(Mesh mesh, bool removeExtending)
         {
             var edgeStack = GetOuterEdges(mesh, removeExtending);
@@ -337,16 +482,15 @@ namespace Rhinox.Utilities
                 prevQuad.V3 = i2;
             }
         }
-        public static List<Edge> GetEdges(Mesh mesh)
+        
+        internal static List<Edge> GetEdges(Vector3[] vertices, int[] triangles)
         {
             var edges = new List<Edge>();
-            var indices = mesh.triangles;
-            var verts = mesh.vertices;
-            for (var i = 0; i < indices.Length; i += 3)
+            for (var i = 0; i < triangles.Length; i += 3)
             {
-                var v1 = verts[indices[i + 0]];
-                var v2 = verts[indices[i + 1]];
-                var v3 = verts[indices[i + 2]];
+                var v1 = vertices[triangles[i + 0]];
+                var v2 = vertices[triangles[i + 1]];
+                var v3 = vertices[triangles[i + 2]];
 
                 // NOTE:
                 // Only need to check one cross product, since if one of the two is zero it will return null
@@ -361,6 +505,34 @@ namespace Rhinox.Utilities
 
             return edges;
         }
+        
+        private static Dictionary<int, List<Edge>> GetEdgesByArea(Vector3[] vertices, int[] triangles, int[] areas)
+        {
+            var result = new Dictionary<int, List<Edge>>();
+            for (var i = 0; i < triangles.Length; i += 3)
+            {
+                var v1 = vertices[triangles[i + 0]];
+                var v2 = vertices[triangles[i + 1]];
+                var v3 = vertices[triangles[i + 2]];
+                
+                // NOTE:
+                // Only need to check one cross product, since if one of the two is zero it will return null
+                // and if they are non-null and overlap the result is also zero
+                if (!HasTriangleArea(v2 - v1, v3 - v1))
+                    continue;
+                
+                var area = areas[triangles[i + 0]];
+                if (!result.ContainsKey(area))
+                    result.Add(area, new List<Edge>());
+
+                var edges = result[area];
+                edges.Add(new Edge(v1, v2));
+                edges.Add(new Edge(v2, v3));
+                edges.Add(new Edge(v3, v1));
+            }
+
+            return result;
+        }
 
         private static bool HasTriangleArea(Vector3 edgeA, Vector3 edgeB)
         {
@@ -372,7 +544,7 @@ namespace Rhinox.Utilities
 
         public static IList<Edge> GetOuterEdges(Mesh mesh, bool removeExtending)
         {
-            var edges = GetEdges(mesh);
+            var edges = GetEdges(mesh.vertices, mesh.triangles);
             
             var resultSet = FilterOverlappingEdges(edges);
             
@@ -388,6 +560,29 @@ namespace Rhinox.Utilities
             resultSet = FilterOverlappingEdges(resultSet);
 
             return resultSet;
+        }
+        
+        private static Dictionary<int, List<Edge>> GetOuterEdges(NavMeshTriangulation triangulation, bool removeExtending)
+        {
+            var edges = GetEdgesByArea(triangulation.vertices, triangulation.indices, triangulation.areas);
+            foreach (var area in edges.Keys)
+            {
+                var resultSet = FilterOverlappingEdges(edges[area]);
+
+                // Try to group edges with the same direction
+                // Sometimes edges may be split in the middle and only used once thus causing it to be seen as an edge
+                // NOTE: Assumption is made that extending edge are not part of the edge, this can be incorrect!
+                if (removeExtending)
+                {
+                    FilterExtendingEdges(ref resultSet, out _, out var mergedEdges);
+                    resultSet.AddRange(mergedEdges);
+                }
+
+                resultSet = FilterOverlappingEdges(resultSet);
+                edges[area] = resultSet;
+            }
+
+            return edges;
         }
 
         private static List<Edge> FilterOverlappingEdges(List<Edge> edges)
