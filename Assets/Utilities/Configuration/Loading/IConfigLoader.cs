@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Rhinox.Lightspeed;
+using Rhinox.Lightspeed.IO;
+using Rhinox.Lightspeed.Reflection;
 using Rhinox.Perceptor;
 
 namespace Rhinox.Utilities
@@ -27,7 +29,19 @@ namespace Rhinox.Utilities
         
         public bool Load(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback = null)
         {
-            return LoadFileAsync(file, path, GetLoadHandler(path), callback);
+            if (!string.IsNullOrWhiteSpace(path) && FileHelper.Exists(path))
+                return LoadFileAsync(file, path, GetLoadHandler(path), callback);
+            try
+            {
+                ParseCommandLineArgs(file);
+                callback?.Invoke(file);
+                return true;
+            }
+            catch (Exception e)
+            {
+                PLog.Error($"Failed to load config \"{file.GetType().GetNiceName()}\". Reason = {e}");
+                return false;
+            }
         }
 
         public abstract bool Save(ILoadableConfigFile file, string path, bool overwrite = false);
@@ -36,12 +50,9 @@ namespace Rhinox.Utilities
 
         protected bool LoadFileAsync(ILoadableConfigFile file, string path, LoadHandler loader, Action<ILoadableConfigFile> callback = null)
         {
-            if (string.IsNullOrWhiteSpace(path))
-                return false;
-            
             try
             {
-                PLog.Debug($"Initialize IniParser for {path}");
+                PLog.Debug($"Initialize ConfigLoader for {path}");
                 ManagedCoroutine.Begin(loader(path), (manual) =>
                 {
                     if (!manual)
@@ -52,7 +63,7 @@ namespace Rhinox.Utilities
             }
             catch (Exception e)
             {
-                PLog.Error($"Failed to load ini at: {path}. Reason = {e}");
+                PLog.Error($"Failed to load config file at: {path}. Reason = {e}");
                 return false;
             }
 
@@ -71,18 +82,6 @@ namespace Rhinox.Utilities
             var fields = configFile.FindFields();
             foreach (var configField in fields)
             {
-                // Handle command line args
-                var commandLineAttr = configField.GetCustomAttribute<ConfigCommandArgAttribute>();
-                if (commandLineAttr != null)
-                {
-                    if (Utility.TryGetCommandLineArg(out string argValue, commandLineAttr.ArgumentKey))
-                    {
-                        TrySetValue(configFile, configField, argValue);
-                        continue;
-                    }
-                }
-                
-                // If no command line arg found
                 if (FindSetting(configField, out string settingsVal))
                 {
                     TrySetValue(configFile, configField, settingsVal);
@@ -95,7 +94,27 @@ namespace Rhinox.Utilities
                     configField.SetValue(configFile, dynamicFields.ToArray());
                     PLog.Debug<UtilityLogger>($"Dynamic Group Setting {configField.Name} loaded: group of size {dynamicFields.Length}");
                 }
-                
+            }
+
+            // Parse command line args in a second path since its values take priority
+            ParseCommandLineArgs(configFile);
+        }
+
+        protected virtual void ParseCommandLineArgs(ILoadableConfigFile configFile)
+        {
+            var fields = configFile.FindFields();
+            foreach (var configField in fields)
+            {
+                // Handle command line args
+                var commandLineAttr = configField.GetCustomAttribute<ConfigCommandArgAttribute>();
+                if (commandLineAttr != null)
+                {
+                    if (Utility.TryGetCommandLineArg(out string argValue, commandLineAttr.ArgumentKey))
+                    {
+                        TrySetValue(configFile, configField, argValue);
+                        continue;
+                    }
+                }
             }
         }
 

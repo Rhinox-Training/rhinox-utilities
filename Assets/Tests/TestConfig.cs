@@ -20,5 +20,10 @@ public class TestConfig : LoadableConfigFile<TestConfig, ConfigFileIniLoader>
     [ConfigCommandArg(nameof(myName))]
     public string myName;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+    }
+
     public override string RelativeFilePath => "config.ini";
 }

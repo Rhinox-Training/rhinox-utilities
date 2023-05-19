@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Lightspeed.Reflection;
 using Rhinox.Perceptor;
@@ -87,7 +88,7 @@ namespace Rhinox.Utilities
             bool allLoaded = true;
             foreach (var entry in _configFileCache.Values.OfType<ILoadableConfigFile>())
             {
-                if (!entry.Loaded)
+                if (!entry.Handled)
                 {
                     allLoaded = false;
                     break;
@@ -113,18 +114,11 @@ namespace Rhinox.Utilities
 
                 if (!(config is ILoadableConfigFile loadableConfig))
                     continue;
-                
-                if (string.IsNullOrWhiteSpace(loadableConfig.RelativeFilePath))
-                    continue;
-                
-                string path = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, loadableConfig.RelativeFilePath));
-                if (!FileHelper.Exists(path))
-                    continue;
-                
-                if (loadableConfig.Load(path))
-                    PLog.Info<UtilityLogger>($"Started loading config file ({loadableConfig.GetType().Name}) with data at '{path}'");
+
+                if (loadableConfig.Load())
+                    PLog.Info<UtilityLogger>($"Started loading config file ({loadableConfig.GetType().Name}) with data at ");
                 else
-                    PLog.Debug<UtilityLogger>($"Unable to load config file ({loadableConfig.GetType().Name}) with data, unable to load from '{path}'...");
+                    PLog.Debug<UtilityLogger>($"Unable to load config file ({loadableConfig.GetType().Name}) with data, unable to load from ...");
             }
             
             return true;
