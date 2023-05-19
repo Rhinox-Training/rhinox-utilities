@@ -116,9 +116,9 @@ namespace Rhinox.Utilities
                     continue;
 
                 if (loadableConfig.Load())
-                    PLog.Info<UtilityLogger>($"Started loading config file ({loadableConfig.GetType().Name}) with data at ");
+                    PLog.Info<UtilityLogger>($"Started loading config file ({loadableConfig.GetType().Name})");
                 else
-                    PLog.Debug<UtilityLogger>($"Unable to load config file ({loadableConfig.GetType().Name}) with data, unable to load from ...");
+                    PLog.Debug<UtilityLogger>($"Unable to load config file ({loadableConfig.GetType().Name})");
             }
             
             return true;
