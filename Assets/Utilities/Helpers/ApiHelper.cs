@@ -81,7 +81,10 @@ namespace Rhinox.Utilities
                 if (request.IsRequestValid(out string error))
                     handleRequest?.Invoke(request);
                 else
+                {
                     PLog.Error<UtilityLogger>(error);
+                    handleRequest?.Invoke(request);
+                }
             }
         }
         

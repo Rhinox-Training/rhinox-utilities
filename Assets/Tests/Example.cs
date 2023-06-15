@@ -10,32 +10,37 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [Serializable]
-public class GenericList : ToggleableList<GameObject>
-{
-    
-}
+public class GenericList : ToggleableList<GameObject> {}
+
+[Serializable]
+public class GenericPairList : PairList<string, GameObject> {}
+
+[Serializable]
+public class GenericDictionary : SerializableDictionary<string, string>{}
 
 public interface ITest {}
 
 public class Test1 : ITest
 {
-    public string Test;
+    public string ThisIsTest1;
 }
 
 public class Test2 : ITest
 {
     public string Also;
-    public bool Test;
+    public bool ThisIsTest2;
 }
 
 public class Test3 : ITest
 {
-    public float Test;
+    public float ThisIsTest3;
 }
 
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
+    [SerializeReference] public GenericDictionary TestDictionary = new GenericDictionary();
+    
     public UnityEvent EventUnity;
     public BetterEvent StartEvent;
     public SerializableType Type;
@@ -55,6 +60,8 @@ public class Example : MonoBehaviour
 
     [SerializeReference]
     public List<ITest> GenericList;
+
+    public GenericPairList TestPairList = new GenericPairList();
 
     public List<StringWithOptions> ListOfOptions;
 

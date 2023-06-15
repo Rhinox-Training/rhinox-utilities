@@ -55,6 +55,18 @@ namespace Rhinox.Utilities.Editor
             return RegisterJob(importJob);
         }
 
+        // TODO does this work? is this needed?
+        public static bool CreateAndRunImportAssetJob(string assetPath, string targetFolder, JobCompleteHandler callback = null)
+        {
+            var completedImportProcessor = new CompletedImportProcessor(1, callback);
+            string fullPath = FileHelper.GetFullPath(assetPath, FileHelper.GetProjectPath());
+            if (!CreateAndRunImportAssetJob(fullPath, targetFolder, completedImportProcessor))
+                completedImportProcessor.MarkFailed(fullPath);
+
+            // TODO: what if a job wasn't added correctly, how do we continue? (How do we expose the specific failure)
+            return !completedImportProcessor.HasFailed;
+        }
+
         public static bool CreateAndRunImportAssetJob(ICollection<string> files, string targetFolder, JobCompleteHandler callback = null)
         {
             var completedImportProcessor = new CompletedImportProcessor(files.Count, callback);

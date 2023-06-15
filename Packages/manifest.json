@@ -10,7 +10,7 @@
     }
   ],
   "dependencies": {
-	"com.rhinox.open.lightspeed": "1.6.0",
+	"com.rhinox.open.lightspeed": "1.6.3",
 	"com.rhinox.open.guiutils": "2.11.1",
     "com.rhinox.open.perceptor": "0.2.0",
 	"com.unity.nuget.newtonsoft-json": "2.0.0",
