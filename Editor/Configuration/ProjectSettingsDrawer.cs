@@ -87,7 +87,10 @@ namespace Rhinox.Utilities.Editor.Configuration
                 OnDrawFooter();
 
                 if (EditorGUI.EndChangeCheck())
+                {
+                    _propertyView.RequestRepaint();
                     _targetObject.OnChanged();
+                }
             }
         }
 
