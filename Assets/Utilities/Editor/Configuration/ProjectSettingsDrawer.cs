@@ -88,7 +88,12 @@ namespace Rhinox.Utilities.Editor.Configuration
 
                 if (EditorGUI.EndChangeCheck())
                 {
+#if ODIN_INSPECTOR
+                    // NOP
+                    // TODO: is this sufficient?
+#else
                     _propertyView.RequestRepaint();
+#endif
                     _targetObject.OnChanged();
                 }
             }
