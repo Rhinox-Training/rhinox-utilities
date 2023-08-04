@@ -15,7 +15,7 @@ namespace Rhinox.Utilities.Editor
 		
         protected override string Label => Name;
 
-        protected override void Execute()
+        protected override void Execute(Rect rect)
         {
             var action = ExpressionUtility.ParseAction(Expression, ContextType, out string errorMessage, true);
             if (string.IsNullOrEmpty(errorMessage))

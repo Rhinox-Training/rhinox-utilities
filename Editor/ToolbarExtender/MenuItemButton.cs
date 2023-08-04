@@ -28,7 +28,7 @@ namespace Rhinox.Utilities.Editor
 
         public string MenuItem;
 
-        protected override void Execute()
+        protected override void Execute(Rect rect)
         {
             EditorApplication.ExecuteMenuItem(MenuItem);
         }

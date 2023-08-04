@@ -259,7 +259,7 @@ namespace Rhinox.Utilities.Odin.Editor
 
             private void OnExpressionChanged()
             {
-                CustomExpressionDelegate = ExpressionUtility.ParseExpression(_customExpression, false, Type,
+                CustomExpressionDelegate = Sirenix.Utilities.Editor.Expressions.ExpressionUtility.ParseExpression(_customExpression, false, Type,
                     new[] { typeof(bool) }, out _customExpressionError, true);
 
                 if (!string.IsNullOrWhiteSpace(_customExpressionError)) return;
