@@ -226,7 +226,7 @@ namespace Rhinox.Utilities.Editor
                             string metaFileContents = Encoding.UTF8.GetString(metaBytes);
                             string[] lines = metaFileContents.SplitLines();
 
-                            const string regexCode = "\\s*guid:\\s*([0-9aA-zZ]+)";
+                            const string regexCode = "\\s*guid:\\s*([0-9a-zA-Z]+)";
                             foreach (string line in lines)
                             {
                                 var match = Regex.Match(line, regexCode);
