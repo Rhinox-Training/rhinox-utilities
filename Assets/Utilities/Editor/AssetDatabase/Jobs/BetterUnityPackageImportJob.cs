@@ -36,6 +36,9 @@ namespace Rhinox.Utilities.Editor
         {
             _imports = unityPackageResponse.ImportedAssets.ToArray();
             TriggerCompleted(ImportState.Completed);
+            
+            foreach (var asset in _imports)
+                PLog.Info($"Imported asset: {asset}");
         }
     }
 }
