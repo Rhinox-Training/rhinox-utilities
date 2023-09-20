@@ -38,8 +38,17 @@ namespace Rhinox.Utilities.Editor
             {
                 if (!go.activeInHierarchy) continue;
                 var renderers = go.GetComponentsInChildren<Renderer>();
-                if (renderers.Length == 0) continue;
-                var bounds = ShowAxisAligned ? renderers.GetCombinedBounds() : renderers.GetCombinedLocalBounds(go.transform);
+                Bounds bounds = default;
+                
+                if (renderers.Length != 0)
+                    bounds = ShowAxisAligned ? renderers.GetCombinedBounds() : renderers.GetCombinedLocalBounds(go.transform);
+                else
+                {
+                    var colliders = go.GetComponentsInChildren<Collider>();
+                    if (colliders.Length != 0)
+                        bounds = ShowAxisAligned ? colliders.GetCombinedBounds() : colliders.GetCombinedLocalBounds(go.transform);
+                }
+                
                 if (bounds == default) continue;
                 
                 HandlesExt.PushZTest(CompareFunction.Less);
