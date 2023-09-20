@@ -1,7 +1,7 @@
 using Rhinox.Lightspeed;
 using UnityEngine;
 
-namespace Rhinox.Utilities
+namespace Rhinox.Utilities.Data
 {
     public interface IColliderData
     {

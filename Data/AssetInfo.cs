@@ -5,7 +5,7 @@ using Rhinox.Lightspeed;
 using Rhinox.Perceptor;
 using UnityEngine;
 
-namespace Rhinox.Utilities
+namespace Rhinox.Utilities.Data
 {
     public class MeshData
     {
