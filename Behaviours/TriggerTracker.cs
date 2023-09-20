@@ -26,6 +26,9 @@ namespace Rhinox.Utilities
         protected Dictionary<T, HashSet<Collider>> _containedObjectsDict = new Dictionary<T, HashSet<Collider>>();
 
         [ShowInInspector, ReadOnly] public ICollection<T> ContainedObjects => _containedObjectsDict.Keys;
+        
+        
+        
         public IEnumerable<T> ActiveContainedObjects => _containedObjectsDict.Keys.Where(x => x != null && x.gameObject.activeInHierarchy);
 
         public event Action<T> ObjectEnter;
@@ -33,7 +36,7 @@ namespace Rhinox.Utilities
         
         protected virtual void OnEnable()
         {
-
+            
         }
 
         protected virtual void OnDisable()
@@ -63,7 +66,14 @@ namespace Rhinox.Utilities
 
         private void Update()
         {
-            _containedObjectsDict.RemoveAll(x => x.Key == null);
+            
+            foreach (var key in ContainedObjects)
+            {
+                if (key != null) continue;
+                
+                // Destroyed
+                RemoveContainer(key);
+            }
         }
 
         protected virtual T GetContainer(Collider coll)
@@ -95,8 +105,8 @@ namespace Rhinox.Utilities
             if (container == null || !ValidateContainer(container))
                 return;
 
-            if (_containedObjectsDict.ContainsKey(container))
-                _containedObjectsDict[container].Add(coll);
+            if (_containedObjectsDict.TryGetValue(container, out var list))
+                list.Add(coll);
             else
             {
                 _containedObjectsDict.Add(container, new HashSet<Collider> { coll });
@@ -118,6 +128,11 @@ namespace Rhinox.Utilities
             if (_containedObjectsDict[container].Any())
                 return;
 
+            RemoveContainer(container);
+        }
+
+        private void RemoveContainer(T container)
+        {
             _containedObjectsDict.Remove(container);
             OnObjectExit(container);
         }
