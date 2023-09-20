@@ -60,6 +60,7 @@
 using System;
 using UnityEngine;
 using System.Collections;
+using Rhinox.Perceptor;
 
 namespace Rhinox.Utilities
 {
@@ -102,6 +103,8 @@ namespace Rhinox.Utilities
 
 		public bool Finished => _coroutine.Finished;
 
+		public bool LogErrors = true;
+
 		/// Delegate for termination subscribers. Manual is true if
 		/// the coroutine was stopped with an explicit call to Stop().
 		public delegate void FinishedHandler(bool manual);
@@ -141,6 +144,8 @@ namespace Rhinox.Utilities
 		
 		void CoroutineOnFailed(Exception e)
 		{
+			if (LogErrors)
+				Debug.LogError(e);
 			OnFailed?.Invoke(e);
 		}
 

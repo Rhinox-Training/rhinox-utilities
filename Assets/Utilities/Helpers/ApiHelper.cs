@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Text;
 using System.Threading.Tasks;
 using Rhinox.Lightspeed;
@@ -35,20 +36,21 @@ namespace Rhinox.Utilities
             }
         }
 
-        public async Task<T> Get<T>(string path)
+        public IEnumerator Get<T>(string path, Action<T> callback)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = UnityWebRequest.Get(uri))
             {
                 // Request and wait for the desired page.
-                await request.SendWebRequest();
+                yield return request.SendWebRequest();
                 
                 if (request.IsRequestValid(out string error))
-                    return request.ParseJsonResult<T>();
+                {
+                    T result = request.ParseJsonResult<T>(true);
+                    callback?.Invoke(result);
+                }
                 else
                     PLog.Error<UtilityLogger>(error);
-                
-                return default;
             }
         }
 
@@ -61,7 +63,7 @@ namespace Rhinox.Utilities
                 var op = request.SendWebRequest();
                 while (!op.isDone) { }
 
-                return request.ParseJsonResult<T>();
+                return request.ParseJsonResult<T>(true);
             }
         }
 
@@ -105,7 +107,7 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await request.SendWebRequest();
 
-                return request.ParseJsonResult<T>();
+                return request.ParseJsonResult<T>(true);
             }
         }
 
@@ -126,7 +128,7 @@ namespace Rhinox.Utilities
                 var op = request.SendWebRequest();
                 while (!op.isDone) { }
 
-                return request.ParseJsonResult<TResult>();
+                return request.ParseJsonResult<TResult>(true);
             }
         }
         
