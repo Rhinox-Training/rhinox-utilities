@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
-namespace Rhinox.Utilities
+namespace Rhinox.Utilities.Data
 {
     public class MaterialLibrary : Dictionary<string, Material>
     {
