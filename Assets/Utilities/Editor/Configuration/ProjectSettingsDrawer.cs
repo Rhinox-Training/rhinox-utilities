@@ -22,6 +22,7 @@ namespace Rhinox.Utilities.Editor.Configuration
         public CustomProjectSettings _targetObject;
 #if ODIN_INSPECTOR
         private PropertyTree _propertyTree;
+        private bool _odinDataIsDirty;
 #else
         private DrawablePropertyView _propertyView;
 #endif
@@ -52,8 +53,12 @@ namespace Rhinox.Utilities.Editor.Configuration
             
             if (_serializedObject.targetObject != _targetObject)
             {
+                _serializedObject = new SerializedObject(_targetObject);
 #if ODIN_INSPECTOR
+                if (_propertyTree != null)
+                    _propertyTree.OnPropertyValueChanged -= OnValueChanged;
                 _propertyTree = PropertyTree.Create(_serializedObject);
+                _propertyTree.OnPropertyValueChanged += OnValueChanged;
 #else
                 _propertyView = new DrawablePropertyView(_serializedObject);
 #endif
@@ -68,7 +73,10 @@ namespace Rhinox.Utilities.Editor.Configuration
                 return;
 #if ODIN_INSPECTOR
             if (_propertyTree == null)
+            {
                 _propertyTree = PropertyTree.Create(_serializedObject);
+                _propertyTree.OnPropertyValueChanged += OnValueChanged;
+            }
 #else
             if (_propertyView == null)
                 _propertyView = new DrawablePropertyView(_serializedObject);
@@ -76,20 +84,34 @@ namespace Rhinox.Utilities.Editor.Configuration
        
             using (new eUtility.PaddedGUIScope())
             {
-                EditorGUI.BeginChangeCheck();
-
 #if ODIN_INSPECTOR
                 _propertyTree.Draw();
-#else
-                _propertyView.DrawLayout();
-#endif
-                
                 OnDrawFooter();
 
-                if (EditorGUI.EndChangeCheck())
+                if (_odinDataIsDirty)
+                {
                     _targetObject.OnChanged();
+                    _odinDataIsDirty = false;
+                }
+#else
+                EditorGUI.BeginChangeCheck();
+                _propertyView.DrawLayout();
+                OnDrawFooter();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _propertyView.RequestRepaint();
+                    _targetObject.OnChanged();
+                }
+#endif
             }
         }
+
+#if ODIN_INSPECTOR
+        private void OnValueChanged(InspectorProperty property, int selectionindex)
+        {
+            _odinDataIsDirty = true;
+        }
+#endif
 
         protected virtual void OnDrawFooter()
         {

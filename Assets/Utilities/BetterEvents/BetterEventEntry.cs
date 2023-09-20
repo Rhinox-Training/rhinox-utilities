@@ -185,6 +185,7 @@ namespace Rhinox.Utilities
 #endif
         }
 
+#if !ODIN_INSPECTOR
         private bool MatchParameter(MethodInfo info)
         {
             if (info.Name != _methodName)
@@ -203,6 +204,7 @@ namespace Rhinox.Utilities
 
             return true;
         }
+#endif
 
         public void CreateAndAssignNewDelegate(object target, MethodInfo info)
         {

@@ -28,7 +28,7 @@ namespace Rhinox.Utilities.Editor
     /// UnityIconsViewer
     public class UnityIconsViewer : CustomMenuEditorWindow
     {
-        private readonly List<UnityIcon> _Icons = new List<UnityIcon>();
+        private List<UnityIcon> _Icons = new List<UnityIcon>();
         private Vector2 _scrollPos;
         private GUIContent _refreshButton;
         
@@ -68,120 +68,11 @@ namespace Rhinox.Utilities.Editor
         /* Find all textures and filter them to narrow the search. */
         void FindIcons()
         {
-            _Icons.Clear();
-
-            // Internal icons
-            var textures = InternalUnityIcon.GetAll();
-            foreach (var group in textures.GroupBy(x => InternalUnityIcon.TrimmedName(x)))
-            {
-                if (group.Count() == 1)
-                {
-                    var tex = group.First();
-                    _Icons.Add(new InternalUnityIcon
-                    {
-                        Icon = tex,
-                        Name = tex.name,
-                        Origin = "Internal",
-                    });
-                }
-                else
-                {
-                    Texture2D darkTex = null, lightTex = null, highresDarkTex = null, highresLightTex = null;
-                    foreach (var texture in group)
-                    {
-                        if (texture.name.EndsWith("@2x"))
-                        {
-                            if (texture.name.StartsWith("d_"))
-                                highresDarkTex = texture;
-                            else
-                                highresLightTex = texture;
-                        }
-                        else
-                        {
-                            if (texture.name.StartsWith("d_"))
-                                darkTex = texture;
-                            else
-                                lightTex = texture;
-                        }
-                    }
-
-                    Texture2D tex;
-
-                    if (EditorGUIUtility.isProSkin)
-                        tex = highresDarkTex ?? darkTex ?? highresLightTex ?? lightTex;
-                    else
-                        tex = highresLightTex ?? lightTex ?? highresDarkTex ?? darkTex;
-
-                    bool hasDarkLightVariants = darkTex && lightTex;
-                    bool hasHighResVariants = highresDarkTex || highresLightTex;
-
-                    _Icons.Add(new InternalUnityIcon
-                    {
-                        Icon = tex,
-                        Name = hasDarkLightVariants ? lightTex.name : tex.name,
-                        HasLightDarkVariants = hasDarkLightVariants,
-                        HasHighResVariants = hasHighResVariants,
-                        Origin = "Internal",
-                    });
-                }
-            }
-            
-            // Class icons
-            textures = ScriptUnityIcon.GetAll();
-            foreach (var tex in textures)
-            {
-                _Icons.Add(new ScriptUnityIcon
-                {
-                    Icon = tex,
-                    Name = tex.name,
-                    Origin = "Script"
-                });
-            }
-            
-            // Odin icons
-            var odinIcons = OdinUnityIcon.GetAll();
-            foreach (var pair in odinIcons)
-            {
-                _Icons.Add(new OdinUnityIcon
-                {
-                    Icon = pair.Value,
-                    Name = pair.Key,
-                    Origin = "Odin",
-                });
-            }
-            
-            // resources icons
-            _Icons.AddRange(GetAssetIcons(AssetUnityIcon.GetAll()));
-
-            _Icons.Sort();
-            Resources.UnloadUnusedAssets();
-            GC.Collect();
+            UnityIconFinder.FindIcons(ref _Icons);
 
             Repaint();
         }
 
-        private static List<UnityIcon> GetAssetIcons(string[] iconPaths)
-        {
-            var icons = new List<UnityIcon>();
-            foreach (var path in iconPaths)
-            {
-                var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
-                if (tex == null) continue;
-
-                var name = Path.GetFileNameWithoutExtension(path);
-                var ext = Path.GetExtension(path);
-                
-                icons.Add(new AssetUnityIcon
-                {
-                    Name = name,
-                    Extension = ext,
-                    Icon = tex,
-                    Origin = "Asset Texture",
-                });
-            }
-
-            return icons;
-        }
 
         protected override CustomMenuTree BuildMenuTree()
         {
