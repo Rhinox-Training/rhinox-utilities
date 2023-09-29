@@ -7,7 +7,7 @@ using Rhinox.GUIUtils.Editor;
 using Rhinox.GUIUtils.Editor.Helpers;
 using Rhinox.Lightspeed;
 using UnityEditor;
-#if UNITY_2020_1_OR_NEWER
+#if UNITY_2021_2_OR_NEWER
 using UnityEditor.SceneManagement;
 #else
 using UnityEditor.Experimental.SceneManagement;
