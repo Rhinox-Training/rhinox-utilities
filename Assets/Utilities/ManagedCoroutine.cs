@@ -60,6 +60,7 @@
 using System;
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Rhinox.Perceptor;
 
 namespace Rhinox.Utilities
@@ -94,6 +95,16 @@ namespace Rhinox.Utilities
 			coroutine.OnFinished += callback;
 			coroutine.Start();
 			return coroutine;
+		}
+
+		public static void Dispatch(IEnumerator c)
+		{
+			CoroutineManager.Dispatch(c);
+		}
+		
+		public static void Dispatch(Action action)
+		{
+			CoroutineManager.Dispatch(action);
 		}
 		
 		/// Paused tasks are considered to be running.
@@ -158,6 +169,7 @@ namespace Rhinox.Utilities
 	class CoroutineManager : MonoBehaviour
 	{
 		private static CoroutineManager _singleton;
+		private static Queue<Action> _dispatcherQueue = new Queue<Action>();
 
 		public class CoroutineState
 		{
@@ -274,6 +286,39 @@ namespace Rhinox.Utilities
 			}
 
 			return new CoroutineState(coroutine);
+		}
+
+		public static void Dispatch(IEnumerator enumerator)
+		{
+			if (enumerator == null)
+				return;
+			lock (_dispatcherQueue)
+			{
+				_dispatcherQueue.Enqueue(() => ManagedCoroutine.Begin(enumerator));
+			}
+		}
+
+		public static void Dispatch(Action action)
+		{
+			Dispatch(DispatcherAction(action));
+		}
+
+		private static IEnumerator DispatcherAction(Action action)
+		{
+			yield return null;
+			action?.Invoke();
+		}
+
+		private void Update()
+		{
+			if (_dispatcherQueue.Count > 0)
+			{
+				lock (_dispatcherQueue)
+				{
+					var queueAction = _dispatcherQueue.Dequeue();
+					queueAction.Invoke();
+				}
+			}
 		}
 	}
 
