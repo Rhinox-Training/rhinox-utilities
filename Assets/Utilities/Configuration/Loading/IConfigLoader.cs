@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Lightspeed.Reflection;
@@ -46,17 +47,18 @@ namespace Rhinox.Utilities
 
         public abstract bool Save(ILoadableConfigFile file, string path, bool overwrite = false);
         
-        public delegate IEnumerator LoadHandler(string path);
+        public delegate Task LoadHandler(string path);
 
         protected bool LoadFileAsync(ILoadableConfigFile file, string path, LoadHandler loader, Action<ILoadableConfigFile> callback = null)
         {
             try
             {
                 PLog.Debug($"Initialize ConfigLoader for {path}");
-                ManagedCoroutine.Begin(loader(path), (manual) =>
+                var loaderTask = loader(path);
+                var awaiter = loaderTask.GetAwaiter();
+                awaiter.OnCompleted(() =>
                 {
-                    if (!manual)
-                        ParseData(file);
+                    ParseData(file);
                     CleanUp();
                     callback?.Invoke(file);
                 });
