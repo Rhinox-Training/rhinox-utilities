@@ -9,12 +9,9 @@ using Rhinox.Perceptor;
 using Rhinox.Utilities.Attributes;
 #if UNITY_EDITOR
 using UnityEditorInternal;
-#else
-using System.IO;
-using Rhinox.Perceptor;
 #endif
+
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Rhinox.Utilities
 {
