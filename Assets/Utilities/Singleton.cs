@@ -45,7 +45,7 @@ namespace Rhinox.Utilities
                 
                 if (_instance == null)
                 {
-                    Debug.LogWarning($"SerializedSingleton::Instance - Created instance of ({typeof(T)})");
+                    PLog.Warn<UtilityLogger>($"SerializedSingleton::Instance - Created instance of ({typeof(T)})");
                     
                     var singleton = new GameObject();
                     _instance = singleton.AddComponent<T>();
@@ -57,7 +57,10 @@ namespace Rhinox.Utilities
                 return _instance;
 
             }
-            set { _instance = value; }
+            protected set
+            {
+                _instance = value;
+            }
         }
         
         public bool IsDestroying { get; set; }
