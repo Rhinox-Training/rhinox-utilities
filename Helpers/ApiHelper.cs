@@ -35,6 +35,26 @@ namespace Rhinox.Utilities
                     PLog.Error<UtilityLogger>(error);
             }
         }
+        
+        public async Task<T> Get<T>(string path)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Get(uri))
+            {
+                // Request and wait for the desired page.
+                await request.SendWebRequest();
+
+                if (request.IsRequestValid(out string error))
+                {
+                    T result = request.ParseJsonResult<T>(true);
+                    return result;
+                }
+                else
+                    PLog.Error<UtilityLogger>(error);
+            }
+
+            return default;
+        }
 
         public IEnumerator Get<T>(string path, Action<T> callback)
         {
