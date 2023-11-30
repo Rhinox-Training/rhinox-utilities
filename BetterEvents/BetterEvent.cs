@@ -87,5 +87,17 @@ namespace Rhinox.Utilities
                 this.Invoke();
         }
 #endif
+        
+        public int GetEntryCount()
+        {
+            if (Events == null)
+                return 0;
+            return Events.Count;
+        }
+        
+        public bool HasEntries()
+        {
+            return GetEntryCount() > 0;
+        }
     }
 }
