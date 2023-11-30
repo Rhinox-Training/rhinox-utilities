@@ -97,7 +97,7 @@ namespace Rhinox.Utilities.Editor.Configuration
                 EditorGUI.BeginChangeCheck();
                 _propertyView.DrawLayout();
                 OnDrawFooter();
-                if (EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck() || (_serializedObject.targetObject != null && EditorUtility.IsDirty(_serializedObject.targetObject)))
                 {
                     _propertyView.RequestRepaint();
                     _targetObject.OnChanged();
