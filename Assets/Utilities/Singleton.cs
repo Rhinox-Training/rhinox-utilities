@@ -40,29 +40,25 @@ namespace Rhinox.Utilities
         {
             get
             {
-                if (_instance == null || _instance.IsDestroying)
-                    _instance = FindInstance();
-                
-                if (_instance == null)
-                {
-                    PLog.Warn<UtilityLogger>($"SerializedSingleton::Instance - Created instance of ({typeof(T)})");
-                    
-                    var singleton = new GameObject();
-                    _instance = singleton.AddComponent<T>();
-                    singleton.name = "(singleton) "+ typeof(T);
-                    
-                    DontDestroyOnLoad(singleton);
-                }
+                FindOrCreate();
 
                 return _instance;
-
             }
             protected set
             {
                 _instance = value;
             }
         }
-        
+
+        public static void FindOrCreate()
+        {
+            if (_instance == null || _instance.IsDestroying)
+                _instance = FindInstance();
+
+            if (_instance == null)
+                _instance = CreateSingleton();
+        }
+
         public bool IsDestroying { get; set; }
         
         // No need to check for HasInstance as this is called on an Instance
@@ -80,6 +76,19 @@ namespace Rhinox.Utilities
             var instance = instances.FirstOrDefault(x => !x.IsDestroying);
             return instance;
         }
+
+        private static T CreateSingleton()
+        {
+            Debug.LogWarning($"Singleton::Instance - Created instance of ({typeof(T)})");
+
+            var singleton = new GameObject();
+            T instance = singleton.AddComponent<T>();
+            singleton.name = "(singleton) " + typeof(T);
+
+            DontDestroyOnLoad(singleton);
+            return instance;
+        }
+
     }
     
 #if ODIN_INSPECTOR    
@@ -109,7 +118,7 @@ namespace Rhinox.Utilities
                 
                 if (_instance == null && Application.isPlaying)
                 {
-                    Debug.LogWarning($"SerializedSingleton::Instance - Created instance of ({typeof(T)})");
+                    PLog.Warn<UtilityLogger>($"SerializedSingleton::Instance - Created instance of ({typeof(T)})");
                     var singleton = new GameObject();
                     _instance = singleton.AddComponent<T>();
                     singleton.name = "(singleton) "+ typeof(T);

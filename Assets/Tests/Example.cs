@@ -49,6 +49,8 @@ public class Example : MonoBehaviour
     public SceneReferenceData SceneTest;
     public readonly string[] Options = new[] { "One", "Two", "FortyTwo" };
 
+    public GameObject Object;
+    
     [Serializable]
     public class StringWithOptions
     {
