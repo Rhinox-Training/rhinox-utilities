@@ -10,7 +10,8 @@
         "com.rhinox.open.guiutils.attributes",
         "com.rhinox.open.guiutils.editor",
         "com.rhinox.open.perceptor",
-        "com.rhinox.open.guiutils.odin.editor"
+        "com.rhinox.open.guiutils.odin.editor",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"
@@ -20,8 +21,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-    ],
+    "defineConstraints": [],
     "versionDefines": [
         {
             "name": "com.unity.probuilder",
@@ -32,6 +32,11 @@
             "name": "com.unity.textmeshpro",
             "expression": "0.0.0",
             "define": "TEXT_MESH_PRO"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "UNITY_INPUTSYSTEM"
         }
     ],
     "noEngineReferences": false
