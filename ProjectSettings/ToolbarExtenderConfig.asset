@@ -12,60 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 744fb13958c24dabb6745365f3027ba1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _isActive: 0
+  _isActive: 1
   LeftPosition: 2
   LeftButtons:
   - id: 0
-  - id: 1
-  - id: 2
-  - id: 3
   RightPosition: 0
-  RightButtons:
-  - id: 4
-  - id: 5
-  - id: 6
-  - id: 7
-  - id: 8
-  - id: 9
+  RightButtons: []
   references:
     version: 1
     00000000:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
+      type: {class: SceneLoaderButton, ns: Rhinox.Magnus.Editor, asm: com.rhinox.open.utilities.editor}
       data:
-        Amount: 5
-    00000001:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 3
-    00000002:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 8
-    00000003:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 0
-    00000004:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 0
-    00000005:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 0
-    00000006:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 3
-    00000007:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 0
-    00000008:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 0
-    00000009:
-      type: {class: ToolbarSpacer, ns: Rhinox.Utilities.Editor, asm: com.rhinox.open.utilities.editor}
-      data:
-        Amount: 0
+        State: 0
+        Scenes: []
+        SceneFolders:
+        - Assets

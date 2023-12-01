@@ -1,0 +1,32 @@
+{
+    "name": "com.rhinox.open.utilities.assetdatabase.editor",
+    "references": [
+        "GUID:478a2357cc57436488a56e564b08d223",
+        "GUID:fc025ba4ac3997440926e87ec084af89",
+        "GUID:d06f234cedf03a546807d093bc1d736b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_EDITORCOROUTINES"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.editorcoroutines",
+            "expression": "1.0.0",
+            "define": "UNITY_EDITORCOROUTINES"
+        },
+        {
+            "name": "io.github.icsharpcode.sharpziplib",
+            "expression": "1.2.0",
+            "define": "SHARPZIPLIB"
+        }
+    ],
+    "noEngineReferences": false
+}
