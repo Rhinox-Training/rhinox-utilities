@@ -128,7 +128,7 @@ namespace Rhinox.Utilities.Editor
 
             if (CustomEditorGUI.IconButton(rect, _icon, Tooltip) || buttonClicked)
             {
-                if (buttonClicked && Event.current.keyCode == KeyCode.LeftControl && Vector2.Distance(Event.current.mousePosition, rect.center) > 350.0f)
+                if (buttonClicked && (Event.current.modifiers & EventModifiers.Control) != 0 && Vector2.Distance(Event.current.mousePosition, rect.center) > 350.0f)
                 {
                     var myPackage = UnityEditor.PackageManager.PackageInfo.FindForAssetPath("Packages/com.rhinox.open.utilities");
                     AudioClip audioClip = null;
