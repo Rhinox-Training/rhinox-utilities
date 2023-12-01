@@ -14,7 +14,23 @@ namespace Rhinox.Utilities.Editor
         static Type _toolbarType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.Toolbar");
         static Type _guiViewType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GUIView");
 #if UNITY_2020_1_OR_NEWER
-		static Type _iWindowBackendType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.IWindowBackend");
+        private static PropertyInfo _eventInterestsProperty = _guiViewType.GetProperty("eventInterests",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        private static Type _eventInterestType =
+            typeof(UnityEngine.Event).Assembly.GetType("UnityEngine.EventInterests");
+
+        private static MethodInfo _Internal_SetWantsMouseMoveMethod = _guiViewType.GetMethod(
+            "Internal_SetWantsMouseMove",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        
+        private static MethodInfo Internal_SetWantsMouseEnterLeaveWindowMethod = _guiViewType.GetMethod(
+            "Internal_SetWantsMouseEnterLeaveWindow",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        private static PropertyInfo _wantsMouseMoveProperty = _eventInterestType.GetProperty("wantsMouseMove",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        static Type _iWindowBackendType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.IWindowBackend");
 		static PropertyInfo _windowBackend = _guiViewType.GetProperty("windowBackend",
 			BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static PropertyInfo _viewVisualTree = _iWindowBackendType.GetProperty("visualTree",
@@ -51,6 +67,12 @@ namespace Rhinox.Utilities.Editor
                 if (_currentToolbar != null)
                 {
 #if UNITY_2020_1_OR_NEWER
+                    _Internal_SetWantsMouseMoveMethod.Invoke(_currentToolbar, new object[] { true});
+                    Internal_SetWantsMouseEnterLeaveWindowMethod.Invoke(_currentToolbar, new object[] { true });
+                    var eventInterests = _eventInterestsProperty.GetValue(_currentToolbar);
+                    _wantsMouseMoveProperty.SetValue(eventInterests, true);
+                    _eventInterestsProperty.SetValue(_currentToolbar, eventInterests);
+                    
 					var windowBackend = _windowBackend.GetValue(_currentToolbar);
 
 					// Get it's visual tree
