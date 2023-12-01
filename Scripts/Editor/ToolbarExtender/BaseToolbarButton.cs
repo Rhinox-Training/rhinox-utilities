@@ -12,7 +12,9 @@ using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 #endif
 using UnityEditor;
+using UnityEditor.PackageManager.UI;
 using UnityEditor.UIElements;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
@@ -120,10 +122,60 @@ namespace Rhinox.Utilities.Editor
                 if (icon == null) return;
                 _icon = new HoverTexture(icon);
             }
-            
+
+#if UNITY_2020_1_OR_NEWER
+            bool buttonClicked = Event.current.rawType == EventType.MouseUp;
+
+            if (CustomEditorGUI.IconButton(rect, _icon, Tooltip) || buttonClicked)
+            {
+                if (buttonClicked && Event.current.keyCode == KeyCode.LeftControl && Vector2.Distance(Event.current.mousePosition, rect.center) > 350.0f)
+                {
+                    var myPackage = UnityEditor.PackageManager.PackageInfo.FindForAssetPath("Packages/com.rhinox.open.utilities");
+                    AudioClip audioClip = null;
+                    if (myPackage == null)
+                        audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Utilities/Sounds/intervention.mp3");
+                    else
+                        audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Packages/com.rhinox.open.utilities/Sounds/intervention.mp3");
+
+
+                    if (audioClip != null)
+                        PlayClip(audioClip);
+
+                }
+
+                Execute(rect);
+            }
+#else
             if (CustomEditorGUI.IconButton(rect, _icon, Tooltip))
                 Execute(rect);
+#endif
         }
+        
+#if UNITY_2020_1_OR_NEWER
+        public static void PlayClip(AudioClip clip) {
+            System.Reflection.Assembly unityEditorAssembly = typeof(AudioImporter).Assembly;
+            Type audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
+            System.Reflection.MethodInfo method = audioUtilClass.GetMethod(
+                "PlayPreviewClip",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public,
+                null,
+                new System.Type[] {
+                    typeof(AudioClip),
+                    typeof(int),
+                    typeof(bool)
+                },
+                null
+            );
+            method.Invoke(
+                null,
+                new object[] {
+                    clip,
+                    0,
+                    false
+                }
+            );
+        }
+#endif
 
         public override float GetWidth() => ToolbarHeight;
     }
