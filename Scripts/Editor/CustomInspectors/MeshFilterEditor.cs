@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Globalization;
+using UnityEngine;
 using UnityEditor;
 using System.IO;
 using Rhinox.GUIUtils;
@@ -13,6 +14,8 @@ using UnityEditor.Experimental.SceneManagement;
 
 #if UNITY_2019_2_OR_NEWER && PROBUILDER
 using UnityEngine.ProBuilder;
+
+
 #elif PROBUILDER
 // Downgrade to probuilder 3.x if you get this error; No way to check :(
 using ProBuilder.Core;
@@ -37,10 +40,11 @@ namespace Rhinox.Utilities.Editor
         private Vector3 _originalPosition;
 
         private bool _pivotUnchanged; //Flag to decide when to instantiate a copy of the mesh
-        
-        private bool _preservePosition = true;
 
-        
+        private bool _preservePosition = true;
+        private bool _isBoundsInfoOpen = false;
+
+
         public override void OnInspectorGUI()
         {
             if (!EditorUtilitiesSettings.Instance.OverrideMeshFilterInspector)
@@ -48,18 +52,18 @@ namespace Rhinox.Utilities.Editor
                 base.OnInspectorGUI();
                 return;
             }
-            
+
             using (new eUtility.HorizontalGroup())
             {
                 base.OnInspectorGUI();
-                
+
                 serializedObject.Update();
-                
+
                 DrawMeshSaveOptions();
-                
+
                 serializedObject.ApplyModifiedProperties();
             }
-            
+
             if (Target.sharedMesh == null) return;
 
             if (!_showPivotChanger)
@@ -158,8 +162,24 @@ namespace Rhinox.Utilities.Editor
 
         private void DrawEditOptions()
         {
-            using (new eUtility.HorizontalGroup(disabled: true))
-                EditorGUILayout.Vector3Field("Bounds", Target.sharedMesh.bounds.extents);
+            using (new eUtility.FoldoutContainer(ref _isBoundsInfoOpen, "Additional Info", CustomGUIStyles.Box))
+            {
+                if (_isBoundsInfoOpen)
+                {
+                    using (new eUtility.DisabledGroup(disabled: true))
+                    {
+                        EditorGUILayout.Vector3Field("Bounds", Target.sharedMesh.bounds.extents);
+                        EditorGUILayout.Vector3Field("Local Center", Target.sharedMesh.bounds.center);
+                        EditorGUILayout.Vector3Field("World Center",
+                            Target.sharedMesh.bounds.center + Target.transform.position);
+                        EditorGUILayout.LabelField("Vertex Count",
+                            Target.sharedMesh.vertexCount.ToString("N0", new CultureInfo("nl-BE")),
+                            CustomGUIStyles.BoldLabel);
+                    }
+                }
+            }
+
+
 
             using (new eUtility.HorizontalGroup())
             {
@@ -168,7 +188,8 @@ namespace Rhinox.Utilities.Editor
                     GUILayout.Label("Edit Pivot", CustomGUIStyles.BoldLabel, GUILayout.ExpandWidth(true));
 
                     GUIContentHelper.PushIndentLevel(EditorGUI.indentLevel + 1);
-                    _preservePosition = EditorGUILayout.ToggleLeft("Preserve Position", _preservePosition, GUILayout.ExpandWidth(false));
+                    _preservePosition = EditorGUILayout.ToggleLeft("Preserve Position", _preservePosition,
+                        GUILayout.ExpandWidth(false));
                     GUIContentHelper.PopIndentLevel();
                 }
 
@@ -195,7 +216,7 @@ namespace Rhinox.Utilities.Editor
         private void DrawMeshSaveOptions()
         {
             if (Target.sharedMesh == null) return;
-            
+
 #if PROBUILDER
 #if UNITY_2019_2_OR_NEWER
             var hasProbuilder = Target.GetComponent<ProBuilderMesh>() != null;
@@ -213,22 +234,22 @@ namespace Rhinox.Utilities.Editor
                 return;
             }
 #endif
-            
+
             var path = AssetDatabase.GetAssetPath(Target.sharedMesh);
 
             if (!string.IsNullOrWhiteSpace(path)) return;
-            
+
             if (GUILayout.Button("Save Mesh", GUILayout.ExpandWidth(false)))
             {
                 string rootPath = AskForPath(out path);
                 SaveMeshAtPath(path, rootPath);
             }
         }
-        
+
         private void DrawSaveMeshUnderPrefab()
         {
             if (Target.sharedMesh == null) return;
-            
+
             var path = AssetDatabase.GetAssetPath(Target.sharedMesh);
 
             if (!string.IsNullOrWhiteSpace(path)) return;
@@ -252,12 +273,12 @@ namespace Rhinox.Utilities.Editor
             }
 
             if (activePrefabPath.IsNullOrEmpty()) return;
-            
+
             if (GUILayout.Button("Save Mesh under prefab"))
             {
                 if (Target.sharedMesh.name.IsNullOrEmpty())
                     Target.sharedMesh.name = Target.name;
-                
+
                 AssetDatabase.AddObjectToAsset(Target.sharedMesh, activePrefabPath);
                 if (stage != null)
                     PrefabUtility.SavePrefabAsset(stage.prefabContentsRoot);
@@ -343,7 +364,7 @@ namespace Rhinox.Utilities.Editor
         private void ShiftCollider(Vector3 movement)
         {
             if (!_col) return;
-            
+
             switch (_col)
             {
                 case BoxCollider boxCollider:
@@ -356,7 +377,8 @@ namespace Rhinox.Utilities.Editor
                     sphereCollider.center += movement;
                     break;
                 default:
-                    Debug.LogWarning("Unimplemented Collider for shifting; Collider might not be accurate correct anymore.");
+                    Debug.LogWarning(
+                        "Unimplemented Collider for shifting; Collider might not be accurate correct anymore.");
                     break;
             }
         }
@@ -371,7 +393,7 @@ namespace Rhinox.Utilities.Editor
                 new Vector3(offset.x / b.extents.x, offset.y / b.extents.y, offset.z / b.extents.z);
         }
     }
-    
+
 #if UNITY_2019_2_OR_NEWER && PROBUILDER
     [CustomEditor(typeof(ProBuilderMesh))]
     [CanEditMultipleObjects]
@@ -380,7 +402,7 @@ namespace Rhinox.Utilities.Editor
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            
+
             if (GUILayout.Button("Remove ProBuilder"))
             {
                 EditorApplication.ExecuteMenuItem("Tools/ProBuilder/Actions/Strip ProBuilder Scripts in Selection");
@@ -392,7 +414,7 @@ namespace Rhinox.Utilities.Editor
     public static class MeshUtilityEditor
     {
         [MenuItem("CONTEXT/MeshFilter/Move Mesh To Child")]
-        private static void MoveToChild (MenuCommand menuCommand)
+        private static void MoveToChild(MenuCommand menuCommand)
         {
             MeshFilter mf = menuCommand.context as MeshFilter;
 
@@ -403,19 +425,19 @@ namespace Rhinox.Utilities.Editor
                 child = t.Create("Mesh");
                 child.gameObject.CopyObjectSettingsFrom(t.gameObject);
             }
-            
+
             // Copy meshfilter (after meshrenderer due to requirecomponent)
             var newFilter = Undo.AddComponent<MeshFilter>(child.gameObject);
 
             newFilter.mesh = mf.sharedMesh;
 
             Undo.DestroyObjectImmediate(mf);
-            
+
             // Copy MeshRenderer as well
             var renderer = t.GetComponent<MeshRenderer>();
 
             CopyRenderer(renderer, child);
-            
+
             Undo.DestroyObjectImmediate(renderer);
         }
 
@@ -423,11 +445,11 @@ namespace Rhinox.Utilities.Editor
         private static void BakeToChild(MenuCommand menuCommand)
         {
             SkinnedMeshRenderer renderer = menuCommand.context as SkinnedMeshRenderer;
-            
+
             var t = renderer.transform;
             // Copy meshfilter (after meshrenderer due to requirecomponent)
             Undo.RegisterCompleteObjectUndo(renderer, "Bake to Child");
-            
+
             var root = renderer.rootBone;
             while (root.parent != null && !t.IsChildOf(root))
                 root = root.parent;
@@ -436,7 +458,7 @@ namespace Rhinox.Utilities.Editor
                 Debug.LogError("Cannot process SkinnedMeshRenderer");
                 return;
             }
-            
+
             var child = t.Find("Mesh");
             if (!child)
             {
@@ -449,9 +471,9 @@ namespace Rhinox.Utilities.Editor
 
             var parent = root.parent;
             root.SetParent(null, false);
-            
+
             renderer.BakeMesh(newFilter.sharedMesh);
-            
+
             root.SetParent(parent, false);
 
             renderer.enabled = false;
