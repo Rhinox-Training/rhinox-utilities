@@ -97,6 +97,7 @@ namespace Rhinox.Utilities.Editor
             if (!IsValidUnityPackage(packagePath))
                 return false;
 
+            bool finished = false;
             try
             {
                 AssetDatabase.StartAssetEditing();
@@ -123,6 +124,10 @@ namespace Rhinox.Utilities.Editor
                     }
                 }
 
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.Refresh();
+                finished = true;
+
                 response?.Invoke(packageResponse);
                 return true;
             }
@@ -133,8 +138,11 @@ namespace Rhinox.Utilities.Editor
             }
             finally
             {
-                AssetDatabase.StopAssetEditing();
-                AssetDatabase.Refresh();
+                if (!finished)
+                {
+                    AssetDatabase.StopAssetEditing();
+                    AssetDatabase.Refresh();
+                }
             }
         }
 
