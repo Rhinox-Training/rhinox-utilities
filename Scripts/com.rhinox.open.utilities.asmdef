@@ -5,7 +5,8 @@
         "GUID:fc025ba4ac3997440926e87ec084af89",
         "GUID:d06f234cedf03a546807d093bc1d736b",
         "GUID:62a965aa53b0d0e4a9715c9a86d7fd31",
-        "GUID:9f2912ef3cf155747b28c57f7136ff68"
+        "GUID:9f2912ef3cf155747b28c57f7136ff68",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -24,6 +25,11 @@
             "name": "com.unity.nuget.newtonsoft-json",
             "expression": "0.0.0",
             "define": "NEWTONSOFT"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "UNITY_INPUTSYSTEM"
         }
     ],
     "noEngineReferences": false
