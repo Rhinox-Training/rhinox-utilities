@@ -38,7 +38,6 @@ namespace Rhinox.Utilities.Editor
         private List<ResultFindData> _resultDataList = new List<ResultFindData>();
         private Vector2 _scrollPos = Vector2.zero;
         private Rect _rect = Rect.zero;
-        private float _resultWidth = 0f;
         private SimpleTableView _simpleTable;
     
         [MenuItem(WindowHelper.FindToolsPrefix + "Find GameObject References In Scene")]
@@ -257,13 +256,11 @@ namespace Rhinox.Utilities.Editor
                 if (currentHostInfo.GetValue() == null ||
                     returnType.InheritsFrom<Component>() ||
                     returnType.InheritsFrom<ScriptableObject>() ||
-                    returnType == typeof(GameObject) 
 #if UNITY_INPUTSYSTEM
-                    ||
                     returnType == typeof(InputAction) ||
-                    returnType == typeof(InputActionMap)
+                    returnType == typeof(InputActionMap) ||
 #endif
-                    )
+                    returnType == typeof(GameObject))
                 {
                     yield return currentHostInfo;
                     continue;

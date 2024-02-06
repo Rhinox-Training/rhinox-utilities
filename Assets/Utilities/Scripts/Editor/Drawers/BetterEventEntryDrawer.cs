@@ -75,7 +75,7 @@ namespace Rhinox.Utilities.Editor
         {
             var headerRect = position.AlignTop(EditorGUIUtility.singleLineHeight);
             
-            var objectPickerRect = headerRect.AlignLeft(headerRect.width / 2 - 1f);
+            var objectPickerRect = headerRect.AlignLeft(EditorGUIUtility.labelWidth);
             var newTarget = EditorGUI.ObjectField(objectPickerRect, data.LocalTarget, typeof(Object), true);
             if (!Equals(data.LocalTarget, newTarget))
             {
@@ -83,7 +83,7 @@ namespace Rhinox.Utilities.Editor
                 data.Picker = null;
             }
             
-            var methodPickerRect = headerRect.AlignRight(headerRect.width / 2 - 1f);
+            var methodPickerRect = headerRect.AlignRight(headerRect.width - objectPickerRect.width - CustomGUIUtility.Padding);
 
             var content = SmartValue?.Delegate == null ? _noneContent : data.ActiveContent;
             
@@ -109,7 +109,10 @@ namespace Rhinox.Utilities.Editor
         {
             var height = base.GetPropertyHeight(label, in data);
             if (data.ParameterDrawable != null)
+            {
+                height += CustomGUIUtility.Padding;
                 height += data.ParameterDrawable.ElementHeight;
+            }
             return height;
         }
 
