@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Rhinox.Lightspeed;
@@ -13,10 +14,36 @@ namespace Rhinox.Utilities
     public class ApiHelper
     {
         private string _baseUrl;
+
+        private Dictionary<string, string> _headers;
         
         public ApiHelper(string url)
         {
             _baseUrl = url;
+            _headers = new Dictionary<string, string>();
+        }
+
+        public void AddHeader(string key, string value)
+        {
+            _headers[key] = value;
+        }
+        
+        public void RemoveHeader(string key, string value)
+        {
+            _headers.Remove(key);
+        }
+        
+        public void ClearHeaders()
+        {
+            _headers.Clear();
+        }
+
+        private UnityWebRequestAsyncOperation InitAndSend(UnityWebRequest request)
+        {
+            foreach (var (key, value) in _headers)
+                request.SetRequestHeader(key, value);
+
+            return request.SendWebRequest();
         }
         
         public delegate void WebRequestAction(UnityWebRequest request);
@@ -27,7 +54,7 @@ namespace Rhinox.Utilities
             using (var request = UnityWebRequest.Get(uri))
             {
                 // Request and wait for the desired page.
-                await request.SendWebRequest();
+                await InitAndSend(request);
                 
                 if (request.IsRequestValid(out string error))
                     handleRequest?.Invoke(request);
@@ -42,7 +69,7 @@ namespace Rhinox.Utilities
             using (var request = UnityWebRequest.Get(uri))
             {
                 // Request and wait for the desired page.
-                await request.SendWebRequest();
+                await InitAndSend(request);
 
                 if (request.IsRequestValid(out string error))
                 {
@@ -62,7 +89,7 @@ namespace Rhinox.Utilities
             using (var request = UnityWebRequest.Get(uri))
             {
                 // Request and wait for the desired page.
-                yield return request.SendWebRequest();
+                yield return InitAndSend(request);
                 
                 if (request.IsRequestValid(out string error))
                 {
@@ -80,7 +107,7 @@ namespace Rhinox.Utilities
             using (var request = UnityWebRequest.Get(uri))
             {
                 // Request and wait for the desired page.
-                var op = request.SendWebRequest();
+                var op = InitAndSend(request);
                 while (!op.isDone) { }
 
                 return request.ParseJsonResult<T>(true);
@@ -98,7 +125,7 @@ namespace Rhinox.Utilities
                 request.SetRequestHeader("Content-Type", "application/json");
 
                 // Request and wait for the desired page.
-                await request.SendWebRequest();
+                await InitAndSend(request);
 
                 if (request.IsRequestValid(out string error))
                     handleRequest?.Invoke(request);
@@ -110,6 +137,23 @@ namespace Rhinox.Utilities
             }
         }
         
+        public async Task Post(string path, WWWForm form, WebRequestAction handleRequest = null)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Post(uri, form))
+            {
+                // Request and wait for the desired page.
+                await InitAndSend(request);
+
+                if (request.IsRequestValid(out string error))
+                    handleRequest?.Invoke(request);
+                else
+                {
+                    PLog.Error<UtilityLogger>(error);
+                    handleRequest?.Invoke(request);
+                }
+            }
+        }
         
         public async Task Post(string path, object o, WebRequestAction handleRequest = null)
             => await Post(path, Utility.ToJson(o, true), handleRequest);
@@ -125,7 +169,7 @@ namespace Rhinox.Utilities
                 request.SetRequestHeader("Content-Type", "application/json");
 
                 // Request and wait for the desired page.
-                await request.SendWebRequest();
+                await InitAndSend(request);
 
                 return request.ParseJsonResult<T>(true);
             }
@@ -145,7 +189,7 @@ namespace Rhinox.Utilities
                 request.SetRequestHeader("Content-Type", "application/json");
 
                 // Request and wait for the desired page.
-                var op = request.SendWebRequest();
+                var op = InitAndSend(request);
                 while (!op.isDone) { }
 
                 return request.ParseJsonResult<TResult>(true);

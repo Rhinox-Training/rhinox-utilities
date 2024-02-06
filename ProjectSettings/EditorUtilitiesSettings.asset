@@ -14,7 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowSelectionInfoInSceneOverlay: 0
   ShowSelectionInfoInHierarchy: 0
-  OverrideFocusBehaviour: 0
-  DefaultBoundsSize: 1
+  OverrideFocusBehaviour: 1
+  DefaultBoundsSize: 0.1
   OverrideTransformInspector: 1
   OverrideMeshFilterInspector: 1
+  EnableCustomIconsInHierarchy: 0
+  Entries:
+  - Type:
+      _assemblyName: UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      _assemblyQualifiedName: UnityEngine.Light, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      _name: Light
+    Icon: {fileID: -1477008817101679558, guid: 0000000000000000d000000000000000, type: 0}
+    Setting: 0
+    OverrideIcon: {fileID: -1477008817101679558, guid: 0000000000000000d000000000000000,
+      type: 0}
+  - Type:
+      _assemblyName: UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      _assemblyQualifiedName: UnityEngine.Camera, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      _name: Camera
+    Icon: {fileID: -9002153236391373477, guid: 0000000000000000d000000000000000, type: 0}
+    Setting: 0
+    OverrideIcon: {fileID: -9002153236391373477, guid: 0000000000000000d000000000000000,
+      type: 0}

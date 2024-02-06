@@ -76,6 +76,7 @@ namespace Rhinox.Utilities.Editor
         {
             if (state == ImportState.Completed)
                 AssetDatabase.Refresh();
+            
             _logger?.Log($"Package import {state.ToString().ToLowerInvariant()} of '{ImportPath}'");
             TriggerCompleted(state, errormessage);
 
