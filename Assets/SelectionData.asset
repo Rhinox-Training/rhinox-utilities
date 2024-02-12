@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: SelectionData
   m_EditorClassIdentifier: 
   MaxHistory: 50
+  _pinnedSelections: []
   _selections: []
