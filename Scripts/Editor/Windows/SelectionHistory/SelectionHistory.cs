@@ -32,9 +32,13 @@ namespace Rhinox.Utilities.Editor
             {
                 if (obj == null || !(obj is SelectionData other))
                     return false;
-                
-                return other.Objects.ContainEqual(this.Objects);
+
+                return Equals(other);
             }
+
+            public bool Equals(SelectionData other) => Objects.ContainEqual(other.Objects);
+
+            public override int GetHashCode() => (Objects != null ? Objects.GetHashCode() : 0);
 
             public static implicit operator ResolvedSelectionData(SelectionData data) => new ResolvedSelectionData {
                 Objects = data.ResolveObjects()
