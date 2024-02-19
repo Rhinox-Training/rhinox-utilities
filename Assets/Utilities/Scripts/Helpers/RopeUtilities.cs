@@ -1,4 +1,5 @@
 using System;
+using Rhinox.Lightspeed;
 using UnityEngine;
 
 namespace Rhinox.Utilities
@@ -148,12 +149,18 @@ namespace Rhinox.Utilities
         
         public static Vector3 GetPointOnRope(float aValue, Vector3 start, Vector3 delta, float xPerc, float peakOffset, Transform space = null)
         {
+            var matrix = space == null ? Matrix4x4.identity : space.worldToLocalMatrix;
+            return GetPointOnRope(aValue, start, delta, xPerc, peakOffset, matrix);
+        }
+        
+        public static Vector3 GetPointOnRope(float aValue, Vector3 start, Vector3 delta, float xPerc, float peakOffset, Matrix4x4 space)
+        {
             float pointHeight = CalculateHeight(aValue, start.y, delta.x, xPerc, peakOffset);
 
             var middlePoint = xPerc * delta;
+            middlePoint = space * middlePoint;
+            middlePoint += start;
             middlePoint.y = pointHeight;
-            if (space != null)
-                return space.InverseTransformPoint(middlePoint);
             return middlePoint;
         }
     }
