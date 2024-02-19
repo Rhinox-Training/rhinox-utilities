@@ -9,7 +9,7 @@ public class ExampleRegularEditor : MonoBehaviour
     
     public SerializableGuid Guid;
     
-    public SceneReferenceData Scene;
+    public SceneReference Scene;
     
     public GenericPairList TestPairList = new GenericPairList();
 

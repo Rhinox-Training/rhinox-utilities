@@ -1,18 +1,12 @@
+using Rhinox.GUIUtils.Editor;
 using UnityEditor;
 using UnityEngine;
 
 namespace Rhinox.Utilities.Editor
 {
     [CustomEditor(typeof(Rigidbody))]
-    public class RigidBodyEditor : UnityEditor.Editor
+    public class RigidBodyEditor : DefaultEditorExtender<Rigidbody>
     {
-        private Rigidbody _target;
-
-        private void OnEnable()
-        {
-            _target = (Rigidbody) target;
-        }
-
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -21,9 +15,7 @@ namespace Rhinox.Utilities.Editor
                 return;
 
             if (FlexibleButton("Reset Forces"))
-            {
-                _target.ResetInertiaTensor();
-            }
+                Target.ResetInertiaTensor();
         }
 
         private bool FlexibleButton(string text)

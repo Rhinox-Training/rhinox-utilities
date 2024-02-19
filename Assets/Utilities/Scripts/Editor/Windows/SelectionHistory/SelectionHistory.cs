@@ -65,7 +65,7 @@ namespace Rhinox.Utilities.Editor
         [InitializeOnLoadMethod]
         private static void SetupTracker()
         {
-            var assets = eUtility.FindAssets<SelectionHistory>();
+            var assets = Utility.FindAssets<SelectionHistory>();
             _instance = assets.FirstOrDefault();
             
             if (_instance == null)

@@ -8,5 +8,5 @@ public class ScriptableTest : ScriptableObject
 {
     public List<float> Testlist;
     public SerializableType Type;
-    public SceneReferenceData Data;
+    public SceneReference Data;
 }

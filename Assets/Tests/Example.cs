@@ -45,7 +45,7 @@ public class Example : MonoBehaviour
     public SerializableType Type;
     public SerializableType Type2;
     public SerializableGuid Guid;
-    public SceneReferenceData SceneTest;
+    public SceneReference SceneTest;
     public readonly string[] Options = new[] { "One", "Two", "FortyTwo" };
 
     public GameObject Object;

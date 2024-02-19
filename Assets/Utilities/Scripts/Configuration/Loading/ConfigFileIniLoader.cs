@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Rhinox.Lightspeed;
 using Rhinox.Lightspeed.IO;
 using Rhinox.Perceptor;
+using UnityEngine;
 
 namespace Rhinox.Utilities
 {
@@ -60,11 +62,12 @@ namespace Rhinox.Utilities
             if (FileHelper.Exists(path) && !overwrite)
                 return false;
             
-            IniParser parser = IniParser.Open(path, true);
+            IniParser parser = IniParser.Open(path, true, out string error);
+            if (!error.IsNullOrEmpty())
+                PLog.Error<UtilityLogger>(error);
+            
             foreach (var configField in file.FindFields())
-            {
                 parser.AddSetting(configField.Section, configField.Name, configField.GetValue(file).ToString());
-            }
 
             parser.SaveSettings();
             return true;
