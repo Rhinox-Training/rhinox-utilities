@@ -105,19 +105,20 @@ namespace Rhinox.Utilities
                     var middleI = _positions.Length / 2;
 
                     var offset = start.With(y: 0);
+                    var matrix = Matrix4x4.Rotate(q);
                     
                     for (int i = 1; i < middleI; i++)
                     {
                         var val = (i / (float) middleI) * peakOffset;
-                        _positions[i] = offset + q * RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset);
+                        _positions[i] = RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset, matrix);
                     }
 
-                    _positions[middleI] = offset + q * RopeUtilities.GetPointOnRope(aValue, start, delta, peakOffset, peakOffset);
+                    _positions[middleI] = RopeUtilities.GetPointOnRope(aValue, start, delta, peakOffset, peakOffset, matrix);
                 
                     for (int i = 1; i < _positions.Length - middleI; i++)
                     {
                         var val = peakOffset + (i / ((float) _positions.Length - middleI)) * (1f - peakOffset);
-                        _positions[i + middleI] = offset + q * RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset);
+                        _positions[i + middleI] = RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset, matrix);
                     }
                 }
             }
