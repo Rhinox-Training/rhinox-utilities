@@ -1,15 +1,19 @@
+using Rhinox.GUIUtils.Attributes;
 using Rhinox.Lightspeed;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Rhinox.Utilities
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways, SmartFallbackDrawn]
     [RequireComponent(typeof(LineRenderer))]
-    public class CoupledLine : MonoBehaviour
+    public class CatenaryRope : MonoBehaviour
     {
         // -- variables --
+        
         [Header("References")]
-        [SerializeField] private Transform _coupledTo = null;
+        [SerializeField] private Transform _start = null;
+        [SerializeField] private Transform _end = null;
 
         LineRenderer _lineRenderer = null;
 
@@ -18,8 +22,11 @@ namespace Rhinox.Utilities
         private Vector3 _currentEnd;
         
         [Range(0, 10)]
-        [SerializeField] private int _divisions;
+        [SerializeField] private int _divisions = 4;
         [SerializeField] private float _length;
+        
+        [ShowReadOnly]
+        public float ActualLength => _lineRenderer.GetLength();
 
         private Vector3[] _positions;
 
@@ -31,12 +38,15 @@ namespace Rhinox.Utilities
 
         private void LateUpdate()
         {
-            if (_coupledTo == null) return;
+            if (_end == null) return;
 
             bool dirty = false;
 
-            var start = transform.InverseTransformPoint(transform.position);
-            var end = transform.InverseTransformPoint(_coupledTo.position) ;
+            if (_start == null)
+                _start = transform;
+
+            var start = _start.position;
+            var end = _end.position;
 
             if (!start.LossyEquals(_currentStart) ||
                 !end.LossyEquals(_currentEnd))
@@ -50,12 +60,8 @@ namespace Rhinox.Utilities
 
             // Handle creation of more points if needed
             int p = 2;
-            // Only add more than 2 points when the length of the rope is less than the max
-            if (d.sqrMagnitude < lengthSqr)
-            {
-                for (int i = 0; i < _divisions; ++i)
-                    p += p - 1;
-            }
+            for (int i = 0; i < _divisions; ++i)
+                p += p - 1;
 
             if (_positions.Length != p)
             {
@@ -66,8 +72,16 @@ namespace Rhinox.Utilities
             if (!dirty)
                 return;
             
-            // If we have more than 2 points, calculate them
-            if (_positions.Length > 2)
+            // If the length of the rope is less than the max, just make it taut
+            if (d.sqrMagnitude > lengthSqr)
+            {
+                for (int i = 1; i < _positions.Length; i++)
+                {
+                    var t = i / _positions.Length;
+                    _positions[i] = Vector3.Lerp(start, end, t);
+                }
+            }
+            else // calculate them
             {
                 var direction = d.normalized;
                 var up = Vector3.up;
@@ -90,18 +104,20 @@ namespace Rhinox.Utilities
                 {
                     var middleI = _positions.Length / 2;
 
+                    var offset = start.With(y: 0);
+                    
                     for (int i = 1; i < middleI; i++)
                     {
                         var val = (i / (float) middleI) * peakOffset;
-                        _positions[i] = q * RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset);
+                        _positions[i] = offset + q * RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset);
                     }
 
-                    _positions[middleI] = q * RopeUtilities.GetPointOnRope(aValue, start, delta, peakOffset, peakOffset);
+                    _positions[middleI] = offset + q * RopeUtilities.GetPointOnRope(aValue, start, delta, peakOffset, peakOffset);
                 
                     for (int i = 1; i < _positions.Length - middleI; i++)
                     {
                         var val = peakOffset + (i / ((float) _positions.Length - middleI)) * (1f - peakOffset);
-                        _positions[i + middleI] = q * RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset);
+                        _positions[i + middleI] = offset + q * RopeUtilities.GetPointOnRope(aValue, start, delta, val, peakOffset);
                     }
                 }
             }
@@ -115,5 +131,6 @@ namespace Rhinox.Utilities
             _lineRenderer.positionCount = _positions.Length;
             _lineRenderer.SetPositions(_positions);
         }
+
     }
 }

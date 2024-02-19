@@ -5,6 +5,8 @@ namespace Rhinox.Utilities
 {
     public static class RopeUtilities
     {
+        const int MaxIterations = 30;
+
         public static float FindCatenaryConstant(float deltaX, float deltaY, float lengthSqr, bool debugLog = false, float minimumA = 0.002f)
         {
             float startTime = Time.realtimeSinceStartup;
@@ -18,9 +20,8 @@ namespace Rhinox.Utilities
             bool lastDirectionGreater = calcValue > referenceConstant;
 
             float iterationVal = lastDirectionGreater ? 1.0f : -1.0f;
-            const int maxIteration = 30;
             int iteration = 0;
-            while (iteration++ < maxIteration)
+            while (iteration++ < MaxIterations)
             {
                 float safeAValue = (aValue < float.Epsilon ? minimumA : aValue);
                 calcValue = safeAValue * (float)Math.Sinh(deltaX / (2 * safeAValue));
@@ -52,7 +53,7 @@ namespace Rhinox.Utilities
 
             if (debugLog)
             {
-                if (iteration >= maxIteration)
+                if (iteration >= MaxIterations)
                     Debug.LogWarning(
                         $"Did not found exact aValue, difference left in optimization {Mathf.Abs(calcValue - referenceConstant)}");
 
@@ -79,9 +80,8 @@ namespace Rhinox.Utilities
             bool lastDirectionGreater = calcValue > referenceConstant;
 
             float iterationVal = (lastDirectionGreater ? 1.0f : -1.0f) * deltaX / 4.0f;
-            const int maxIteration = 30;
             int iteration = 0;
-            while (iteration++ < maxIteration)
+            while (iteration++ < MaxIterations)
             {
                 calcValue = Mathf.Abs((float)Math.Cosh(xValue / aValue)) -
                             Mathf.Abs((float)Math.Cosh((xValue + deltaX) / aValue));
@@ -113,7 +113,7 @@ namespace Rhinox.Utilities
 
             if (debugLog)
             {
-                if (iteration >= maxIteration)
+                if (iteration >= MaxIterations)
                     Debug.LogWarning(
                         $"Did not found exact aValue, difference left in optimization {Mathf.Abs(calcValue - referenceConstant)}");
 
@@ -150,7 +150,7 @@ namespace Rhinox.Utilities
         {
             float pointHeight = CalculateHeight(aValue, start.y, delta.x, xPerc, peakOffset);
 
-            var middlePoint = start + xPerc * delta;
+            var middlePoint = xPerc * delta;
             middlePoint.y = pointHeight;
             if (space != null)
                 return space.InverseTransformPoint(middlePoint);

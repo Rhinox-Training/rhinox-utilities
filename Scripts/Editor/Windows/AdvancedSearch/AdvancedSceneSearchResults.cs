@@ -95,7 +95,8 @@ namespace Rhinox.Utilities.Odin.Editor
 
         protected override void OnDraw()
         {
-            if (Event.current.type == EventType.Repaint && Input.GetMouseButtonDown(0))
+            
+            if (Event.current.type == EventType.Repaint && Utility.GetMouseButtonDown(0))
                 HandleMouseClick();
             
             // Bottom Slide Toggle Bits:
