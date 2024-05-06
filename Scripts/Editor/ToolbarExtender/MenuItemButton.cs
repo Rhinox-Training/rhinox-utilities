@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Rhinox.Utilities.Editor
 {
     [Serializable]
-    public class MenuItemButton : BaseToolbarIconButton
+    public class MenuItemButton : BaseToolbarButton
     {
         [SerializeField, ValueDropdown(nameof(GetIconOptions)), OnValueChanged(nameof(ResolveIcon))]
         private string _icon;
@@ -25,10 +25,11 @@ namespace Rhinox.Utilities.Editor
 
         private EditorIcon _resolvedIcon;
         protected override Texture Icon => _resolvedIcon.Raw;
+        protected override string Label => null;
 
         public string MenuItem;
 
-        protected override void Execute(Rect rect)
+        protected override void Execute()
         {
             EditorApplication.ExecuteMenuItem(MenuItem);
         }

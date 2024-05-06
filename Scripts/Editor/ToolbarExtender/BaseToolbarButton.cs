@@ -27,39 +27,23 @@ namespace Rhinox.Utilities.Editor
         [ShowInInspector, DisplayAsString, HideLabel, PropertyOrder(-100)]
         private string TypeName => GetType().Name.SplitCamelCase();
 
-        protected virtual GUIStyle Style => CustomGUIStyles.Button;
-        
+        protected virtual GUIStyle Style => Label.IsNullOrEmpty() ? CustomGUIStyles.CommandButton : CustomGUIStyles.Button;
+
+        protected virtual GUIContent Content => GUIContentHelper.TempContent(Label, Icon, tooltip: Tooltip);
+
+        protected abstract Texture Icon { get; }
         protected abstract string Label { get; }
         protected virtual string Tooltip => String.Empty;
         
         public virtual void Draw(Rect rect)
         {
-            var content = GUIContentHelper.TempContent(Label, Tooltip);
-            if (GUI.Button(rect, content, Style))
-                Execute(rect);
+            if (GUI.Button(rect, Content, Style))
+                Execute();
         }
 
-        public virtual float GetWidth() => Style.CalcMaxWidth(Label);
+        public virtual float GetWidth() => Style.CalcWidth(Content, ToolbarHeight);
 
-        protected abstract void Execute(Rect rect);
-    }
-
-    [Serializable]
-    public abstract class BaseToolbarIconButton : BaseToolbarButton
-    {
-        protected override string Label => string.Empty;
-        
-        protected abstract Texture Icon { get; }
-        
-        public override void Draw(Rect rect)
-        {
-            if (Icon == null) return;
-
-            if (CustomEditorGUI.IconButton(rect, Icon, Tooltip))
-                Execute(rect);
-        }
-
-        public override float GetWidth() => ToolbarHeight;
+        protected abstract void Execute();
     }
     
     public abstract class BaseToolbarDropdown<T> : BaseToolbarButton
@@ -70,18 +54,11 @@ namespace Rhinox.Utilities.Editor
         protected bool _supportMultiselect;
 #endif
 
-        protected override void Execute(Rect rect)
+        protected override void Execute()
         {
-#if ODIN_INSPECTOR
-            OdinSelector<T> selector = new GenericSelector<T>(string.Empty, _options, _supportMultiselect, GetName);
-            selector.SelectionConfirmed += SelectionMade;
-            ConfigureSelector(selector);
-            selector.ShowInPopup();
-#else
             SimplePicker<T> picker = new SimplePicker<T>(_options, GetName);
             picker.OptionSelected += SelectionMade;
-            picker.Show(rect); // ShowAsContext
-#endif
+            picker.Show(new Rect(0, 25, 0, 0)); // ShowAsContext
         }
         
 #if ODIN_INSPECTOR
@@ -104,79 +81,5 @@ namespace Rhinox.Utilities.Editor
         
         protected abstract void SelectionMade(T selection);
 
-    }
-    
-    public abstract class BaseToolbarIconDropdown<T> : BaseToolbarDropdown<T>
-    {
-        protected override string Label => string.Empty;
-
-        private HoverTexture _icon;
-        
-        protected abstract Texture2D Icon { get; }
-        
-        public override void Draw(Rect rect)
-        {
-            if (_icon == null)
-            {
-                var icon = Icon;
-                if (icon == null) return;
-                _icon = new HoverTexture(icon);
-            }
-
-#if UNITY_2020_1_OR_NEWER
-            bool buttonClicked = Event.current.rawType == EventType.MouseUp;
-
-            if (CustomEditorGUI.IconButton(rect, _icon, Tooltip) || buttonClicked)
-            {
-                if (buttonClicked && (Event.current.modifiers & EventModifiers.Control) != 0 && Vector2.Distance(Event.current.mousePosition, rect.center) > 350.0f)
-                {
-                    var myPackage = UnityEditor.PackageManager.PackageInfo.FindForAssetPath("Packages/com.rhinox.open.utilities");
-                    AudioClip audioClip = null;
-                    if (myPackage == null)
-                        audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Utilities/Sounds/intervention.mp3");
-                    else
-                        audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Packages/com.rhinox.open.utilities/Sounds/intervention.mp3");
-
-
-                    if (audioClip != null)
-                        PlayClip(audioClip);
-
-                }
-
-                Execute(rect);
-            }
-#else
-            if (CustomEditorGUI.IconButton(rect, _icon, Tooltip))
-                Execute(rect);
-#endif
-        }
-        
-#if UNITY_2020_1_OR_NEWER
-        public static void PlayClip(AudioClip clip) {
-            System.Reflection.Assembly unityEditorAssembly = typeof(AudioImporter).Assembly;
-            Type audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
-            System.Reflection.MethodInfo method = audioUtilClass.GetMethod(
-                "PlayPreviewClip",
-                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public,
-                null,
-                new System.Type[] {
-                    typeof(AudioClip),
-                    typeof(int),
-                    typeof(bool)
-                },
-                null
-            );
-            method.Invoke(
-                null,
-                new object[] {
-                    clip,
-                    0,
-                    false
-                }
-            );
-        }
-#endif
-
-        public override float GetWidth() => ToolbarHeight;
     }
 }
