@@ -35,11 +35,41 @@ namespace Rhinox.Utilities.Editor
         {
             _texturePacker.Initialize();
         }
+
+        [TitleGroup("Root/Preview/Preview"), PropertyOrder(120), Button]
+        private void TakeMinRes()
+        {
+            ResolutionW = 8192;
+            ResolutionH = 8192;
+            foreach (var i in _texturePacker.Input)
+            {
+                if (i.Texture)
+                {
+                    ResolutionW = Mathf.Min(ResolutionW, i.Texture.width);
+                    ResolutionH = Mathf.Min(ResolutionH, i.Texture.height);
+                }
+            }
+        }
+        
+        [TitleGroup("Root/Preview/Preview"), PropertyOrder(120), Button]
+        private void TakeMaxRes()
+        {
+            ResolutionW = 1;
+            ResolutionH = 1;
+            foreach (var i in _texturePacker.Input)
+            {
+                if (i.Texture)
+                {
+                    ResolutionW = Mathf.Max(ResolutionW, i.Texture.width);
+                    ResolutionH = Mathf.Max(ResolutionH, i.Texture.height);
+                }
+            }
+        }
         
         [Button("Save Texture", ButtonSizes.Medium)]
         private void Generate()
         {
-            string savePath = EditorUtility.SaveFilePanel("Save", Application.dataPath, "texture.png", "*.png,*.jpg,*.jpeg,*.exr");
+            string savePath = EditorUtility.SaveFilePanel("Save", Application.dataPath, "texture.png", "png,jpg,jpeg,exr");
             if (string.IsNullOrWhiteSpace(savePath)) return;
 
             var format = Path.GetExtension(savePath).ToLower();

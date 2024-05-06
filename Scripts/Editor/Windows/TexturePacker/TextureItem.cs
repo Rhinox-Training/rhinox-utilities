@@ -80,7 +80,7 @@ namespace Rhinox.Utilities.Editor
 
                     GUILayout.EndVertical();
 
-                    input.texture = EditorGUILayout.ObjectField(input.texture, typeof(Texture2D), false, GUILayout.Width(90), GUILayout.Height(80)) as Texture2D;
+                    input.Texture = EditorGUILayout.ObjectField(input.Texture, typeof(Texture2D), false, GUILayout.Width(90), GUILayout.Height(80)) as Texture2D;
 
                     GUILayout.EndHorizontal();
 

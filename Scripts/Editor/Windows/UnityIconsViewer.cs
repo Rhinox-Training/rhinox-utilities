@@ -28,8 +28,7 @@ namespace Rhinox.Utilities.Editor
     /// UnityIconsViewer
     public class UnityIconsViewer : CustomMenuEditorWindow
     {
-        private List<UnityIcon> _Icons = new List<UnityIcon>();
-        private Vector2 _scrollPos;
+        private List<UnityIcon> _icons = new List<UnityIcon>();
         private GUIContent _refreshButton;
         
         [MenuItem(WindowHelper.WindowPrefix + "Asset Management/View Icons List")]
@@ -57,7 +56,7 @@ namespace Rhinox.Utilities.Editor
             // Draws a toolbar with the name of the currently selected menu item.
             CustomEditorGUI.BeginHorizontalToolbar(height: toolbarHeight);
             {
-                GUILayout.Label(_Icons.Count + " Icons found");
+                GUILayout.Label(_icons.Count + " Icons found");
 
                 if (CustomEditorGUI.ToolbarButton(new GUIContent("Refresh", UnityIcon.InternalIcon("Refresh@2x"))))
                     FindIcons();
@@ -68,7 +67,7 @@ namespace Rhinox.Utilities.Editor
         /* Find all textures and filter them to narrow the search. */
         void FindIcons()
         {
-            UnityIconFinder.FindIcons(ref _Icons);
+            UnityIconFinder.FindIcons(ref _icons);
 
             Repaint();
         }
@@ -83,7 +82,7 @@ namespace Rhinox.Utilities.Editor
             tree.DrawSearchToolbar = true;
 #endif
 
-            foreach (var icon in _Icons)
+            foreach (var icon in _icons)
                 tree.Add(icon.Origin + "/" + icon.Name, icon, icon.Icon);
 
             tree.SortMenuItemsByName();
