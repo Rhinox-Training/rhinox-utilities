@@ -1,5 +1,5 @@
 {
-    "name": "com.rhinox.utilities.testing",
+    "name": "com.rhinox.utilities.test",
     "references": [
         "GUID:487d6cb5c491f424fb4aaee827cbf415",
         "GUID:cacc866837634ee43b789e23dc71d920",

@@ -35,15 +35,25 @@ namespace Rhinox.Utilities
             _isLoading = false;
         }
 
-        public virtual bool Load()
+        public virtual string GetFilePath()
         {
             if (string.IsNullOrWhiteSpace(RelativeFilePath))
+                return null;
+            if (Path.IsPathRooted(RelativeFilePath))
+                return RelativeFilePath;
+            string path = Path.Combine(Application.streamingAssetsPath, RelativeFilePath);
+            return Path.GetFullPath(path);
+        }
+
+        public virtual bool Load()
+        {
+            string path = GetFilePath();
+            
+            if (string.IsNullOrWhiteSpace(path))
             {
                 _handled = true;
                 return false;
             }
-
-            string path = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, RelativeFilePath));
 
             if (_isLoading)
             {

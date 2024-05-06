@@ -35,6 +35,7 @@ public class Test3 : ITest
     public float ThisIsTest3;
 }
 
+
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
