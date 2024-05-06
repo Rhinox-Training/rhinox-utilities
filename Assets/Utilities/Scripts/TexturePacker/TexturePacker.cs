@@ -15,8 +15,8 @@ namespace Rhinox.Utilities
         Alpha = 1 << 3
     }
     
-    [HideReferenceObjectPicker, Serializable, HideLabel]
-    public class TextureChannelInput
+    [HideReferenceObjectPicker, Serializable]
+    public struct TextureChannelInput
     {
         [HideLabel, HorizontalGroup("Row", width: 20)]
         public bool Enabled;
@@ -25,11 +25,10 @@ namespace Rhinox.Utilities
         [HorizontalGroup("Row"), LabelText("$property.Parent.NiceName")]
         public TextureChannel Output;
         
-        public TextureChannelInput() {}
-
         public TextureChannelInput(TextureChannel output)
         {
             Output = output;
+            Enabled = false;
         }
         
         public TextureChannelInput(TextureChannel output, bool enabled = false)
@@ -65,7 +64,6 @@ namespace Rhinox.Utilities
         {
             Input.Add(new TextureInput());
         }
-
 
         private string GetPropertyName(int i, string param)
         {
@@ -120,17 +118,14 @@ namespace Rhinox.Utilities
             bool hasAlpha = false;
             foreach (var input in Input)
             {
-                var tex = input.texture;
+                var tex = input.Texture;
                 _material.SetTexture(GetPropertyName(idx, "Tex"), tex);
 
                 var inChannels = GetInputs(input);
                 _material.SetVector(GetPropertyName(idx, "In"), inChannels);
 
-                
                 var outMatrix = GetOutputs(input);
-                // CheckForAlpha(ref hasAlpha, outMatrix, inChannels);
-                if (input.Alpha.Enabled)
-                    hasAlpha = true;
+                CheckForAlpha(ref hasAlpha, outMatrix, inChannels);
                 
                 _material.SetMatrix(GetPropertyName(idx, "Out"), outMatrix);
                 ++idx;
@@ -146,7 +141,7 @@ namespace Rhinox.Utilities
             if (hasAlpha) return;
             
             var alphaColumn = outMatrix.GetColumn(3);
-            alphaColumn = Vector3.Scale(alphaColumn, inChannels);
+            alphaColumn = Vector4.Scale(alphaColumn, inChannels);
             hasAlpha = alphaColumn.sqrMagnitude > 0;
         }
 
