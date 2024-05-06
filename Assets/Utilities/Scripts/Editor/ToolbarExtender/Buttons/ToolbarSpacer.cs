@@ -8,7 +8,8 @@ namespace Rhinox.Utilities.Editor
     public class ToolbarSpacer : BaseToolbarButton
     {
         public int Amount;
-		
+
+        protected override Texture Icon => null;
         protected override string Label => string.Empty;
 
         public override float GetWidth() => Amount;
@@ -16,6 +17,6 @@ namespace Rhinox.Utilities.Editor
         public override void Draw(Rect rect)
         { }
 
-        protected override void Execute(Rect rect) { }
+        protected override void Execute() { }
     }
 }

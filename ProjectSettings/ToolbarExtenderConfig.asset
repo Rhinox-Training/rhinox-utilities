@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _isActive: 1
-  LeftPosition: 2
+  LeftPosition: 1
   LeftButtons:
   - id: 0
   RightPosition: 0

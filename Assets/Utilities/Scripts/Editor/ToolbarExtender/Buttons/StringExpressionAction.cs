@@ -12,10 +12,11 @@ namespace Rhinox.Utilities.Editor
         public string Expression;
 
         public Type ContextType;
-		
+
+        protected override Texture Icon => null;
         protected override string Label => Name;
 
-        protected override void Execute(Rect rect)
+        protected override void Execute()
         {
             var action = ExpressionUtility.ParseAction(Expression, ContextType, out string errorMessage, true);
             if (string.IsNullOrEmpty(errorMessage))

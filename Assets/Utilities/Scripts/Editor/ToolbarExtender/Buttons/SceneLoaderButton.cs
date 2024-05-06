@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 
 namespace Rhinox.Magnus.Editor
 {
-    public class SceneLoaderButton : BaseToolbarIconDropdown<SceneReference>
+    public class SceneLoaderButton : BaseToolbarDropdown<SceneReference>
     {
         public enum SceneLoaderState
         {
@@ -34,7 +34,8 @@ namespace Rhinox.Magnus.Editor
         protected override SceneReference[] _options => _sceneOptions;
 
         private SceneReference[] _sceneOptions;
-        protected override Texture2D Icon => UnityIcon.InternalIcon("d_SceneAsset Icon");
+        protected override string Label => null;
+        protected override Texture Icon => UnityIcon.InternalIcon("d_SceneAsset Icon");
         
         protected SceneReference[] FetchSceneData()
         {
@@ -67,11 +68,11 @@ namespace Rhinox.Magnus.Editor
             }
         }
         
-        protected override void Execute(Rect rect)
+        protected override void Execute()
         {
             _sceneOptions = FetchSceneData();
             
-            base.Execute(rect);
+            base.Execute();
         }
 
         protected override string GetName(SceneReference data)

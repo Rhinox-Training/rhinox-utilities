@@ -91,7 +91,7 @@ namespace Rhinox.Utilities.Editor
         private IOrderedDrawable _propertyView;
 
         [MenuItem("Assets/Run Serialization Checker", true, PRIORITY)]
-        public static bool Foobar() => ValidateContextMenu();
+        public static bool ValidateOpen() => ValidateContextMenu();
 
         [MenuItem("Assets/Run Serialization Checker", false, PRIORITY)]
         public static void Open() => OpenWindow();
