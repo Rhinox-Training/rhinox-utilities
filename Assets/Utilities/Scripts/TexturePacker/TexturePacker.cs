@@ -44,7 +44,9 @@ namespace Rhinox.Utilities
         private readonly string _shaderName = "Hidden/TexturePacker";
         private Material _material;
 
+#pragma warning disable CS0618 // Type or member is obsolete
         [ListDrawerSettings(Expanded = true, CustomAddFunction = "AddInput")]
+#pragma warning restore CS0618 // Type or member is obsolete
         public List<TextureInput> Input = new List<TextureInput>();
 
         private static TextureChannel[] _channelValues = Enum.GetValues(typeof(TextureChannel)).OfType<TextureChannel>().ToArray();

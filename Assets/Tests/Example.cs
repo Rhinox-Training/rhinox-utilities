@@ -39,6 +39,7 @@ public class Test3 : ITest
 [SmartFallbackDrawn(false)]
 public class Example : MonoBehaviour
 {
+    public LayerMask Mask;
     [SerializeReference] public GenericDictionary TestDictionary = new GenericDictionary();
     
     public UnityEvent EventUnity;

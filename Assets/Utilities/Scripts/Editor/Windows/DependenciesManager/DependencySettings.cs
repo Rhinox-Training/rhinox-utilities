@@ -14,8 +14,10 @@ namespace Rhinox.Utilities.Editor
     [TypeInfoBox("The filters below use the Regex Syntax. Visit Regex101.com for references.")]
     public class DependencySettings
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         [ListDrawerSettings(Expanded = true)] public List<string> FilesToIgnore = new List<string>();
         [ListDrawerSettings(Expanded = true)] public List<string> DirectoriesToIgnore = new List<string>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public Regex[] IgnoredFileRegexs
         {
