@@ -11,7 +11,9 @@ namespace Rhinox.Utilities.Editor
 {
     public class DependencyHomePage
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 12, DraggableItems = false)]
+#pragma warning restore CS0618 // Type or member is obsolete
         [AssetsOnly, DrawAsUnityObject]
         public List<Object> Objects = new List<Object>();
         

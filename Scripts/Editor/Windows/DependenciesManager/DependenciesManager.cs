@@ -12,7 +12,9 @@ namespace Rhinox.Utilities.Editor
 {
     public class DependenciesManager
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 25, IsReadOnly = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
         public readonly List<Dependency> Dependencies = new List<Dependency>();
 
         public void FindDependencies(IEnumerable<Object> objects, Regex[] filesToIgnore = null,

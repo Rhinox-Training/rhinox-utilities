@@ -10,7 +10,9 @@ namespace Rhinox.Utilities.Editor
 {
     public class AssetManager
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         [ListDrawerSettings(Expanded = true, NumberOfItemsPerPage = 25, IsReadOnly = true), ReadOnly]
+#pragma warning restore CS0618 // Type or member is obsolete
         public string[] AllAssets = new string[0];
 
         public string SearchText { get; private set; }

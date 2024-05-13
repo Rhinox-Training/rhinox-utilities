@@ -291,7 +291,9 @@ namespace Rhinox.Utilities.Odin.Editor
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         [ListDrawerSettings(Expanded = true, DraggableItems = false, ShowPaging = false, HideAddButton = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
         [LabelText("Components"), OnValueChanged(nameof(TriggerChanged))]
         public readonly List<TypeSearchData> Data = new List<TypeSearchData>();
 
