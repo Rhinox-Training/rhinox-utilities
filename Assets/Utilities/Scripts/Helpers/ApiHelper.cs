@@ -47,6 +47,9 @@ namespace Rhinox.Utilities
         }
         
         public delegate void WebRequestAction(UnityWebRequest request);
+        
+        // ================================================================================
+        // GET
 
         public async Task Get(string path, WebRequestAction handleRequest)
         {
@@ -113,6 +116,37 @@ namespace Rhinox.Utilities
                 return request.ParseJsonResult<T>(true);
             }
         }
+        
+        // ================================================================================
+        // DELETE
+        
+        public async Task Delete(string path)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Delete(uri))
+            {
+                await InitAndSend(request);
+
+                if (!request.IsRequestValid(out string error))
+                {
+                    PLog.Error<UtilityLogger>(error);
+                }
+            }
+        }
+        
+        public void DeleteSync<T>(string path)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Delete(uri))
+            {
+                // Request and wait for the desired page.
+                var op = InitAndSend(request);
+                while (!op.isDone) { }
+            }
+        }
+        
+        // ================================================================================
+        // POST
 
         public async Task Post(string path, string json, WebRequestAction handleRequest = null)
         {
@@ -198,6 +232,89 @@ namespace Rhinox.Utilities
         
         public TResult PostSync<TResult>(string path, object o)
             => PostSync<TResult>(path, Utility.ToJson(o, true));
+        
+        
+        // ================================================================================
+        // PUT
+        
+        public async Task Put(string path, string json, WebRequestAction handleRequest = null)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Put(uri, json))
+            {
+                request.SetRequestHeader("Content-Type", "application/json");
+
+                // Request and wait for the desired page.
+                await InitAndSend(request);
+
+                if (request.IsRequestValid(out string error))
+                    handleRequest?.Invoke(request);
+                else
+                {
+                    PLog.Error<UtilityLogger>(error);
+                    handleRequest?.Invoke(request);
+                }
+            }
+        }
+        
+        public async Task Put(string path, WWWForm form, WebRequestAction handleRequest = null)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Put(uri, form.data))
+            {
+                foreach ((string name, string value) in form.headers)
+                    request.SetRequestHeader(name, value);
+                
+                // Request and wait for the desired page.
+                await InitAndSend(request);
+
+                if (request.IsRequestValid(out string error))
+                    handleRequest?.Invoke(request);
+                else
+                {
+                    PLog.Error<UtilityLogger>(error);
+                    handleRequest?.Invoke(request);
+                }
+            }
+        }
+        
+        public async Task Put(string path, object o, WebRequestAction handleRequest = null)
+            => await Put(path, Utility.ToJson(o, true), handleRequest);
+
+        public async Task<T> Put<T>(string path, string json)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Put(uri, json))
+            {
+                request.SetRequestHeader("Content-Type", "application/json");
+
+                // Request and wait for the desired page.
+                await InitAndSend(request);
+
+                return request.ParseJsonResult<T>(true);
+            }
+        }
+
+        public async Task<TResult> Put<TResult>(string path, object o)
+            => await Put<TResult>(path, Utility.ToJson(o, true));
+
+        public TResult PutSync<TResult>(string path, string json)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = UnityWebRequest.Put(uri, json))
+            {
+                request.SetRequestHeader("Content-Type", "application/json");
+
+                // Request and wait for the desired page.
+                var op = InitAndSend(request);
+                while (!op.isDone) { }
+
+                return request.ParseJsonResult<TResult>(true);
+            }
+        }
+        
+        public TResult PutSync<TResult>(string path, object o)
+            => PutSync<TResult>(path, Utility.ToJson(o, true));
 
     }
 }
