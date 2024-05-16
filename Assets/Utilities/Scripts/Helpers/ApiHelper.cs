@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Rhinox.Lightspeed;
 using Rhinox.Perceptor;
 using UnityEngine;
@@ -62,7 +63,10 @@ namespace Rhinox.Utilities
                 if (request.IsRequestValid(out string error))
                     handleRequest?.Invoke(request);
                 else
+                {
                     PLog.Error<UtilityLogger>(error);
+                    throw new HttpException((int)request.responseCode, error);
+                }
             }
         }
         
@@ -80,10 +84,11 @@ namespace Rhinox.Utilities
                     return result;
                 }
                 else
+                {
                     PLog.Error<UtilityLogger>(error);
+                    throw new HttpException((int)request.responseCode, error);
+                }
             }
-
-            return default;
         }
 
         public IEnumerator Get<T>(string path, Action<T> callback)
@@ -100,7 +105,10 @@ namespace Rhinox.Utilities
                     callback?.Invoke(result);
                 }
                 else
+                {
                     PLog.Error<UtilityLogger>(error);
+                    throw new HttpException((int)request.responseCode, error);
+                }
             }
         }
 
@@ -130,6 +138,7 @@ namespace Rhinox.Utilities
                 if (!request.IsRequestValid(out string error))
                 {
                     PLog.Error<UtilityLogger>(error);
+                    throw new HttpException((int)request.responseCode, error);
                 }
             }
         }
@@ -167,6 +176,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
+                    throw new HttpException((int)request.responseCode, error);
                 }
             }
         }
@@ -185,6 +195,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
+                    throw new HttpException((int)request.responseCode, error);
                 }
             }
         }
@@ -205,7 +216,13 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await InitAndSend(request);
 
-                return request.ParseJsonResult<T>(true);
+                if (request.IsRequestValid(out string error))
+                    return request.ParseJsonResult<T>(true);
+                else
+                {
+                    PLog.Error<UtilityLogger>(error);
+                    throw new HttpException((int)request.responseCode, error);
+                }
             }
         }
 
@@ -253,6 +270,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
+                    throw new HttpException((int)request.responseCode, error);
                 }
             }
         }
@@ -274,6 +292,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
+                    throw new HttpException((int)request.responseCode, error);
                 }
             }
         }
@@ -315,6 +334,5 @@ namespace Rhinox.Utilities
         
         public TResult PutSync<TResult>(string path, object o)
             => PutSync<TResult>(path, Utility.ToJson(o, true));
-
     }
 }
