@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using Rhinox.Lightspeed;
 using Rhinox.Perceptor;
 using UnityEngine;
@@ -65,7 +65,7 @@ namespace Rhinox.Utilities
                 else
                 {
                     PLog.Error<UtilityLogger>(error);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -86,7 +86,7 @@ namespace Rhinox.Utilities
                 else
                 {
                     PLog.Error<UtilityLogger>(error);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace Rhinox.Utilities
                 else
                 {
                     PLog.Error<UtilityLogger>(error);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace Rhinox.Utilities
                 if (!request.IsRequestValid(out string error))
                 {
                     PLog.Error<UtilityLogger>(error);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -176,7 +176,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -195,7 +195,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -221,7 +221,7 @@ namespace Rhinox.Utilities
                 else
                 {
                     PLog.Error<UtilityLogger>(error);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -270,7 +270,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
@@ -292,7 +292,7 @@ namespace Rhinox.Utilities
                 {
                     PLog.Error<UtilityLogger>(error);
                     handleRequest?.Invoke(request);
-                    throw new HttpException((int)request.responseCode, error);
+                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
                 }
             }
         }
