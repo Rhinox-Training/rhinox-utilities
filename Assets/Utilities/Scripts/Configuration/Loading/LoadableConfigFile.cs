@@ -66,6 +66,8 @@ namespace Rhinox.Utilities
             _isLoading = true;
             return _loader.Load(this, path, (config) =>
             {
+                PLog.Info<UtilityLogger>($"Loading config '{this.GetType().Name}' from path '{path}'");
+
                 _isLoading = false;
                 _handled = true;
                 _loaded = true;
