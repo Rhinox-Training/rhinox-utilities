@@ -26,7 +26,7 @@ namespace Rhinox.Utilities.Editor
             
             Undo.RegisterCompleteObjectUndo(coll, "Set Collider Bounds");
             coll.center = coll.transform.InverseTransformPoint(bounds.center);
-            coll.size = coll.transform.InverseTransformVector(bounds.size);
+            coll.size = coll.transform.InverseTransformVector(bounds.size).Abs();
         }
         
 #if !UNITY_2020_1_OR_NEWER && ODIN_INSPECTOR

@@ -66,8 +66,7 @@ namespace Rhinox.Utilities
 
         private void Update()
         {
-            
-            foreach (var key in ContainedObjects)
+            foreach (var key in ContainedObjects.ToList())
             {
                 if (key != null) continue;
                 
