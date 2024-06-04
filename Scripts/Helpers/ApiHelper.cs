@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -193,7 +191,28 @@ namespace Rhinox.Utilities
         public async Task<TResult> Post<TResult>(string path, object o, ErrorCallbackAction errorCallback = null)
             => await Post<TResult>(path, Utility.ToJson(o, true), errorCallback);
 
-        public TResult PostSync<TResult>(string path, string json)
+        public void PostSync(string path, string json, WebRequestAction handleRequest = null)
+        {
+            string uri = $"{_baseUrl}{path}";
+            using (var request = new UnityWebRequest(uri, "POST"))
+            {
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+                request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+
+                // Request and wait for the desired page.
+                var op = InitAndSend(request);
+                while (!op.isDone) { }
+                
+                handleRequest?.Invoke(request);
+            }
+        }
+        
+        public void PostSync(string path, object o, WebRequestAction handleRequest = null)
+            => PostSync(path, Utility.ToJson(o, true), handleRequest);
+
+        public TResult PostSync<TResult>(string path, string json, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = new UnityWebRequest(uri, "POST"))
@@ -207,7 +226,7 @@ namespace Rhinox.Utilities
                 var op = InitAndSend(request);
                 while (!op.isDone) { }
 
-                if (CheckRequestValidity(request))
+                if (CheckRequestValidity(request, errorCallback))
                     return request.ParseJsonResult<TResult>(true);
                 else
                     return default;
