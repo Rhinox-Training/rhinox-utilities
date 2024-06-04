@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Rhinox.Lightspeed;
@@ -47,7 +46,22 @@ namespace Rhinox.Utilities
             return request.SendWebRequest();
         }
         
+        private static bool CheckRequestValidity(UnityWebRequest request, ErrorCallbackAction errorCallback = null)
+        {
+            if (!request.IsRequestValid(out string error))
+            {
+                if (errorCallback == null)
+                    PLog.Error<UtilityLogger>(error);
+
+                errorCallback?.Invoke(request);
+                return false;
+            }
+            
+            return true;
+        }
+        
         public delegate void WebRequestAction(UnityWebRequest request);
+        public delegate void ErrorCallbackAction(UnityWebRequest request);
         
         // ================================================================================
         // GET
@@ -59,18 +73,11 @@ namespace Rhinox.Utilities
             {
                 // Request and wait for the desired page.
                 await InitAndSend(request);
-                
-                if (request.IsRequestValid(out string error))
-                    handleRequest?.Invoke(request);
-                else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                handleRequest?.Invoke(request);
             }
         }
-        
-        public async Task<T> Get<T>(string path)
+
+        public async Task<T> Get<T>(string path, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = UnityWebRequest.Get(uri))
@@ -78,41 +85,14 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await InitAndSend(request);
 
-                if (request.IsRequestValid(out string error))
-                {
-                    T result = request.ParseJsonResult<T>(true);
-                    return result;
-                }
+                if (CheckRequestValidity(request, errorCallback))
+                    return request.ParseJsonResult<T>(true);
                 else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                    return default;
             }
         }
 
-        public IEnumerator Get<T>(string path, Action<T> callback)
-        {
-            string uri = $"{_baseUrl}{path}";
-            using (var request = UnityWebRequest.Get(uri))
-            {
-                // Request and wait for the desired page.
-                yield return InitAndSend(request);
-                
-                if (request.IsRequestValid(out string error))
-                {
-                    T result = request.ParseJsonResult<T>(true);
-                    callback?.Invoke(result);
-                }
-                else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
-            }
-        }
-
-        public T GetSync<T>(string path)
+        public T GetSync<T>(string path, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = UnityWebRequest.Get(uri))
@@ -121,25 +101,25 @@ namespace Rhinox.Utilities
                 var op = InitAndSend(request);
                 while (!op.isDone) { }
 
-                return request.ParseJsonResult<T>(true);
+                if (CheckRequestValidity(request, errorCallback))
+                    return request.ParseJsonResult<T>(true);
+                else
+                    return default;
             }
         }
         
         // ================================================================================
         // DELETE
         
-        public async Task Delete(string path)
+        public async Task Delete(string path, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = UnityWebRequest.Delete(uri))
             {
                 await InitAndSend(request);
 
-                if (!request.IsRequestValid(out string error))
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                //no need to deal with response as it is a delete
+                CheckRequestValidity(request, errorCallback);
             }
         }
         
@@ -151,6 +131,9 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 var op = InitAndSend(request);
                 while (!op.isDone) { }
+                
+                //no need to deal with response as it is a delete
+                CheckRequestValidity(request);
             }
         }
         
@@ -169,15 +152,7 @@ namespace Rhinox.Utilities
 
                 // Request and wait for the desired page.
                 await InitAndSend(request);
-
-                if (request.IsRequestValid(out string error))
-                    handleRequest?.Invoke(request);
-                else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    handleRequest?.Invoke(request);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                handleRequest?.Invoke(request);
             }
         }
         
@@ -188,22 +163,14 @@ namespace Rhinox.Utilities
             {
                 // Request and wait for the desired page.
                 await InitAndSend(request);
-
-                if (request.IsRequestValid(out string error))
-                    handleRequest?.Invoke(request);
-                else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    handleRequest?.Invoke(request);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                handleRequest?.Invoke(request);
             }
         }
         
         public async Task Post(string path, object o, WebRequestAction handleRequest = null)
             => await Post(path, Utility.ToJson(o, true), handleRequest);
 
-        public async Task<T> Post<T>(string path, string json)
+        public async Task<T> Post<T>(string path, string json, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = new UnityWebRequest(uri, "POST"))
@@ -216,18 +183,15 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await InitAndSend(request);
 
-                if (request.IsRequestValid(out string error))
+                if(CheckRequestValidity(request, errorCallback))
                     return request.ParseJsonResult<T>(true);
                 else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                    return default;
             }
         }
 
-        public async Task<TResult> Post<TResult>(string path, object o)
-            => await Post<TResult>(path, Utility.ToJson(o, true));
+        public async Task<TResult> Post<TResult>(string path, object o, ErrorCallbackAction errorCallback = null)
+            => await Post<TResult>(path, Utility.ToJson(o, true), errorCallback);
 
         public TResult PostSync<TResult>(string path, string json)
         {
@@ -243,12 +207,15 @@ namespace Rhinox.Utilities
                 var op = InitAndSend(request);
                 while (!op.isDone) { }
 
-                return request.ParseJsonResult<TResult>(true);
+                if (CheckRequestValidity(request))
+                    return request.ParseJsonResult<TResult>(true);
+                else
+                    return default;
             }
         }
         
-        public TResult PostSync<TResult>(string path, object o)
-            => PostSync<TResult>(path, Utility.ToJson(o, true));
+        public TResult PostSync<TResult>(string path, object o, ErrorCallbackAction errorCallback = null)
+            => PostSync<TResult>(path, Utility.ToJson(o, true), errorCallback);
         
         
         // ================================================================================
@@ -263,15 +230,7 @@ namespace Rhinox.Utilities
 
                 // Request and wait for the desired page.
                 await InitAndSend(request);
-
-                if (request.IsRequestValid(out string error))
-                    handleRequest?.Invoke(request);
-                else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    handleRequest?.Invoke(request);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                handleRequest?.Invoke(request);
             }
         }
         
@@ -285,22 +244,14 @@ namespace Rhinox.Utilities
                 
                 // Request and wait for the desired page.
                 await InitAndSend(request);
-
-                if (request.IsRequestValid(out string error))
-                    handleRequest?.Invoke(request);
-                else
-                {
-                    PLog.Error<UtilityLogger>(error);
-                    handleRequest?.Invoke(request);
-                    throw new HttpRequestException($"Code: {request.responseCode}\n Message: '{error}'");
-                }
+                handleRequest?.Invoke(request);
             }
         }
         
         public async Task Put(string path, object o, WebRequestAction handleRequest = null)
             => await Put(path, Utility.ToJson(o, true), handleRequest);
 
-        public async Task<T> Put<T>(string path, string json)
+        public async Task<T> Put<T>(string path, string json, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = UnityWebRequest.Put(uri, json))
@@ -310,14 +261,17 @@ namespace Rhinox.Utilities
                 // Request and wait for the desired page.
                 await InitAndSend(request);
 
-                return request.ParseJsonResult<T>(true);
+                if (CheckRequestValidity(request, errorCallback))
+                    return request.ParseJsonResult<T>(true);
+                else
+                    return default;
             }
         }
 
-        public async Task<TResult> Put<TResult>(string path, object o)
-            => await Put<TResult>(path, Utility.ToJson(o, true));
+        public async Task<TResult> Put<TResult>(string path, object o, ErrorCallbackAction errorCallback = null)
+            => await Put<TResult>(path, Utility.ToJson(o, true), errorCallback);
 
-        public TResult PutSync<TResult>(string path, string json)
+        public TResult PutSync<TResult>(string path, string json, ErrorCallbackAction errorCallback = null)
         {
             string uri = $"{_baseUrl}{path}";
             using (var request = UnityWebRequest.Put(uri, json))
@@ -328,7 +282,10 @@ namespace Rhinox.Utilities
                 var op = InitAndSend(request);
                 while (!op.isDone) { }
 
-                return request.ParseJsonResult<TResult>(true);
+                if (CheckRequestValidity(request, errorCallback))
+                    return request.ParseJsonResult<TResult>(true);
+                else
+                    return default;
             }
         }
         
