@@ -53,9 +53,9 @@ namespace Rhinox.Utilities
                 return;
             }
             
-            PLog.Info($"GraphicsDevice: {SystemInfo.graphicsDeviceType.ToString()}");
+            PLog.Info<UtilityLogger>($"GraphicsDevice: {SystemInfo.graphicsDeviceType.ToString()}");
             
-            PLog.Debug("Loading ConfigFiles");
+            PLog.Debug<UtilityLogger>("Loading ConfigFiles");
             LoadableConfigEvents.ConfigLoaded += OnConfigLoaded;
             _loadedAllConfigs = false;
             _configFileCache = new Dictionary<Type, IConfigFile>();
@@ -63,7 +63,7 @@ namespace Rhinox.Utilities
             bool loadableConfigsDetected = false;
             foreach (var type in GetConfigTypes())
             {
-                PLog.Debug($"Loading config {type.Name}...");
+                PLog.Debug<UtilityLogger>($"Loading config {type.Name}...");
                 IConfigFile config = CreateIfNotExists(type);
                 if (!loadableConfigsDetected && config is ILoadableConfigFile)
                     loadableConfigsDetected = true;
@@ -76,7 +76,7 @@ namespace Rhinox.Utilities
             
             CheckAndRunLoadableTypes(_configFileCache.Values);
             
-            PLog.Debug("Finished Loading ConfigFiles");
+            PLog.Debug<UtilityLogger>("Finished Loading ConfigFiles");
             _initialized = true;
         }
 
@@ -146,10 +146,10 @@ namespace Rhinox.Utilities
 
             if (instance == null)
             {
-                PLog.Warn($"No config found at {configFullPath}");
+                PLog.Warn<UtilityLogger>($"No config found at {configFullPath}");
                 ScriptableObject so = ScriptableObject.CreateInstance(t);
 #if UNITY_EDITOR
-                PLog.Warn($"Please configure {t.Name} at {configFullPath}");
+                PLog.Warn<UtilityLogger>($"Please configure {t.Name} at {configFullPath}");
                 EnsureResourcesFolder();
                 AssetDatabase.CreateAsset(so, configFullPath);
                 AssetDatabase.SaveAssets();
