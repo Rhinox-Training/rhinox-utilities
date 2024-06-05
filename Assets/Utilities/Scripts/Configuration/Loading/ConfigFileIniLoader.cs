@@ -18,7 +18,7 @@ namespace Rhinox.Utilities
             return (x) => IniParser.ReadAsync(x, (reader) =>
             {
                 _reader = reader;
-                PLog.Info($"Finished loading Ini: {path}");
+                PLog.Debug<UtilityLogger>($"Finished reading Ini: {path}");
             });
         }
 
@@ -43,6 +43,13 @@ namespace Rhinox.Utilities
             }
             
             var keys = _reader.EnumSection(configField.Section);
+
+            if (keys.IsNullOrEmpty())
+            {
+                fields = Array.Empty<DynamicConfigFieldEntry>();
+                return false;
+            }
+            
             var fieldResult = new List<DynamicConfigFieldEntry>();
             foreach (var key in keys)
             {

@@ -13,64 +13,88 @@ namespace Rhinox.Utilities
 {
     public interface IConfigLoader
     {
+        Task<bool> LoadAsync(ILoadableConfigFile file, string path);
         bool Load(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback = null);
+        bool LoadFromCommandLine(ILoadableConfigFile file);
+        
         bool Save(ILoadableConfigFile file, string path, bool overwrite = false);
     }
 
     public abstract class ConfigLoader : IConfigLoader
     {
-        protected ICollection<FieldParser> _parsers;
-        
         public virtual bool SupportsDynamicGroups => false;
+        
+        protected ICollection<FieldParser> _parsers;
+
+        protected delegate Task LoadHandler(string path);
         
         protected ConfigLoader()
         {
             _parsers = FieldParserHelper.GetParsers().ToList();
         }
-        
-        public bool Load(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback = null)
+
+        private bool Validate(string path)
         {
-            if (!string.IsNullOrWhiteSpace(path) && FileHelper.Exists(path))
-                return LoadFileAsync(file, path, GetLoadHandler(path), callback);
+            return !string.IsNullOrWhiteSpace(path) && FileHelper.Exists(path);
+        }
+        
+        public async Task<bool> LoadAsync(ILoadableConfigFile file, string path)
+        {
+            if (!Validate(path))
+            {
+                PLog.Info<UtilityLogger>($"Skipped config file at: {path}. Reason = Does not exist.");
+                return false;
+            }
+            
             try
             {
-                ParseCommandLineArgs(file);
-                callback?.Invoke(file);
+                PLog.Debug<UtilityLogger>($"Initialize ConfigLoader for {path}");
+                var loader = GetLoadHandler(path);
+                await loader(path);
+                ParseData(file);
+                CleanUp();
                 return true;
             }
             catch (Exception e)
             {
-                PLog.Error($"Failed to load config \"{file.GetType().GetNiceName()}\". Reason = {e}");
+                PLog.Error<UtilityLogger>($"Failed to load config file at: {path}. Reason = {e}");
+                return false;
+            }
+        }
+        
+        protected async void LoadAsync(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback)
+        {
+            await LoadAsync(file, path);
+            callback?.Invoke(file);
+        }
+
+        public bool Load(ILoadableConfigFile file, string path, Action<ILoadableConfigFile> callback = null)
+        {
+            if (!Validate(path))
+            {
+                PLog.Info<UtilityLogger>($"Skipped config file at: {path}. Reason = Does not exist.");
+                return false;
+            }
+            
+            LoadAsync(file, path, callback);
+            return true;
+        }
+
+        public bool LoadFromCommandLine(ILoadableConfigFile file)
+        {
+            try
+            {
+                ParseCommandLineArgs(file);
+                return true;
+            }
+            catch (Exception e)
+            {
+                PLog.Error<UtilityLogger>($"Failed to load config \"{file.GetType().GetNiceName()}\". Reason = {e}");
                 return false;
             }
         }
 
         public abstract bool Save(ILoadableConfigFile file, string path, bool overwrite = false);
-        
-        public delegate Task LoadHandler(string path);
-
-        protected bool LoadFileAsync(ILoadableConfigFile file, string path, LoadHandler loader, Action<ILoadableConfigFile> callback = null)
-        {
-            try
-            {
-                PLog.Debug($"Initialize ConfigLoader for {path}");
-                var loaderTask = loader(path);
-                var awaiter = loaderTask.GetAwaiter();
-                awaiter.OnCompleted(() =>
-                {
-                    ParseData(file);
-                    CleanUp();
-                    callback?.Invoke(file);
-                });
-            }
-            catch (Exception e)
-            {
-                PLog.Error($"Failed to load config file at: {path}. Reason = {e}");
-                return false;
-            }
-
-            return true;
-        }
 
         protected abstract LoadHandler GetLoadHandler(string path);
 
@@ -97,9 +121,6 @@ namespace Rhinox.Utilities
                     PLog.Debug<UtilityLogger>($"Dynamic Group Setting {configField.Name} loaded: group of size {dynamicFields.Length}");
                 }
             }
-
-            // Parse command line args in a second path since its values take priority
-            ParseCommandLineArgs(configFile);
         }
 
         protected virtual void ParseCommandLineArgs(ILoadableConfigFile configFile)
