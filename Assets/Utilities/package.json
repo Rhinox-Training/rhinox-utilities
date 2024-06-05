@@ -11,7 +11,7 @@
   ],
   "category": "Unity",
   "dependencies": {
-	"com.rhinox.open.lightspeed": "2.1.2",
+	"com.rhinox.open.lightspeed": "2.1.5",
 	"com.rhinox.open.guiutils": "3.3.1",
 	"com.rhinox.open.perceptor": "0.4.0"
   },
