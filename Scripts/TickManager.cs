@@ -12,6 +12,8 @@ namespace Rhinox.Utilities
     {
         public event Action Tick;
         public event Action LateTick;
+        public event Action AwakeTick;
+        public event Action StartTick;
         
         private void Update()
         {
@@ -21,6 +23,16 @@ namespace Rhinox.Utilities
         private void LateUpdate()
         {
             LateTick?.Invoke();
+        }
+
+        private void Awake()
+        {
+            AwakeTick?.Invoke();
+        }
+
+        private void Start()
+        {
+            StartTick?.Invoke();
         }
     }
 }
