@@ -330,7 +330,7 @@ namespace Rhinox.Utilities.Editor
                     {
                         case ASSET_KEY:
                             // Better performant copy for large files
-                            EnsureDirectoryForFile(entry.AssetPath);
+                            FileHelper.EnsureDirectoryForFile(entry.AssetPath);
                             using (var fileStream = new FileStream(entry.AssetPath, FileMode.Create, FileAccess.ReadWrite))
                             {
                                 int bytesWritten = CopyEntryToStream(_tarInputStream, fileStream);
@@ -532,13 +532,6 @@ namespace Rhinox.Utilities.Editor
             return File.Exists(packagePath);
         }
 
-        private static void EnsureDirectoryForFile(string filePath)
-        {
-            string containingFolder = Path.GetDirectoryName(Path.GetFullPath(filePath));
-            if (!string.IsNullOrWhiteSpace(containingFolder))
-                Directory.CreateDirectory(containingFolder); // Ensure folder
-        }
-
         private static bool WriteAllBytes(string path, byte[] bytes, bool overwriteIfExists = false)
         {
             if (File.Exists(path))
@@ -549,7 +542,7 @@ namespace Rhinox.Utilities.Editor
                     return false;
             }
 
-            EnsureDirectoryForFile(path);
+            FileHelper.EnsureDirectoryForFile(path);
 
             File.WriteAllBytes(path, bytes);
             return true;
